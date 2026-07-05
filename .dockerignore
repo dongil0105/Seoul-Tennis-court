@@ -1,0 +1,17 @@
+# 클라우드 빌드/업로드에 절대 포함하면 안 되는 것들 (비밀·로컬 전용)
+.env
+*.env
+!.env.example
+.venv/
+venv/
+data/
+db/
+*.db
+*.sqlite3
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+docs/
+*.bat
+.claude/

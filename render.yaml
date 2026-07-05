@@ -1,0 +1,20 @@
+# Render 배포 설정(Blueprint) — 친구 공유용 '읽기 전용' 대시보드(카톡 알림 없음).
+# Render 대시보드에서 이 저장소를 연결하면 이 파일을 읽어 자동 구성한다.
+services:
+  - type: web
+    name: seoul-tennis-alert
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: SEOUL_API_KEY      # ← Render 대시보드에서 직접 입력(비밀). 저장소에 넣지 말 것.
+        sync: false
+      - key: PUBLIC_READONLY    # 공개 배포 → 설정 변경 차단(읽기 전용)
+        value: "true"
+      - key: NOTIFY_ON_STARTUP  # 클라우드엔 카톡 없음
+        value: "false"
+      - key: NOTIFY_ON_POLL
+        value: "false"
+      - key: ENABLED_SOURCES    # 공식 오픈API만
+        value: ""
