@@ -1,0 +1,24 @@
+# GitHub 는 저장소에 60일간 커밋이 없으면 예약(schedule) 워크플로를 자동으로 꺼 버림.
+# → 매달 1일 빈 커밋을 하나 넣어 ping 워크플로가 계속 돌게 유지.
+name: monthly keepalive commit
+
+on:
+  schedule:
+    - cron: "17 3 1 * *"     # 매달 1일 03:17 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: empty commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "keepalive: 예약 워크플로 60일 자동 중지 방지용 빈 커밋"
+          git push
