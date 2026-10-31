@@ -59,8 +59,23 @@ def areas_of(region: str | None, facility: str, court: str) -> list[str]:
 
 
 def _fresh(session: Session, watched_only: bool = True) -> list[Slot]:
+    """최근 수집에 실제로 들어 있던 행만. 소스별 마지막 수집 회차(같은 last_seen)보다 오래된 행은
+    공식 목록에서 사라진 서비스라 제외한다(26시간 안이라도 옛 상태를 보여주지 않게)."""
     cutoff = _now() - timedelta(hours=FRESH_HOURS)
     rows = list(session.exec(select(Slot).where(Slot.last_seen >= cutoff)))
+    from app.services import sync as SYNC
+    latest: dict[str, datetime] = {}
+    for s in rows:
+        if s.source_id not in latest or s.last_seen > latest[s.source_id]:
+            latest[s.source_id] = s.last_seen
+    for src, at in latest.items():           # 기록된 회차가 있으면 그 회차(같은 last_seen)
+        b = SYNC.BATCH.get(src)
+        if b is not None and b < at:
+            latest[src] = b
+    gone = {src for src, at in latest.items()
+            if SYNC.EMPTY_OK.get(src) is not None and SYNC.EMPTY_OK[src] > at}
+    rows = [s for s in rows if s.source_id not in gone
+            and s.last_seen >= latest[s.source_id] - timedelta(seconds=1)]
     if watched_only:
         rows = [s for s in rows if is_watched(s.region, s.facility_name, s.court_name)]
     return rows
@@ -78,14 +93,22 @@ def _parse_dt(v: str) -> datetime | None:
 _parse_open = _parse_dt  # 하위호환
 
 
+UNCONFIRMED = "오픈됨(상태 미갱신)"
+OPENING_STATES = ("안내중", UNCONFIRMED, "접수중")   # D-5 안내에 넣는 상태(중지·마감·종료 제외)
+
+
 def effective_status(s: Slot, now: datetime) -> str:
-    """API 상태를 접수 시작·끝 시각으로 보정한 '지금 실제 상태'."""
+    """API 상태를 접수 시작·끝 시각으로 보정한 '지금 상태'.
+
+    접수 시작이 지났는데 공식 상태가 아직 '안내중'이면 '접수중'으로 단정하지 않는다
+    (2026-10-31 한남: 09:00 오픈 후 7시간 넘게 '안내중' — 실제로는 오픈 직후 마감).
+    """
     st = (s.status or "").strip()
     open_dt, close_dt = _parse_dt(s.open_at), _parse_dt(s.close_at)
     if close_dt and now > close_dt and st in ("접수중", "안내중"):
         return "접수종료"
     if st == "안내중" and open_dt and now >= open_dt:
-        return "접수중"
+        return UNCONFIRMED
     if st == "접수중" and open_dt and now < open_dt:
         return "안내중"
     return st
@@ -136,13 +159,18 @@ def _hour_parts(time_start: str, time_end: str) -> set[str]:
     sh, eh = _h(time_start), _h(time_end)
     if sh is None or eh is None:
         return set(PARTS)
+    # 자정을 넘는 운영(22:00-02:00)은 [22,24)·[0,2) 두 구간으로 나눠 본다.
+    segs = [(sh, eh)] if eh > sh else [(sh, 24), (0, eh)]
     parts: set[str] = set()
-    if sh < 7:
-        parts.add("새벽")
-    if sh <= 17 and eh > 8:
-        parts.add("주간")
-    if eh >= 19:
-        parts.add("야간")
+    for a, b in segs:
+        if b <= a:
+            continue
+        if a < 7:
+            parts.add("새벽")
+        if a <= 17 and b > 8:
+            parts.add("주간")
+        if b >= 19:
+            parts.add("야간")
     return parts or {"주간"}
 
 
@@ -242,9 +270,18 @@ def use_period(s: Slot) -> tuple[date_cls | None, date_cls | None, bool]:
     """(시작, 끝, 날짜용 회차인가). 이름 기간 → 이용 기간 순으로 본다."""
     uf, ut = _iso(s.use_from), _iso(s.use_to)
     ref = (uf or _now().date()).year
-    p = period_from_name(s.facility_name, ref)
-    if p and uf and p[1] < uf:          # 이름의 연도 추정이 1년 어긋난 경우
-        p = period_from_name(s.facility_name, ref + 1)
+    p = None
+    # 이름에는 연도가 없다 → 공식 이용기간과 겹치는 해(전년·같은 해·다음 해)를 고른다.
+    # 겹치는 해가 없으면(이름과 공식 기간이 모순) 공식 시작 연도 그대로 둔다.
+    for y in (ref, ref - 1, ref + 1):
+        cand = period_from_name(s.facility_name, y)
+        if cand is None:
+            break
+        if uf is None or ut is None or (cand[0] <= ut and cand[1] >= uf):
+            p = cand
+            break
+    if p is None:
+        p = period_from_name(s.facility_name, ref)
     if p:
         return p[0], p[1], True
     exact = bool(uf and ut and (ut - uf).days <= EXACT_MAX_DAYS)
@@ -319,6 +356,11 @@ def _item(s: Slot, today: date_cls) -> dict:
 
 # ── 오픈 일정 개요(/openings) ──────────────────────────────────────
 
+def _ends_before(s: Slot, open_dt: datetime) -> bool:
+    ut = _iso(s.use_to)
+    return bool(ut and ut < open_dt.date())
+
+
 def soon_groups(rows: list[Slot], now: datetime, days: int = SOON_DAYS) -> list[dict]:
     """예약 접수가 오늘~D-days 에 열리는 것 — (장소, 오픈 시각)별 묶음."""
     today = now.date()
@@ -330,7 +372,7 @@ def soon_groups(rows: list[Slot], now: datetime, days: int = SOON_DAYS) -> list[
         d = (dt.date() - today).days
         if not (0 <= d <= days):
             continue
-        if effective_status(s, now) == "접수종료":
+        if effective_status(s, now) not in OPENING_STATES or _ends_before(s, dt):
             continue
         place = place_label(s)
         key = (dt.date(), place)     # 같은 날 같은 장소는 몇 분 차이 오픈도 한 묶음(09:00·09:03)
@@ -381,8 +423,10 @@ def overview(session: Session) -> dict:
 
     soon = soon_groups(rows, now)
     badge = sum(1 for e in soon if (e["d_day"] == 0 and not e["opened"]) or e["d_day"] == 1)
+    from app.services import sync as SYNC
     return {
         "now": now.strftime("%Y-%m-%d %H:%M"),
+        "updated_at": SYNC.last_sync(),
         "badge": badge,
         "soon": soon,
         "areas": all_areas(),
@@ -398,12 +442,79 @@ def overview(session: Session) -> dict:
     }
 
 
+# ── 코트 단위 이름 ─────────────────────────────────────────────────
+
+# 우선순위 순서대로 찾는다('한남테니스장 10번코트'에서 '테니스장 10'을 먼저 잡지 않게).
+_COURT_PATTERNS = [
+    (re.compile(r"(\d+)\s*번\s*코트"), "{}번 코트"),
+    (re.compile(r"([A-Z])\s*코트"), "{}코트"),
+    (re.compile(r"코트\s*(\d+)"), "{}번 코트"),
+    (re.compile(r"(\d+)\s*면"), "{}면"),
+    (re.compile(r"([A-Z])\s*면"), "{}면"),
+    (re.compile(r"테니스장\s*(\d+)"), "{}번 코트"),
+    (re.compile(r"\s([A-Z])\s*$"), "{}코트"),
+]
+_DAY_NAME = {0: "월", 1: "화", 2: "수", 3: "목", 4: "금", 5: "토", 6: "일"}
+
+
+def court_label(name: str) -> str:
+    """'한남테니스장 1번코트 일요일' → '1번 코트', '중랑… 테니스장 B' → 'B코트', '마루… 1면 (조명)' → '1면 조명'."""
+    label = "코트"
+    for rx, fmt in _COURT_PATTERNS:
+        m = rx.search(name)
+        if m:
+            label = fmt.format(m.group(1))
+            break
+    if re.search(r"조명(?!쪽)", name):   # '1면 조명쪽'은 코트 위치 이름, 끝의 '조명'이 야간 조명 이용
+        label += " 조명"
+    return label
+
+
+def slot_label(name: str) -> str:
+    """요일·시간대 조건을 짧은 말로: '월요일 야간 및 주말' → '월 야간 · 주말·공휴일'."""
+    out = []
+    for chunk in re.split(r"\s*및\s*", name):
+        days, hol = _clause_days(chunk)
+        parts = _clause_parts(chunk)
+        if not days and not hol and not parts:
+            continue
+        if not days and hol and not parts and "공휴일" in " ".join(out):
+            continue   # '주말 및 공휴일' → 이미 '주말·공휴일'
+        if days == {0, 1, 2, 3, 4}:
+            d = "평일"
+        elif days == {5, 6}:
+            d = "주말·공휴일" if hol else "주말"
+        elif days:
+            d = "·".join(_DAY_NAME[x] for x in sorted(days))
+        else:
+            d = "공휴일" if hol else ""
+        p = "·".join(x for x in PARTS if x in parts) if parts and parts != set(PARTS) else ""
+        out.append(" ".join(x for x in (d, p) if x))
+    return " · ".join(x for x in out if x) or "매일"
+
+
 # ── 날짜로 코트 찾기(/available, /calendar) ─────────────────────────
 
+# 화면 순서 = 확실한 것부터. key 는 API·화면 공통.
+SECTIONS = [
+    ("open", "접수중", "공식 상태가 '접수중'인 이 날짜 회차예요. 시간별 남은 자리는 코트를 눌러 예약 화면에서 확인하세요."),
+    ("unconfirmed", "오픈됨 · 마감 여부 확인 필요",
+     "접수는 시작됐지만 서울시 공식 상태가 아직 바뀌지 않았어요. 인기 코트는 오픈 직후 다 차는 일이 많아요."),
+    ("later", "아직 오픈 전", "이 날짜 회차의 예약이 아직 열리지 않았어요. 오픈 시각에 맞춰 들어가세요."),
+    ("rolling", "상시 예약 코트 · 자리 확인 필요",
+     "1년 내내 열려 있는 코트라 이 날짜 자리가 찼는지는 공식 데이터에 없어요. 코트를 눌러 달력에서 확인하세요."),
+    ("full", "예약 마감", "공식 상태가 '예약마감'이에요. 이 회차는 자리가 다 찼어요."),
+]
+STATE_LABEL = {"open": "접수중", "unconfirmed": "확인 필요", "later": "오픈 전",
+               "rolling": "자리 확인", "full": "마감"}
+
+
+_NAME_YEAR = re.compile(r"(20\d\d)\s*년")
+
+
 def _classify(rows: list[Slot], target: date_cls, part: str | None, now: datetime) -> dict:
-    """그 날짜(·시간대)에 해당하는 코트를 exact(날짜용 회차, 접수중) / rolling(상시, 접수중) /
-    full(날짜용 회차인데 예약마감) / later(그 날짜 회차가 아직 안 열림) 로 나눈다."""
-    res: dict[str, list[Slot]] = {"exact": [], "rolling": [], "full": [], "later": []}
+    """그 날짜(·시간대)에 해당하는 코트(=예약 서비스 1건)를 SECTIONS 키별로 나눈다."""
+    res: dict[str, list[Slot]] = {k: [] for k, _, _ in SECTIONS}
     if target < now.date():
         return res
     for s in rows:
@@ -412,39 +523,78 @@ def _classify(rows: list[Slot], target: date_cls, part: str | None, now: datetim
             continue
         if ut and target > ut:
             continue
+        yr = _NAME_YEAR.search(s.facility_name)
+        if yr and int(yr.group(1)) != target.year:   # '서울숲 테니스장 주말 2027년'
+            continue
         if not matches_day(s.facility_name, target, part, s.time_start, s.time_end):
             continue
         st = effective_status(s, now)
-        if st == "접수중":
-            res["exact" if exact else "rolling"].append(s)
-        elif st == "예약마감" and exact:
+        if st == "예약마감":
             res["full"].append(s)
-        elif st == "안내중" and exact:
+        elif st == "접수중":
+            res["open" if exact else "rolling"].append(s)
+        elif st == UNCONFIRMED:
+            res["unconfirmed"].append(s)
+        elif st == "안내중":
             res["later"].append(s)
     return res
 
 
+def _court_item(s: Slot, state: str) -> dict:
+    uf, ut, exact = use_period(s)
+    return {
+        "court": court_label(s.facility_name),
+        "slot": slot_label(s.facility_name),
+        "name": s.facility_name,
+        "time": s.time,
+        "is_paid": s.is_paid,
+        "eligibility": s.eligibility,
+        "period": f"{_md(uf)}~{_md(ut)}" if exact and uf and ut else "상시 예약",
+        "state": state,
+        "state_label": STATE_LABEL[state],
+        "open_at": s.open_at or "",
+        "reserve_url": s.reserve_url,
+    }
+
+
+def _court_sort_key(c: dict):
+    m = re.match(r"(\d+)", c["court"])
+    return (int(m.group(1)) if m else 999, c["court"], c["slot"])
+
+
+def _places(slots: list[Slot], state: str) -> list[dict]:
+    g: dict[str, dict] = {}
+    for s in slots:
+        key = place_label(s)
+        e = g.setdefault(key, {"place": key, "region": s.region,
+                               "areas": areas_of(s.region, s.facility_name, s.court_name),
+                               "courts": []})
+        e["courts"].append(_court_item(s, state))
+    out = list(g.values())
+    for e in out:
+        e["courts"].sort(key=_court_sort_key)
+        e["court_count"] = len(e["courts"])
+    out.sort(key=lambda e: (e["region"] or "", e["place"]))
+    return out
+
+
 def available(session: Session, target: date_cls, part: str | None = None,
               watched_only: bool = True) -> dict:
-    """그 날짜(와 시간대)에 예약할 수 있는 코트.
+    """그 날짜(와 시간대)의 코트를 코트 단위로, 확실한 것부터 섹션별로.
 
-    exact = 그 날짜용 회차가 열려 있음(가장 정확) · rolling = 상시 코트(그날 자리는 달력 확인)
-    full = 그 날짜 회차가 이미 다 참 · later = 그 날짜 회차가 아직 안 열림(오픈 시각 표시).
+    날짜별 남은 자리는 서울시가 공개하지 않는다(예약 화면 자동 조회는 차단·경고) —
+    그래서 '접수중/마감'은 공식 상태, 나머지는 확인 필요로 정직하게 구분한다.
     """
     now = _now()
     rows = _fresh(session, watched_only=watched_only)
     c = _classify(rows, target, part, now)
-    later = _group(c["later"], exact=True)
-    opens = {}
-    for s in c["later"]:
-        k = place_label(s)
-        if s.open_at and (k not in opens or s.open_at < opens[k]):
-            opens[k] = s.open_at
-    for e in later:
-        e["open_at"] = opens.get(e["place"], "")
-    exact = _group(c["exact"], exact=True)
-    rolling = _group(c["rolling"], exact=False)
-    full = _group(c["full"], exact=True)
+    sections = []
+    for key, title, note in SECTIONS:
+        places = _places(c[key], key)
+        sections.append({"key": key, "title": title, "note": note, "places": places,
+                         "court_count": sum(p["court_count"] for p in places)})
+    counts = {sec["key"]: sec["court_count"] for sec in sections}
+    from app.services import sync as SYNC
     return {
         "date": target.isoformat(),
         "weekday": WD_LABEL[target.weekday()],
@@ -452,25 +602,25 @@ def available(session: Session, target: date_cls, part: str | None = None,
         "is_holiday": is_holiday(target),
         "holiday": holiday_name(target),
         "part": part or "",
-        "exact": exact,
-        "rolling": rolling,
-        "full": full,
-        "later": later,
-        "count_exact": len(exact),
-        "count_rolling": len(rolling),
-        "count_full": len(full),
-        "count_later": len(later),
-        "note_exact": "이 날짜 회차로 열린 코트예요. 시간별 남은 자리는 예약하기에서 확인하세요.",
-        "note_rolling": "상시 예약 코트예요. 이 날짜 자리가 이미 찼을 수 있어요 — 예약 달력에서 확인하세요.",
-        "note_full": "이 날짜 회차는 예약이 다 찼어요(공식 데이터 '예약마감').",
-        # 하위호환(예전 화면)
-        "count": len(exact) + len(rolling),
-        "items": [_item(s, now.date()) for s in c["exact"] + c["rolling"]],
-        "note": "잔여 자리는 각 코트의 예약 페이지 달력에서 확인돼요(공식 데이터 제공 범위).",
+        "updated_at": SYNC.last_sync(),
+        "sections": sections,
+        "counts": counts,
+        # 하위호환(이전 화면·외부 호출): 장소 묶음
+        "exact": _group(c["open"], exact=True),
+        "rolling": _group(c["rolling"], exact=False),
+        "full": _group(c["full"], exact=True),
+        "later": _group(c["later"], exact=True),
+        "unconfirmed": _group(c["unconfirmed"], exact=True),
+        "count_exact": len({place_label(s) for s in c["open"]}),
+        "count_rolling": len({place_label(s) for s in c["rolling"]}),
+        "count": counts["open"] + counts["rolling"],
+        "items": [_item(s, now.date()) for s in c["open"] + c["rolling"]],
+        "note": "날짜별 남은 자리는 서울시가 공개하지 않아요 — 코트를 눌러 예약 화면에서 확인하세요.",
     }
 
 
 def calendar(session: Session, days: int = 30, watched_only: bool = True) -> dict:
+    """날짜별 코트 수(코트 = 예약 서비스 1건) — 섹션 키별."""
     now = _now()
     rows = _fresh(session, watched_only=watched_only)
     start = now.date()
@@ -478,16 +628,14 @@ def calendar(session: Session, days: int = 30, watched_only: bool = True) -> dic
     for i in range(max(1, min(days, 62))):
         d = start + timedelta(days=i)
         c = _classify(rows, d, None, now)
-        out.append({
-            "date": d.isoformat(), "weekday": WD_LABEL[d.weekday()],
-            "is_weekend": d.weekday() >= 5, "is_holiday": is_holiday(d),
-            "holiday": holiday_name(d),
-            "exact": len({place_label(s) for s in c["exact"]}),
-            "rolling": len({place_label(s) for s in c["rolling"]}),
-            "full": len({place_label(s) for s in c["full"]}),
-            "later": len({place_label(s) for s in c["later"]}),
-        })
-    return {"start": start.isoformat(), "days": out}
+        item = {"date": d.isoformat(), "weekday": WD_LABEL[d.weekday()],
+                "is_weekend": d.weekday() >= 5, "is_holiday": is_holiday(d),
+                "holiday": holiday_name(d)}
+        item.update({k: len(v) for k, v in c.items()})
+        item["exact"] = item["open"]   # 하위호환
+        out.append(item)
+    from app.services import sync as SYNC
+    return {"start": start.isoformat(), "updated_at": SYNC.last_sync(), "days": out}
 
 
 # ── 알람 판정(전날 d1 · 1시간 전 h1) ───────────────────────────────
@@ -504,8 +652,8 @@ def pending_alerts(session: Session, prefix: str = "") -> list[tuple[str, Slot]]
     due: list[tuple[str, Slot]] = []
     for s in _fresh(session, watched_only=True):
         dt = _parse_dt(s.open_at)
-        if not dt:
-            continue
+        if not dt or effective_status(s, now) != "안내중" or _ends_before(s, dt):
+            continue   # 중지·마감·종료, 이용기간이 오픈 전에 끝나는 모순 데이터는 '열린다'고 알리지 않음
         od = dt.date().isoformat()
         d = (dt.date() - today).days
         if d == 1 and (s.slot_hash, od, prefix + "d1") not in sent:

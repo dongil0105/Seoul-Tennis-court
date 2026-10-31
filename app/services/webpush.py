@@ -18,7 +18,7 @@ from sqlmodel import Session, select
 
 from app.clock import now as _now
 from app.config import settings
-from app.models import PushSub
+from app.models import PushSent, PushSub
 
 logger = logging.getLogger("tennis.webpush")
 
@@ -42,9 +42,17 @@ def _keys():
     from py_vapid import Vapid
 
     raw = (settings.vapid_private_key or "").strip()
+    scalar = 0
     if raw:
-        scalar = int.from_bytes(_b64u_dec(raw), "big")
-    else:
+        try:
+            b = _b64u_dec(raw)
+            scalar = int.from_bytes(b, "big") if len(b) == 32 else 0
+        except ValueError:
+            scalar = 0
+        if not (0 < scalar < _P256_N):
+            logger.error("VAPID_PRIVATE_KEY 형식이 잘못됐어요(base64url 32바이트) — 서버 비밀값에서 만든 키를 씁니다.")
+            scalar = 0
+    if not scalar:
         seed = (settings.seoul_api_key or settings.kakao_rest_key or "").strip()
         if not seed:
             return None, ""
@@ -65,6 +73,28 @@ def ready() -> bool:
 
 # ── 구독 저장 ──────────────────────────────────────────────────────
 
+# 브라우저 푸시 서비스 주소만 받는다(서버가 엉뚱한 곳으로 요청을 보내게 만들 수 없게).
+_PUSH_HOSTS = ("fcm.googleapis.com", "android.googleapis.com", "updates.push.services.mozilla.com",
+               "web.push.apple.com")
+_PUSH_SUFFIXES = (".push.apple.com", ".notify.windows.com", ".push.services.mozilla.com")
+
+
+def endpoint_allowed(ep: str) -> bool:
+    from urllib.parse import urlparse
+    try:
+        u = urlparse(ep)
+    except ValueError:
+        return False
+    try:
+        port = u.port
+    except ValueError:
+        return False
+    host = (u.hostname or "").lower()
+    if u.scheme != "https" or not host or u.username or u.password or port not in (None, 443):
+        return False
+    return host in _PUSH_HOSTS or host.endswith(_PUSH_SUFFIXES)
+
+
 def _clean_areas(areas) -> list[str]:
     from app.services.openings import all_areas
     valid = all_areas()
@@ -74,20 +104,31 @@ def _clean_areas(areas) -> list[str]:
     return out or valid
 
 
-def subscribe(session: Session, sub: dict, areas=None, d1: bool = True, h1: bool = True,
-              ua: str = "") -> dict:
+def subscribe(session: Session, sub: dict, areas=None, d1: bool | None = True,
+              h1: bool | None = True, ua: str = "", old_endpoint: str = "") -> dict:
+    """구독 저장. 브라우저가 구독을 바꿀 때(old_endpoint) 설정이 안 오면 옛 구독 설정을 옮긴다."""
     ep = str((sub or {}).get("endpoint") or "")
     keys = (sub or {}).get("keys") or {}
-    if not ep.startswith("https://") or not keys.get("p256dh") or not keys.get("auth"):
+    if not endpoint_allowed(ep) or not keys.get("p256dh") or not keys.get("auth"):
         return {"ok": False, "error": "구독 정보가 올바르지 않아요."}
+    old = None
+    if old_endpoint and old_endpoint != ep:
+        old = session.exec(select(PushSub).where(PushSub.endpoint == old_endpoint)).first()
     row = session.exec(select(PushSub).where(PushSub.endpoint == ep)).first()
     if row is None:
         row = PushSub(endpoint=ep)
+        if old is not None:
+            row.areas, row.d1, row.h1 = old.areas, old.d1, old.h1
     row.p256dh = str(keys["p256dh"])
     row.auth = str(keys["auth"])
-    row.areas = json.dumps(_clean_areas(areas), ensure_ascii=False)
-    row.d1 = bool(d1)
-    row.h1 = bool(h1)
+    if areas is not None or old is None:
+        row.areas = json.dumps(_clean_areas(areas), ensure_ascii=False)
+    if d1 is not None:
+        row.d1 = bool(d1)
+    if h1 is not None:
+        row.h1 = bool(h1)
+    if old is not None:
+        session.delete(old)
     row.ua = (ua or "")[:200]
     row.updated_at = _now()
     session.add(row)
@@ -114,6 +155,10 @@ def _send(session: Session, row: PushSub, payload: dict, ttl: int = 3600) -> boo
     vapid, _ = _keys()
     if vapid is None:
         return False
+    if not endpoint_allowed(row.endpoint):      # 예전에 저장된 이상한 주소로는 절대 보내지 않음
+        session.delete(row)
+        session.commit()
+        return False
     info = {"endpoint": row.endpoint, "keys": {"p256dh": row.p256dh, "auth": row.auth}}
     try:
         webpush(subscription_info=info, data=json.dumps(payload, ensure_ascii=False),
@@ -133,8 +178,18 @@ def _send(session: Session, row: PushSub, payload: dict, ttl: int = 3600) -> boo
         return False
 
 
+_TEST_AT: dict[str, float] = {}
+TEST_COOLDOWN = 60   # 초 — 같은 기기 테스트 알림 남용 방지
+
+
 def send_test(session: Session, endpoint: str) -> dict:
+    import time
     row = session.exec(select(PushSub).where(PushSub.endpoint == (endpoint or ""))).first()
+    if row is not None:
+        last = _TEST_AT.get(row.endpoint, 0.0)
+        if time.monotonic() - last < TEST_COOLDOWN:
+            return {"ok": False, "error": "테스트 알림은 1분에 한 번만 보낼 수 있어요."}
+        _TEST_AT[row.endpoint] = time.monotonic()
     if row is None:
         return {"ok": False, "error": "이 기기의 알림 구독을 찾지 못했어요. 알림 받기를 다시 눌러 주세요."}
     ok = _send(session, row, {
@@ -155,31 +210,50 @@ def _fmt(open_at: str) -> str:
     return f"{dt.month}/{dt.day}({wd}) {dt:%H:%M}"
 
 
-def send_opening_alerts(session: Session, groups: list[dict], badge: int = 0) -> int:
-    """오픈 알람 묶음을 구독자별(고른 지역·시점)로 걸러 보낸다. 보낸 알림 수 반환."""
+def _event_key(g: dict) -> str:
+    return f"{g['kind']}|{g['place']}|{g['open_at']}"
+
+
+def send_opening_alerts(session: Session | None, groups: list[dict], badge: int = 0) -> int:
+    """오픈 알람을 기기별(고른 지역·시점)로 보낸다. 보낸 기기 수 반환.
+
+    기기마다 받은 알림을 PushSent 에 남겨, 같은 알림은 한 번만 가고 실패한 기기는 다음
+    수집(7분 뒤) 때 다시 시도한다. 새로 구독한 기기도 아직 유효한 알림은 받는다.
+    """
     if not groups or not ready():
         return 0
+    if session is None:                      # 스레드에서 부를 때: 자기 세션을 열고 닫는다
+        from app.db import get_session
+        with get_session() as own:
+            return send_opening_alerts(own, groups, badge)
     sent = 0
     for row in list(session.exec(select(PushSub))):
         try:
             areas = set(json.loads(row.areas or "[]"))
         except ValueError:
             areas = set()
+        done = set(session.exec(select(PushSent.event).where(PushSent.endpoint == row.endpoint)).all())
         mine = [g for g in groups
                 if ((g["kind"] == "d1" and row.d1) or (g["kind"] == "h1" and row.h1))
-                and (not areas or areas & set(g.get("areas") or []))]
+                and (not areas or areas & set(g.get("areas") or []))
+                and _event_key(g) not in done]
         if not mine:
             continue
         h1 = [g for g in mine if g["kind"] == "h1"]
         top = (h1 or mine)[0]
-        when = "1시간 뒤" if top["kind"] == "h1" else "내일"
-        title = f"{top['place']} 예약이 {when} 열려요"
+        hhmm = (top.get("open_at") or "")[11:16]
+        when = f"오늘 {hhmm}" if top["kind"] == "h1" else f"내일 {hhmm}"
+        title = f"{top['place']} 예약 {when} 오픈"
         lines = [f"{g['place']} {g['count']}면 · {_fmt(g['open_at'])}" for g in mine[:4]]
         if len(mine) > 4:
             lines.append(f"외 {len(mine) - 4}곳")
         payload = {"title": title, "body": "\n".join(lines),
-                   "url": (top.get("reserve_url") or "/") if top["kind"] == "h1" else "/", "tag": f"open-{top['kind']}-{top['open_at']}",
-                   "badge": badge}
-        if _send(session, row, payload, ttl=3 * 3600):
+                   "url": (top.get("reserve_url") or "/") if top["kind"] == "h1" else "/",
+                   "tag": f"open-{top['kind']}-{top['open_at']}", "badge": badge}
+        endpoint = row.endpoint
+        if _send(session, row, payload, ttl=3600 if h1 else 6 * 3600):
+            for g in mine:
+                session.add(PushSent(endpoint=endpoint, event=_event_key(g)))
+            session.commit()
             sent += 1
     return sent

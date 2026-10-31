@@ -123,6 +123,19 @@ def _extract_rows(payload: dict) -> list[dict]:
     return []
 
 
+def _result_code(payload: dict) -> str:
+    block = payload.get(settings.seoul_service_name)
+    res = (block or {}).get("RESULT") if isinstance(block, dict) else None
+    res = res or payload.get("RESULT") or {}
+    return str(res.get("CODE") or "")
+
+
+def _mark_empty_ok() -> None:
+    from app.clock import now as _now
+    from app.services import sync as SYNC
+    SYNC.EMPTY_OK[SOURCE_ID] = _now()
+
+
 class SeoulOpenApiCollector:
     """Tier 1 공식 오픈API 수집기."""
     source_id = SOURCE_ID
@@ -133,11 +146,19 @@ class SeoulOpenApiCollector:
             logger.warning("SEOUL_API_KEY 미설정 — 수집 건너뜀.")
             return []
         resp = await request_with_retry("GET", _build_url(1, max_rows))
-        rows = _extract_rows(resp.json())
+        payload = resp.json()
+        rows = _extract_rows(payload)
         if not rows:
+            if _result_code(payload) == "INFO-200":   # 정상 처리 · 해당 데이터 없음
+                _mark_empty_ok()
             logger.info("OA-2266 응답에 row 없음(또는 필드 매핑 불일치). probe 확인 필요.")
             return []
         slots = [_normalize(r) for r in rows if _is_tennis(r)]
+        # '정상 응답인데 테니스 0건'은 결과 코드가 정상이고 행 형식이 맞을 때만 인정한다
+        # (오류 코드·깨진 응답을 빈 목록으로 오인해 화면을 비우지 않게).
+        if not slots and _result_code(payload) == "INFO-000" and all(
+                isinstance(r, dict) and r.get(FIELD_MAP["svc_name"]) for r in rows):
+            _mark_empty_ok()
         if filters and filters.regions:
             slots = [s for s in slots if (s.region or "") in filters.regions]
         logger.info("[seoul] 테니스 슬롯 %d건(전체 %d행)", len(slots), len(rows))

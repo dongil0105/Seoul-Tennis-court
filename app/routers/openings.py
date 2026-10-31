@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.db import get_session
 from app.services import openings as OP
+from app.services import sync as SYNC
 
 router = APIRouter()
 
@@ -16,6 +17,12 @@ def get_openings() -> dict:
     """관심 코트의 예약 오픈 일정(오늘/내일/예정/접수중/마감) + 배지 숫자."""
     with get_session() as session:
         return OP.overview(session)
+
+
+@router.post("/refresh")
+async def post_refresh() -> dict:
+    """공식 데이터를 지금 다시 받는다(90초 쿨다운). 화면의 [새로 고침]·날짜 자동 갱신용."""
+    return await SYNC.refresh()
 
 
 @router.get("/calendar")

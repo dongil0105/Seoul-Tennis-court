@@ -18,6 +18,9 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s | %(message)s",
 )
+# httpx 는 INFO 로 요청 URL 전체를 찍는데, 서울 오픈API 주소에는 인증키가 들어간다.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
 @asynccontextmanager

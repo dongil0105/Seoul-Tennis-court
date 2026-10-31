@@ -44,8 +44,16 @@ self.addEventListener('pushsubscriptionchange', (event) => {
       const raw = atob((publicKey + pad).replace(/-/g, '+').replace(/_/g, '/'));
       const key = Uint8Array.from(raw, (c) => c.charCodeAt(0));
       const sub = await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+      // 화면이 저장해 둔 설정(지역·시점)을 함께 보낸다. 없으면 서버가 옛 구독 설정을 옮긴다.
+      let prefs = {};
+      try {
+        const c = await caches.open('tn-settings');
+        const r = await c.match('/__tn_push_settings');
+        if (r) { const v = await r.json(); prefs = { areas: v.areas, d1: v.d1, h1: v.h1 }; }
+      } catch (_) { /* 설정 없음 */ }
+      const old = event.oldSubscription ? event.oldSubscription.endpoint : '';
       await fetch('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription: sub.toJSON() }) });
+        body: JSON.stringify({ subscription: sub.toJSON(), old_endpoint: old, ...prefs }) });
     } catch (_) { /* 다음에 앱을 열 때 화면이 복구 */ }
   })());
 });

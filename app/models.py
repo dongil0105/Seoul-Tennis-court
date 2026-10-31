@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 from app.clock import now as _now
@@ -121,6 +122,17 @@ class PushSub(SQLModel, table=True):
     ua: str = ""
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)
+
+
+class PushSent(SQLModel, table=True):
+    """앱 알림 기기별 발송 기록 — 같은 기기에 같은 오픈 알림을 두 번 보내지 않고,
+    실패한 기기만 다음 수집 때 다시 시도하게 한다. event = 'd1|한남테니스장|2026-11-12 09:00'."""
+    __tablename__ = "push_sent"
+    __table_args__ = (UniqueConstraint("endpoint", "event"),)
+    id: int | None = Field(default=None, primary_key=True)
+    endpoint: str = Field(index=True)
+    event: str = ""
+    sent_at: datetime = Field(default_factory=_now)
 
 
 class LinkCourt(SQLModel, table=True):

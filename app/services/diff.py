@@ -102,6 +102,11 @@ def upsert_and_extract_new(
                 row.is_open = False
                 session.add(row)
 
+    # 화면·알람은 '마지막 성공 수집 회차'에 들어 있던 행만 쓴다(openings._fresh).
+    from app.services import sync as SYNC
+    for src in current_sources:
+        SYNC.BATCH[src] = now
+
     # flush로 신규 row의 PK를 채워 후속 처리 가능하게
     session.flush()
     return candidates

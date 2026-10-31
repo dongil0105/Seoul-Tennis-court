@@ -62,8 +62,15 @@ async def collect(tiers: set[int] | None = None, filters: CollectFilters | None 
         try:
             got = await col.fetch(filters)
             merged.extend(got)
-        except Exception:  # noqa: BLE001 소스 격리 — 한 소스 실패가 전체를 막지 않음
-            logger.exception("[%s] 수집 실패 — 이 소스만 건너뜀", col.source_id)
+        except Exception as exc:  # noqa: BLE001 소스 격리 — 한 소스 실패가 전체를 막지 않음
+            # 예외 문구에 인증키가 든 요청 주소가 섞일 수 있어 traceback 대신 가린 문구만 남긴다.
+            msg = str(exc)
+            for secret in (settings.seoul_api_key, settings.kakao_rest_key):
+                if secret:
+                    msg = msg.replace(secret, "***")
+            msg = " ".join(msg.split())
+            logger.error("[%s] 수집 실패 — 이 소스만 건너뜀: %s: %s",
+                         col.source_id, type(exc).__name__, msg[:300])
     deduped = _dedup(merged)
     if len(deduped) != len(merged):
         logger.info("cross-source 중복 %d건 제거 → %d건", len(merged) - len(deduped), len(deduped))

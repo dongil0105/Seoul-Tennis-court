@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 
@@ -19,6 +20,7 @@ from app.config import settings
 from app.db import get_session
 from app.models import Slot, UserFilter
 from app.services import openings as OP
+from app.services import sync as SYNC
 from app.services import webpush as WP
 from app.services.diff import upsert_and_extract_new
 from app.services.filters import match_filters
@@ -58,9 +60,11 @@ async def _check_opening_alerts(session) -> None:
             due = [(k, s) for k, s in due if k == "h1"]
         if due:
             badge = OP.overview(session)["badge"]
-            n = WP.send_opening_alerts(session, OP.group_for_message(due), badge=badge)
-            OP.mark_alerted(session, due, prefix="p")
-            logger.info("오픈 알람(앱) %d건 → 기기 %d대", len(due), n)
+            # 기기별 전송은 동기(최대 10초씩)라 이벤트 루프를 막지 않게 스레드에서.
+            n = await asyncio.to_thread(WP.send_opening_alerts, None,
+                                        OP.group_for_message(due), badge)
+            if n:
+                logger.info("오픈 알람(앱) 후보 %d건 → 기기 %d대", len(due), n)
 
 
 async def startup_alert() -> None:
@@ -69,10 +73,14 @@ async def startup_alert() -> None:
     DB 채우기와 카톡 발송을 분리 — 클라우드(친구용, 카톡 없음)에서도 대시보드가 즉시 뜬다.
     """
     try:
-        raw = await collect(tiers={1})
+        async with SYNC._LOCK:
+            raw = await collect(tiers={1})
+            with get_session() as session:
+                upsert_and_extract_new(session, raw)  # 대시보드(/preview)용 DB 갱신 — 항상
+                session.commit()
+            if raw:
+                SYNC.mark()
         with get_session() as session:
-            upsert_and_extract_new(session, raw)  # 대시보드(/preview)용 DB 갱신 — 항상
-            session.commit()
             if settings.notify_on_startup:  # 카톡 요약은 옵션(개인 PC에서만 켬)
                 opens = list(session.exec(select(Slot).where(Slot.is_open.is_(True))))
                 filters = list(session.exec(select(UserFilter)).all())
@@ -84,8 +92,16 @@ async def startup_alert() -> None:
 
 
 async def _run_pipeline(tiers: set[int]) -> None:
-    """수집(지정 tier) → diff → 필터 → 발송. 어떤 예외도 밖으로 던지지 않는다."""
+    """수집(지정 tier) → diff → 필터 → 발송. 어떤 예외도 밖으로 던지지 않는다.
+
+    tier1 은 수집·DB 반영 구간만 앱 새로 고침(POST /refresh)과 같은 잠금을 잡는다
+    (알림 발송까지 잡으면 새로 고침이 오래 기다린다).
+    """
+    locked = False
     try:
+        if 1 in tiers:
+            await SYNC._LOCK.acquire()
+            locked = True
         raw = await collect(tiers=tiers)
         if not raw:
             return
@@ -94,6 +110,10 @@ async def _run_pipeline(tiers: set[int]) -> None:
                 session, raw, allow_reopen=settings.allow_reopen_alert
             )
             session.commit()
+            if locked:
+                SYNC.mark()
+                SYNC._LOCK.release()
+                locked = False
             if 1 in tiers:  # 오픈 알람(전날/1시간 전)은 공식 데이터 갱신 직후마다 판정
                 await _check_opening_alerts(session)
             if not candidates:
@@ -107,6 +127,9 @@ async def _run_pipeline(tiers: set[int]) -> None:
                 await notify_slots(session, matched)
     except Exception:  # noqa: BLE001  잡 격리 — 스케줄러 생존 우선
         logger.exception("tier%s 파이프라인 실패 — 이번 주기 스킵", sorted(tiers))
+    finally:
+        if locked:
+            SYNC._LOCK.release()
 
 
 async def poll_tier1() -> None:

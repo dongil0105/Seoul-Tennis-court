@@ -17,8 +17,9 @@ STATIC = Path(__file__).resolve().parent.parent / "static"
 class SubIn(BaseModel):
     subscription: dict
     areas: list[str] | None = None
-    d1: bool = True
-    h1: bool = True
+    d1: bool | None = None      # 비우면 기존 설정 유지(새 구독은 켜짐)
+    h1: bool | None = None
+    old_endpoint: str = ""      # 브라우저가 구독을 바꾼 경우 옛 주소(설정 이전용)
 
 
 class EndpointIn(BaseModel):
@@ -37,7 +38,8 @@ def push_key() -> dict:
 def push_subscribe(body: SubIn, request: Request) -> dict:
     with get_session() as session:
         res = WP.subscribe(session, body.subscription, body.areas, body.d1, body.h1,
-                           ua=request.headers.get("user-agent", ""))
+                           ua=request.headers.get("user-agent", ""),
+                           old_endpoint=body.old_endpoint)
     if not res.get("ok"):
         raise HTTPException(status_code=400, detail=res.get("error"))
     return res
