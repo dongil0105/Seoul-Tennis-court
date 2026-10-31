@@ -7,7 +7,9 @@
 from __future__ import annotations
 
 import logging
+import os
 
+import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlmodel import select
 
@@ -115,6 +117,19 @@ async def poll_tier23() -> None:
     await _run_pipeline({2, 3})
 
 
+async def self_ping() -> None:
+    """Render 무료 플랜은 15분 동안 들어오는 접속이 없으면 잠든다. 깨어 있는 동안 10분마다
+    공개 주소로 자기 /health 를 불러 잠들지 않게 한다(GitHub Actions 핑의 보조)."""
+    url = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+    if not url:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            await client.get(f"{url}/health")
+    except Exception as e:  # noqa: BLE001
+        logger.warning("자기 핑 실패: %s", e)
+
+
 def start_scheduler() -> AsyncIOScheduler:
     # 고정 오프셋 KST — 외부 tz 데이터베이스 없이 Windows/Docker 동일 동작.
     scheduler = AsyncIOScheduler(timezone=KST)
@@ -126,6 +141,9 @@ def start_scheduler() -> AsyncIOScheduler:
         poll_tier23, trigger="interval", minutes=settings.tier2_interval_minutes,
         id="poll_tier23", max_instances=1, coalesce=True,
     )
+    if os.environ.get("RENDER_EXTERNAL_URL"):
+        scheduler.add_job(self_ping, trigger="interval", minutes=10, id="self_ping",
+                          max_instances=1, coalesce=True)
     scheduler.start()
     logger.info(
         "스케줄러 시작 — tier1 %d분 / tier2~3 %d분",
