@@ -5,7 +5,10 @@ name: keep-awake ping
 on:
   schedule:
     - cron: "*/10 * * * *"   # 10분마다 (UTC 기준, 몇 분 지연될 수 있음 — 상관없음)
-  workflow_dispatch: {}       # 수동 실행 버튼
+  workflow_dispatch: {}       # 수동 실행 버튼(로그인해야 보임)
+  push:                       # 이 파일을 고쳐 올리면 한 번 바로 실행(동작 확인용)
+    branches: [main]
+    paths: [".github/workflows/ping.yml"]
 
 jobs:
   ping:
