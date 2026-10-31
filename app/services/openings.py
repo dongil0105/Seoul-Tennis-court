@@ -41,12 +41,16 @@ def is_watched(region: str | None, facility: str, court: str) -> bool:
     return any(kw in name for kw in settings.watch_keyword_list())
 
 
+def _kw_label(kw: str) -> str:
+    return kw.removesuffix("테니스장") or kw
+
+
 def all_areas() -> list[str]:
-    """알림 설정에서 고르는 지역 이름(구 이름의 앞 두 글자 + 키워드)."""
+    """알림 설정에서 고르는 이름(구 이름 앞 두 글자 + 테니스장 키워드의 짧은 이름)."""
     out = [REGION_AREA.get(r, r.removesuffix("구")) for r in sorted(settings.watch_region_set())]
     order = ["서초", "강남", "성동", "용산"]
     out.sort(key=lambda a: order.index(a) if a in order else 99)
-    return out + [k for k in settings.watch_keyword_list() if k not in out]
+    return out + [_kw_label(k) for k in settings.watch_keyword_list() if _kw_label(k) not in out]
 
 
 def areas_of(region: str | None, facility: str, court: str) -> list[str]:
@@ -54,7 +58,8 @@ def areas_of(region: str | None, facility: str, court: str) -> list[str]:
     if (region or "") in settings.watch_region_set():
         areas.append(REGION_AREA.get(region or "", (region or "").removesuffix("구")))
     name = f"{facility} {court}"
-    areas += [kw for kw in settings.watch_keyword_list() if kw in name and kw not in areas]
+    areas += [_kw_label(kw) for kw in settings.watch_keyword_list()
+              if kw in name and _kw_label(kw) not in areas]
     return areas
 
 
@@ -636,6 +641,105 @@ def calendar(session: Session, days: int = 30, watched_only: bool = True) -> dic
         out.append(item)
     from app.services import sync as SYNC
     return {"start": start.isoformat(), "updated_at": SYNC.last_sync(), "days": out}
+
+
+# ── 보드(/board): 다음 예약 오픈 → 지금 예약 가능한 코트 번호 ─────────
+
+def short_court(label: str) -> str:
+    """'1번 코트' → '1번', 'A코트' → 'A', '1면 조명' 그대로."""
+    return label.replace("번 코트", "번").removesuffix("코트").strip() or label
+
+
+def _chip(s: Slot) -> dict:
+    return {"court": short_court(court_label(s.facility_name)), "slot": slot_label(s.facility_name),
+            "time": s.time, "is_paid": s.is_paid, "reserve_url": s.reserve_url}
+
+
+def _chip_key(c: dict):
+    m = re.match(r"(\d+)", c["court"])
+    return (int(m.group(1)) if m else 999, c["court"], c["slot"])
+
+
+def board(session: Session) -> dict:
+    """화면 한 장: ① 곳별 다음 예약 오픈(오늘 열린 것 포함) ② 지금 공식 '접수중'인 코트 번호.
+
+    '지금 예약 가능'은 공식 상태가 접수중이고 이용기간이 끝나지 않은 것만 — 날짜별 남은 자리는
+    공식 데이터에 없어서, 번호를 누르면 그 코트 예약 화면에서 날짜를 고른다.
+    """
+    now = _now()
+    today = now.date()
+    rows = _fresh(session, watched_only=True)
+    order = all_areas()
+
+    def area(s: Slot) -> str:
+        a = areas_of(s.region, s.facility_name, s.court_name)
+        return a[0] if a else place_label(s)
+
+    opens: dict[tuple, dict] = {}
+    avail: dict[str, dict] = {}
+    for s in rows:
+        st = effective_status(s, now)
+        uf, ut, exact = use_period(s)
+        dt = _parse_dt(s.open_at)
+        if dt and not _ends_before(s, dt) and (
+                (st == "안내중" and dt > now) or (st in (UNCONFIRMED, "접수중") and dt.date() == today)):
+            key = (area(s), dt.date())
+            yr = _NAME_YEAR.search(s.facility_name)
+            period = (f"{_md(uf)}~{_md(ut)}" if exact and uf and ut
+                      else f"{yr.group(1)}년 이용분" if yr and int(yr.group(1)) != dt.year else "")
+            e = opens.setdefault(key, {"area": key[0], "place": place_label(s), "open_at": s.open_at,
+                                       "d_day": (dt.date() - today).days, "opened": dt <= now,
+                                       "period": period, "reserve_url": s.reserve_url, "courts": []})
+            if s.open_at < e["open_at"]:
+                e["open_at"], e["opened"] = s.open_at, dt <= now
+            e["courts"].append(_chip(s))
+        if st == "접수중" and not (ut and ut < today):
+            a = area(s)
+            e = avail.setdefault(a, {"area": a, "place": place_label(s), "until": "", "until_kind": "",
+                                     "courts": []})
+            # 날짜용 회차는 이용 끝날까지, 월 단위 접수(선우공원: 이용기간은 1년, 접수는 한 달)는
+            # 접수 마감일까지. 둘 다 아니면 상시.
+            cd = _parse_dt(s.close_at)
+            if exact and ut:
+                end, kind = ut.isoformat(), "use"
+            elif cd and dt and (cd - dt).days <= 45:
+                end, kind = cd.date().isoformat(), "rcpt"
+            else:
+                end, kind = "", ""
+            if end and end > e["until"]:
+                e["until"], e["until_kind"] = end, kind
+            e["courts"].append(_chip(s))
+
+    openings = sorted(opens.values(), key=lambda x: (x["open_at"], order.index(x["area"])
+                                                       if x["area"] in order else 99))
+    for e in openings:
+        e["courts"].sort(key=_chip_key)
+        e["court_count"] = len(e["courts"])
+    available = sorted(avail.values(), key=lambda x: order.index(x["area"]) if x["area"] in order else 99)
+    for e in available:
+        e["courts"].sort(key=_chip_key)
+        e["court_count"] = len(e["courts"])
+        md = f"{int(e['until'][5:7])}/{int(e['until'][8:10])}" if e["until"] else ""
+        e["until_label"] = (f"{md}까지 이용" if e["until_kind"] == "use"
+                            else f"{md}까지 접수" if e["until_kind"] == "rcpt" else "상시 예약")
+    nxt = {}
+    for e in openings:
+        if not e["opened"]:
+            nxt.setdefault(e["area"], e["open_at"])
+    places = [{"area": a, "next_open": nxt.get(a, ""),
+               "available": next((x["court_count"] for x in available if x["area"] == a), 0)}
+              for a in order]
+    from app.services import sync as SYNC
+    return {
+        "now": now.strftime("%Y-%m-%d %H:%M"),
+        "updated_at": SYNC.last_sync(),
+        "badge": sum(1 for e in openings if not e["opened"] and e["d_day"] <= 1),
+        "areas": order,
+        "places": places,
+        "openings": openings,
+        "available": available,
+        "note": "날짜·시간별 남은 자리는 서울시가 공개하지 않아요. 번호를 누르면 그 코트 예약 화면에서 날짜를 고르세요.",
+    }
 
 
 # ── 알람 판정(전날 d1 · 1시간 전 h1) ───────────────────────────────

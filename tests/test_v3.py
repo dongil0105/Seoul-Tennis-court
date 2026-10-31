@@ -14,6 +14,14 @@ NOW = datetime(2026, 10, 31, 16, 0)   # 토요일 오후
 
 
 @pytest.fixture(autouse=True)
+def _legacy_watch(monkeypatch):
+    """이 파일은 엔진 로직 시험 — 예전 관심 설정(4개 구 + 한남·장충)을 고정해서 돈다."""
+    from app.config import settings as _s
+    monkeypatch.setattr(_s, "watch_regions", "서초구,강남구,성동구,용산구")
+    monkeypatch.setattr(_s, "watch_keywords", "한남,장충")
+
+
+@pytest.fixture(autouse=True)
 def _fixed_now(monkeypatch):
     monkeypatch.setattr(OP, "_now", lambda: NOW)
 

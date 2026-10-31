@@ -41,8 +41,8 @@ class Settings(BaseSettings):
 
     # ── 관심 코트 스크리닝(2026-10-31 개편의 핵심) ──
     # 지역(구) 또는 이름 키워드로 '내 코트'만 추려서 오픈 일정·알림을 만든다.
-    watch_regions: str = "서초구,강남구,성동구,용산구"
-    watch_keywords: str = "한남,장충"
+    watch_regions: str = ""
+    watch_keywords: str = "한남테니스장,장충테니스장,마루공원,선우공원,서울숲"
     # 예약 오픈 D-1/당일 카카오 알림(매일 09:00, 카카오 키가 설정된 곳에서만 발송)
     notify_openings: bool = True
 

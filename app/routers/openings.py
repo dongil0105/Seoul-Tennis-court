@@ -19,6 +19,13 @@ def get_openings() -> dict:
         return OP.overview(session)
 
 
+@router.get("/board")
+def get_board() -> dict:
+    """5곳 전용 화면: 다음 예약 오픈 + 지금 예약 가능한 코트 번호."""
+    with get_session() as session:
+        return OP.board(session)
+
+
 @router.post("/refresh")
 async def post_refresh() -> dict:
     """공식 데이터를 지금 다시 받는다(90초 쿨다운). 화면의 [새로 고침]·날짜 자동 갱신용."""

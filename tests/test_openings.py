@@ -3,10 +3,20 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+import pytest
+
 from app.clock import now as _now
 from app.models import Slot
 from app.services import openings as OP
 from app.services.openings import day_type, is_watched, period_from_name, time_parts
+
+
+@pytest.fixture(autouse=True)
+def _legacy_watch(monkeypatch):
+    """이 파일은 엔진 로직 시험 — 예전 관심 설정(4개 구 + 한남·장충)을 고정해서 돈다."""
+    from app.config import settings as _s
+    monkeypatch.setattr(_s, "watch_regions", "서초구,강남구,성동구,용산구")
+    monkeypatch.setattr(_s, "watch_keywords", "한남,장충")
 
 
 def _slot(h, facility, place="한남테니스장", region="용산구", status="안내중",
