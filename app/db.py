@@ -46,6 +46,7 @@ def init_db() -> None:
                 ("open_at", "ALTER TABLE slot ADD COLUMN open_at TEXT DEFAULT ''"),
                 ("use_from", "ALTER TABLE slot ADD COLUMN use_from TEXT DEFAULT ''"),
                 ("use_to", "ALTER TABLE slot ADD COLUMN use_to TEXT DEFAULT ''"),
+                ("close_at", "ALTER TABLE slot ADD COLUMN close_at TEXT DEFAULT ''"),
             ):
                 if name not in cols:
                     conn.execute(text(ddl))

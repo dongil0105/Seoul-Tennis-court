@@ -46,6 +46,7 @@ class Slot(SQLModel, table=True):
     was_open: bool = False  # 직전 사이클의 is_open (취소표=false→true 감지용)
     status: str = Field(default="", index=True)  # 접수중|안내중|예약마감|접수종료|예약일시중지
     open_at: str = Field(default="", index=True)  # 예약 접수 시작 'YYYY-MM-DD HH:MM'
+    close_at: str = ""  # 예약 접수 끝 'YYYY-MM-DD HH:MM'
     use_from: str = ""  # 이용(운영) 기간 시작 'YYYY-MM-DD'
     use_to: str = ""    # 이용(운영) 기간 끝
     reserve_url: str | None = None
@@ -105,6 +106,21 @@ class OpeningAlert(SQLModel, table=True):
     open_date: str = ""   # 알림 대상 오픈 날짜 YYYY-MM-DD
     kind: str = ""        # 'd1'(하루 전) | 'd0'(당일)
     sent_at: datetime = Field(default_factory=_now)
+
+
+class PushSub(SQLModel, table=True):
+    """앱 알림(웹 푸시) 구독 — 기기 1대 = 1행. areas 는 JSON 배열(빈 배열 = 전체)."""
+    __tablename__ = "push_sub"
+    id: int | None = Field(default=None, primary_key=True)
+    endpoint: str = Field(index=True, unique=True)
+    p256dh: str = ""
+    auth: str = ""
+    areas: str = "[]"
+    d1: bool = True
+    h1: bool = True
+    ua: str = ""
+    created_at: datetime = Field(default_factory=_now)
+    updated_at: datetime = Field(default_factory=_now)
 
 
 class LinkCourt(SQLModel, table=True):

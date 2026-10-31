@@ -62,8 +62,10 @@ def test_overview_buckets(session):
     assert ov["watched_total"] == 4  # 구로구 제외
 
 
-def test_available_weekday_period_part(session):
-    # 2026-11-01은 일요일
+def test_available_weekday_period_part(session, monkeypatch):
+    # 2026-11-01은 일요일 (지난 날짜는 빈 결과라 '오늘'을 10/31로 고정)
+    from datetime import datetime
+    monkeypatch.setattr(OP, "_now", lambda: datetime(2026, 10, 31, 12, 0))
     target = date(2026, 11, 1)
     session.add(_slot("a1", "동부 도로사업소 A코트 주말 및 공휴일", place="동부도로", region="강남구",
                       status="접수중", use_from="2026-11-01", use_to="2026-11-15"))

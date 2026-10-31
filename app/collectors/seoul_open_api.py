@@ -107,6 +107,7 @@ def _normalize(row: dict) -> SlotDTO:
         is_night=_is_night(row),
         status=_g(row, "status_name").strip(),
         open_at=_g(row, "rcpt_bgn")[:16],  # 'YYYY-MM-DD HH:MM' — 예약 접수 시작 일시
+        close_at=_g(row, "rcpt_end")[:16],  # 예약 접수 끝 일시
         use_from=_g(row, "open_bgn")[:10],  # 이용(운영) 기간 — 날짜로 코트 찾기용
         use_to=_g(row, "open_end")[:10],
         raw=row,

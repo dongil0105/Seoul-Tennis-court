@@ -53,6 +53,7 @@ def upsert_and_extract_new(
                 was_open=False,
                 status=ns.status,
                 open_at=ns.open_at,
+                close_at=ns.close_at,
                 use_from=ns.use_from,
                 use_to=ns.use_to,
                 reserve_url=ns.reserve_url,
@@ -74,6 +75,7 @@ def upsert_and_extract_new(
             row.is_paid = ns.is_paid
             row.status = ns.status
             row.open_at = ns.open_at
+            row.close_at = ns.close_at
             row.use_from = ns.use_from
             row.use_to = ns.use_to
             row.reserve_url = ns.reserve_url

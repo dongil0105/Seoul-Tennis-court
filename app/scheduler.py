@@ -17,6 +17,7 @@ from app.config import settings
 from app.db import get_session
 from app.models import Slot, UserFilter
 from app.services import openings as OP
+from app.services import webpush as WP
 from app.services.diff import upsert_and_extract_new
 from app.services.filters import match_filters
 from app.services.notifier import (
@@ -36,17 +37,28 @@ async def _check_opening_alerts(session) -> None:
     h1(1시간 전)은 시간이 급해 무음시간에도 보낸다. d1은 무음시간이 끝난 뒤 발송.
     카카오 키가 없는 서버(공개 클라우드 기본)는 판정만 하고 발송하지 않는다.
     """
-    if not (settings.notify_openings and kakao_ready()):
+    if not settings.notify_openings:
         return
-    due = OP.pending_alerts(session)
-    if in_quiet_hours():
-        due = [(k, s) for k, s in due if k == "h1"]
-    if not due:
-        return
-    groups = OP.group_for_message(due)
-    if await send_opening_alerts(session, groups):
-        OP.mark_alerted(session, due)
-        logger.info("오픈 알람 발송 %d건 (%s)", len(due), sorted({k for k, _ in due}))
+    quiet = in_quiet_hours()
+    if kakao_ready():
+        due = OP.pending_alerts(session)
+        if quiet:
+            due = [(k, s) for k, s in due if k == "h1"]
+        if due:
+            groups = OP.group_for_message(due)
+            if await send_opening_alerts(session, groups):
+                OP.mark_alerted(session, due)
+                logger.info("오픈 알람(카톡) %d건 (%s)", len(due), sorted({k for k, _ in due}))
+    # 앱 알림(웹 푸시) — 구독한 친구들에게, 각자 고른 지역·시점만. 채널별로 따로 1회.
+    if WP.ready() and WP.count(session):
+        due = OP.pending_alerts(session, prefix="p")
+        if quiet:
+            due = [(k, s) for k, s in due if k == "h1"]
+        if due:
+            badge = OP.overview(session)["badge"]
+            n = WP.send_opening_alerts(session, OP.group_for_message(due), badge=badge)
+            OP.mark_alerted(session, due, prefix="p")
+            logger.info("오픈 알람(앱) %d건 → 기기 %d대", len(due), n)
 
 
 async def startup_alert() -> None:

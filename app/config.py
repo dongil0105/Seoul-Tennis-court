@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     kakao_refresh_token: str = ""
     kakao_access_token: str = ""
 
+    # 앱 알림(웹 푸시) — 비우면 SEOUL_API_KEY 에서 키를 만든다
+    vapid_private_key: str = ""
+
     # 동작
     poll_interval_minutes: int = 7        # Tier 1(공식 오픈API) 주기
     tier2_interval_minutes: int = 20      # Tier 2~3(HTML 저빈도) 주기
