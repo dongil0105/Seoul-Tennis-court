@@ -86,3 +86,48 @@ def test_monthly_reception_and_next_year_label(session):
     b = OP.board(session)
     assert b["available"][0]["until_label"] == "11/30까지 접수"
     assert b["openings"][0]["period"] == "2027년 이용분" and b["openings"][0]["area"] == "서울숲"
+
+
+def test_same_day_opened_and_upcoming_are_separate(session):
+    session.add(_s("x1", "한남테니스장 1번코트 평일 주간", "한남테니스장", "용산구", "안내중",
+                   "2026-10-31 09:00", "2026-11-11 09:01", "2026-11-01", "2026-11-15"))
+    session.add(_s("x2", "한남테니스장 2번코트 평일 주간", "한남테니스장", "용산구", "안내중",
+                   "2026-10-31 18:00", "2026-11-11 09:01", "2026-11-01", "2026-11-15"))
+    session.commit()
+    b = OP.board(session)
+    got = [(e["open_at"], e["opened"], [c["court"] for c in e["courts"]]) for e in b["openings"]]
+    assert got == [("2026-10-31 09:00", True, ["1번"]), ("2026-10-31 18:00", False, ["2번"])]
+    assert {p["area"]: p["next_open"] for p in b["places"]}["한남"] == "2026-10-31 18:00"
+    assert b["badge"] == 1
+
+
+@pytest.mark.parametrize("name,uf,ut", [
+    ("11/1~11/15 한남테니스장 1번코트", "2026-12-01", "2026-12-31"),   # 이름 기간이 공식 기간과 안 겹침
+    ("한남테니스장 1번코트", "2026-12-01", "2026-11-30"),              # 공식 기간 역전
+])
+def test_contradictory_period_hidden(session, name, uf, ut):
+    session.add(_s("y1", name, "한남테니스장", "용산구", "접수중", use_from=uf, use_to=ut))
+    session.add(_s("y2", name, "한남테니스장", "용산구", "안내중", "2026-11-01 09:00",
+                   use_from=uf, use_to=ut))
+    session.commit()
+    b = OP.board(session)
+    assert b["available"] == [] and b["openings"] == []
+    assert OP.pending_alerts(session) == []
+
+
+def test_different_batches_same_day_not_merged(session):
+    # 둘 다 아직 안 열림: 18:00 (11/1~11/15) · 19:00 (11/16~11/30) → 두 카드
+    session.add(_s("z1", "한남테니스장 1번코트 평일 주간", "한남테니스장", "용산구", "안내중",
+                   "2026-11-02 18:00", "2026-11-11 09:01", "2026-11-01", "2026-11-15"))
+    session.add(_s("z2", "한남테니스장 2번코트 평일 주간", "한남테니스장", "용산구", "안내중",
+                   "2026-11-02 19:00", "2026-11-26 09:01", "2026-11-16", "2026-11-30"))
+    # 09:00 / 09:03 같은 회차는 한 카드
+    session.add(_s("z3", "한남테니스장 3번코트 평일 주간", "한남테니스장", "용산구", "안내중",
+                   "2026-11-03 09:00", "2026-11-11 09:01", "2026-11-01", "2026-11-15"))
+    session.add(_s("z4", "한남테니스장 4번코트 평일 주간", "한남테니스장", "용산구", "안내중",
+                   "2026-11-03 09:03", "2026-11-11 09:01", "2026-11-01", "2026-11-15"))
+    session.commit()
+    got = [(e["open_at"], e["period"], [c["court"] for c in e["courts"]]) for e in OP.board(session)["openings"]]
+    assert got == [("2026-11-02 18:00", "11/1~11/15", ["1번"]),
+                   ("2026-11-02 19:00", "11/16~11/30", ["2번"]),
+                   ("2026-11-03 09:00", "11/1~11/15", ["3번", "4번"])]

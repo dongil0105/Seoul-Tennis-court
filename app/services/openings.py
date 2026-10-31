@@ -293,6 +293,23 @@ def use_period(s: Slot) -> tuple[date_cls | None, date_cls | None, bool]:
     return uf, ut, exact
 
 
+def period_conflict(s: Slot) -> bool:
+    """공식 이용기간이 거꾸로이거나(시작>끝), 이름 속 기간이 공식 이용기간과 어느 해로도 겹치지 않으면
+    모순 데이터 — 화면 '예약 가능'·오픈 알림에서 뺀다(틀린 날짜를 안내하지 않게)."""
+    uf, ut = _iso(s.use_from), _iso(s.use_to)
+    if uf and ut and uf > ut:
+        return True
+    if not (uf and ut):
+        return False
+    for y in (uf.year, uf.year - 1, uf.year + 1):
+        cand = period_from_name(s.facility_name, y)
+        if cand is None:
+            return False
+        if cand[0] <= ut and cand[1] >= uf:
+            return False
+    return True
+
+
 # ── 묶음(장소 단위) ────────────────────────────────────────────────
 
 def place_label(s: Slot) -> str:
@@ -362,8 +379,9 @@ def _item(s: Slot, today: date_cls) -> dict:
 # ── 오픈 일정 개요(/openings) ──────────────────────────────────────
 
 def _ends_before(s: Slot, open_dt: datetime) -> bool:
+    """이용기간이 오픈 전에 끝나거나 기간 자체가 모순인 데이터."""
     ut = _iso(s.use_to)
-    return bool(ut and ut < open_dt.date())
+    return bool(ut and ut < open_dt.date()) or period_conflict(s)
 
 
 def soon_groups(rows: list[Slot], now: datetime, days: int = SOON_DAYS) -> list[dict]:
@@ -523,6 +541,8 @@ def _classify(rows: list[Slot], target: date_cls, part: str | None, now: datetim
     if target < now.date():
         return res
     for s in rows:
+        if period_conflict(s):
+            continue
         uf, ut, exact = use_period(s)
         if uf and target < uf:
             continue
@@ -678,16 +698,21 @@ def board(session: Session) -> dict:
     opens: dict[tuple, dict] = {}
     avail: dict[str, dict] = {}
     for s in rows:
+        if period_conflict(s):
+            continue
         st = effective_status(s, now)
         uf, ut, exact = use_period(s)
         dt = _parse_dt(s.open_at)
         if dt and not _ends_before(s, dt) and (
                 (st == "안내중" and dt > now) or (st in (UNCONFIRMED, "접수중") and dt.date() == today)):
-            key = (area(s), dt.date())
             yr = _NAME_YEAR.search(s.facility_name)
             period = (f"{_md(uf)}~{_md(ut)}" if exact and uf and ut
                       else f"{yr.group(1)}년 이용분" if yr and int(yr.group(1)) != dt.year else "")
-            e = opens.setdefault(key, {"area": key[0], "place": place_label(s), "open_at": s.open_at,
+            # 같은 곳·같은 날이어도 열림 여부·이용기간·오픈 시각(15분 단위)이 다르면 다른 회차.
+            # (09:00 / 09:03 처럼 몇 분 차이로 등록된 같은 회차는 한 묶음)
+            key = (area(s), dt.date(), dt <= now, period, (dt.hour * 60 + dt.minute) // 15)
+            e = opens.setdefault(key, {"area": key[0], "place": place_label(s), "region": s.region,
+                                       "open_at": s.open_at,
                                        "d_day": (dt.date() - today).days, "opened": dt <= now,
                                        "period": period, "reserve_url": s.reserve_url, "courts": []})
             if s.open_at < e["open_at"]:
@@ -695,7 +720,8 @@ def board(session: Session) -> dict:
             e["courts"].append(_chip(s))
         if st == "접수중" and not (ut and ut < today):
             a = area(s)
-            e = avail.setdefault(a, {"area": a, "place": place_label(s), "until": "", "until_kind": "",
+            e = avail.setdefault(a, {"area": a, "place": place_label(s), "region": s.region,
+                                     "until": "", "until_kind": "",
                                      "courts": []})
             # 날짜용 회차는 이용 끝날까지, 월 단위 접수(선우공원: 이용기간은 1년, 접수는 한 달)는
             # 접수 마감일까지. 둘 다 아니면 상시.

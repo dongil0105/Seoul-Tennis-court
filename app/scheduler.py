@@ -59,7 +59,7 @@ async def _check_opening_alerts(session) -> None:
         if quiet:
             due = [(k, s) for k, s in due if k == "h1"]
         if due:
-            badge = OP.overview(session)["badge"]
+            badge = OP.board(session)["badge"]   # 화면 배지와 같은 기준
             # 기기별 전송은 동기(최대 10초씩)라 이벤트 루프를 막지 않게 스레드에서.
             n = await asyncio.to_thread(WP.send_opening_alerts, None,
                                         OP.group_for_message(due), badge)
@@ -84,7 +84,8 @@ async def startup_alert() -> None:
             if settings.notify_on_startup:  # 카톡 요약은 옵션(개인 PC에서만 켬)
                 opens = list(session.exec(select(Slot).where(Slot.is_open.is_(True))))
                 filters = list(session.exec(select(UserFilter)).all())
-                matched = [s for s in opens if match_filters(s, filters)]
+                matched = [s for s in opens if match_filters(s, filters)
+                           and OP.is_watched(s.region, s.facility_name, s.court_name)]  # 5곳만
                 await send_startup_digest(session, matched)
             await _check_opening_alerts(session)  # 시작 직후에도 오픈 알람 판정
     except Exception:  # noqa: BLE001  시작 처리 실패가 서버 기동을 막지 않게
@@ -120,7 +121,8 @@ async def _run_pipeline(tiers: set[int]) -> None:
                 logger.info("tier%s: 새 빈 슬롯 없음", sorted(tiers))
                 return
             filters = list(session.exec(select(UserFilter)).all())
-            matched = [s for s in candidates if match_filters(s, filters)]
+            matched = [s for s in candidates if match_filters(s, filters)
+                       and OP.is_watched(s.region, s.facility_name, s.court_name)]
             logger.info("tier%s: 후보 %d → 필터통과 %d", sorted(tiers), len(candidates), len(matched))
             # 폴링마다 발송은 옵션(기본 off). 기본은 시작 시 1회만 알림.
             if settings.notify_on_poll and matched:
