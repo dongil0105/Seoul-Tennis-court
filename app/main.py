@@ -8,7 +8,7 @@ from fastapi import FastAPI
 
 from app.collectors.link_registry import seed_links
 from app.db import get_session, init_db
-from app.routers import dashboard, filters, health, preview
+from app.routers import dashboard, filters, health, openings, preview
 from app.scheduler import start_scheduler, startup_alert
 
 logging.basicConfig(
@@ -31,8 +31,9 @@ async def lifespan(app: FastAPI):
         scheduler.shutdown(wait=False)
 
 
-app = FastAPI(title="서울 테니스 빈코트 알림", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="서울 테니스 코트 오픈 알림", version="2.0.0", lifespan=lifespan)
 app.include_router(dashboard.router)
 app.include_router(health.router)
+app.include_router(openings.router)
 app.include_router(preview.router)
 app.include_router(filters.router)

@@ -16,11 +16,37 @@ from app.collectors.registry import collect
 from app.config import settings
 from app.db import get_session
 from app.models import Slot, UserFilter
+from app.services import openings as OP
 from app.services.diff import upsert_and_extract_new
 from app.services.filters import match_filters
-from app.services.notifier import notify_slots, send_startup_digest
+from app.services.notifier import (
+    in_quiet_hours,
+    kakao_ready,
+    notify_slots,
+    send_opening_alerts,
+    send_startup_digest,
+)
 
 logger = logging.getLogger("tennis.scheduler")
+
+
+async def _check_opening_alerts(session) -> None:
+    """예약 오픈 알람(전날 d1 · 1시간 전 h1) — 매 폴링마다 판정, 중복은 기록으로 1회만.
+
+    h1(1시간 전)은 시간이 급해 무음시간에도 보낸다. d1은 무음시간이 끝난 뒤 발송.
+    카카오 키가 없는 서버(공개 클라우드 기본)는 판정만 하고 발송하지 않는다.
+    """
+    if not (settings.notify_openings and kakao_ready()):
+        return
+    due = OP.pending_alerts(session)
+    if in_quiet_hours():
+        due = [(k, s) for k, s in due if k == "h1"]
+    if not due:
+        return
+    groups = OP.group_for_message(due)
+    if await send_opening_alerts(session, groups):
+        OP.mark_alerted(session, due)
+        logger.info("오픈 알람 발송 %d건 (%s)", len(due), sorted({k for k, _ in due}))
 
 
 async def startup_alert() -> None:
@@ -38,6 +64,7 @@ async def startup_alert() -> None:
                 filters = list(session.exec(select(UserFilter)).all())
                 matched = [s for s in opens if match_filters(s, filters)]
                 await send_startup_digest(session, matched)
+            await _check_opening_alerts(session)  # 시작 직후에도 오픈 알람 판정
     except Exception:  # noqa: BLE001  시작 처리 실패가 서버 기동을 막지 않게
         logger.exception("시작 처리 실패 — 무시하고 기동 계속")
 
@@ -53,6 +80,8 @@ async def _run_pipeline(tiers: set[int]) -> None:
                 session, raw, allow_reopen=settings.allow_reopen_alert
             )
             session.commit()
+            if 1 in tiers:  # 오픈 알람(전날/1시간 전)은 공식 데이터 갱신 직후마다 판정
+                await _check_opening_alerts(session)
             if not candidates:
                 logger.info("tier%s: 새 빈 슬롯 없음", sorted(tiers))
                 return

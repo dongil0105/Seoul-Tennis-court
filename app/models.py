@@ -44,6 +44,10 @@ class Slot(SQLModel, table=True):
     eligibility: str | None = None  # 자격제한 텍스트(None=제한 없음)
     is_paid: bool = False
     was_open: bool = False  # 직전 사이클의 is_open (취소표=false→true 감지용)
+    status: str = Field(default="", index=True)  # 접수중|안내중|예약마감|접수종료|예약일시중지
+    open_at: str = Field(default="", index=True)  # 예약 접수 시작 'YYYY-MM-DD HH:MM'
+    use_from: str = ""  # 이용(운영) 기간 시작 'YYYY-MM-DD'
+    use_to: str = ""    # 이용(운영) 기간 끝
     reserve_url: str | None = None
     first_seen: datetime = Field(default_factory=_now)
     last_seen: datetime = Field(default_factory=_now)
@@ -91,6 +95,16 @@ class SendLog(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     sent_at: datetime = Field(default_factory=_now, index=True)
     slot_count: int = 0
+
+
+class OpeningAlert(SQLModel, table=True):
+    """예약 오픈 D-1/당일 카카오 알림 발송 기록(같은 오픈 건 중복 발송 방지)."""
+    __tablename__ = "opening_alert"
+    id: int | None = Field(default=None, primary_key=True)
+    slot_hash: str = Field(index=True)
+    open_date: str = ""   # 알림 대상 오픈 날짜 YYYY-MM-DD
+    kind: str = ""        # 'd1'(하루 전) | 'd0'(당일)
+    sent_at: datetime = Field(default_factory=_now)
 
 
 class LinkCourt(SQLModel, table=True):

@@ -35,6 +35,21 @@ if _is_sqlite:
 
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
+    # 가벼운 마이그레이션: 예전 DB 파일에 새 컬럼(status/open_at)이 없으면 추가.
+    # (클라우드는 배포마다 새 DB라 해당 없음 — 로컬 보존 DB용)
+    if _is_sqlite:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            cols = {r[1] for r in conn.exec_driver_sql("PRAGMA table_info(slot)")}
+            for name, ddl in (
+                ("status", "ALTER TABLE slot ADD COLUMN status TEXT DEFAULT ''"),
+                ("open_at", "ALTER TABLE slot ADD COLUMN open_at TEXT DEFAULT ''"),
+                ("use_from", "ALTER TABLE slot ADD COLUMN use_from TEXT DEFAULT ''"),
+                ("use_to", "ALTER TABLE slot ADD COLUMN use_to TEXT DEFAULT ''"),
+            ):
+                if name not in cols:
+                    conn.execute(text(ddl))
+            conn.commit()
 
 
 @contextmanager

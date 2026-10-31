@@ -290,3 +290,49 @@ async def send_startup_digest(session: Session, slots: list[Slot]) -> int:
     session.commit()
     logger.info("시작 알림 발송 완료 (예약가능 %d곳)", len(slots))
     return len(slots)
+
+
+def kakao_ready() -> bool:
+    """카카오 발송 가능 환경인지(키가 설정된 서버에서만 알람 발송)."""
+    return bool(settings.kakao_rest_key and
+                (settings.kakao_refresh_token or settings.kakao_access_token))
+
+
+def _fmt_open_dt(open_at: str) -> str:
+    """'2026-11-01 09:00' → '11/1(일) 09:00'."""
+    from datetime import datetime
+    try:
+        dt = datetime.strptime(open_at[:16], "%Y-%m-%d %H:%M")
+    except (ValueError, TypeError):
+        return open_at
+    wd = ["월", "화", "수", "목", "금", "토", "일"][dt.weekday()]
+    return f"{dt.month}/{dt.day}({wd}) {dt:%H:%M}"
+
+
+async def send_opening_alerts(session: Session, groups: list[dict]) -> bool:
+    """예약 오픈 알람 — d1(내일 오픈)·h1(1시간 안에 오픈) 묶음을 한 메시지로.
+
+    groups: openings.group_for_message() 결과. 200자 제한 안에서 묶음 나열 + 대시보드 링크.
+    """
+    if not groups:
+        return False
+    dash = settings.dashboard_url
+    h1 = [g for g in groups if g["kind"] == "h1"]
+    d1 = [g for g in groups if g["kind"] == "d1"]
+    head = "⏰ 곧 예약 시작!" if h1 else "🎾 내일 예약 오픈!"
+    lines: list[str] = []
+    for g in (h1 + d1)[:4]:
+        tag = "1시간 내" if g["kind"] == "h1" else "내일"
+        region = f"[{g['region']}] " if g.get("region") else ""
+        cnt = f" {g['count']}개 코트" if g["count"] > 1 else ""
+        lines.append(f"· {region}{g['place']}{cnt} — {tag} {_fmt_open_dt(g['open_at'])} 오픈")
+    more = len(groups) - len((h1 + d1)[:4])
+    if more > 0:
+        lines.append(f"· 외 {more}건")
+    label = "\n\n예약하러 가기 ▶\n"
+    body = "\n".join(lines)
+    budget = 195 - len(head) - len(label) - len(dash) - 1
+    if len(body) > budget:
+        body = body[: max(0, budget)]
+    text = f"{head}\n{body}{label}{dash}"
+    return await send_to_me(session, text, dash)

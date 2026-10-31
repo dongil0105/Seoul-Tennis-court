@@ -51,6 +51,10 @@ def upsert_and_extract_new(
                 eligibility=ns.eligibility,
                 is_paid=ns.is_paid,
                 was_open=False,
+                status=ns.status,
+                open_at=ns.open_at,
+                use_from=ns.use_from,
+                use_to=ns.use_to,
                 reserve_url=ns.reserve_url,
                 first_seen=now,
                 last_seen=now,
@@ -68,6 +72,10 @@ def upsert_and_extract_new(
             row.region = ns.region
             row.eligibility = ns.eligibility
             row.is_paid = ns.is_paid
+            row.status = ns.status
+            row.open_at = ns.open_at
+            row.use_from = ns.use_from
+            row.use_to = ns.use_to
             row.reserve_url = ns.reserve_url
             row.facility_name = ns.facility_name
             row.last_seen = now

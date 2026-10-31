@@ -42,6 +42,10 @@ class SlotDTO:
     eligibility: str | None = None   # 자격제한 텍스트(예: 'OO구민 전용'). None=제한 없음
     is_paid: bool = False
     is_night: bool = False
+    status: str = ""                 # 원문 상태(접수중|안내중|예약마감|접수종료|예약일시중지)
+    open_at: str = ""                # 예약 접수 시작 일시 'YYYY-MM-DD HH:MM' (오픈 임박 추적용)
+    use_from: str = ""               # 이용(운영) 기간 시작 'YYYY-MM-DD' (날짜로 코트 찾기용)
+    use_to: str = ""                 # 이용(운영) 기간 끝 'YYYY-MM-DD'
     raw: dict = field(default_factory=dict)  # 원본(디버그용)
 
     @property

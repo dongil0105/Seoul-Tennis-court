@@ -36,6 +36,13 @@ class Settings(BaseSettings):
     notify_on_poll: bool = False
     dashboard_url: str = "http://localhost:8000/"
 
+    # ── 관심 코트 스크리닝(2026-10-31 개편의 핵심) ──
+    # 지역(구) 또는 이름 키워드로 '내 코트'만 추려서 오픈 일정·알림을 만든다.
+    watch_regions: str = "서초구,강남구,성동구,용산구"
+    watch_keywords: str = "한남,장충"
+    # 예약 오픈 D-1/당일 카카오 알림(매일 09:00, 카카오 키가 설정된 곳에서만 발송)
+    notify_openings: bool = True
+
     # 공개 배포(클라우드) 시 true — 쓰기 엔드포인트(/filters 생성·삭제)를 차단해 읽기 전용화.
     public_readonly: bool = False
 
@@ -51,6 +58,12 @@ class Settings(BaseSettings):
 
     def enabled_source_set(self) -> set[str]:
         return {s.strip() for s in self.enabled_sources.split(",") if s.strip()}
+
+    def watch_region_set(self) -> set[str]:
+        return {s.strip() for s in self.watch_regions.split(",") if s.strip()}
+
+    def watch_keyword_list(self) -> list[str]:
+        return [s.strip() for s in self.watch_keywords.split(",") if s.strip()]
 
     def quiet_range(self) -> tuple[int, int] | None:
         """무음 시간대를 (start_hour, end_hour)로 파싱. 비었거나 형식오류면 None.
