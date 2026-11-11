@@ -9,7 +9,7 @@ self.addEventListener('push', (event) => {
   const opts = {
     body: data.body || '',
     icon: '/static/icon-192.png',
-    badge: '/static/icon-192.png',
+    badge: '/static/badge-96.png',
     tag: data.tag || 'court-open',
     renotify: true,
     data: { url: data.url || '/' },

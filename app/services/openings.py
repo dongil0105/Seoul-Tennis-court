@@ -783,9 +783,13 @@ def board(session: Session) -> dict:
                # 지난 오픈 일시(최근 것부터 3개) — 다음 회차가 아직 등록 안 됐을 때 참고용
                "past_opens": sorted(past.get(a, {}).values(), reverse=True)[:3]}
               for a in order]
+    import time
+
     from app.services import sync as SYNC
     return {
         "now": now.strftime("%Y-%m-%d %H:%M"),
+        # 서버 시계(UTC 기준 밀리초) — 화면이 기기 시계가 틀려도 남은 시간·열림 여부를 맞게 계산하도록
+        "now_ms": int(time.time() * 1000),
         "updated_at": SYNC.last_sync(),
         "badge": sum(1 for e in openings if not e["opened"] and e["d_day"] <= 1),
         "areas": order,

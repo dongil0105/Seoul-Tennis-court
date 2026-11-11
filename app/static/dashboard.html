@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>코트 오픈</title>
-<meta name="description" content="한남·장충·마루공원·선우공원·서울숲 테니스장의 예약 오픈 일정과 지금 예약할 수 있는 코트">
+<meta name="description" content="한남·장충·마루공원·선우공원·서울숲 테니스장 예약 오픈 일정과 지금 접수 중인 코트">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111315" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,7 +15,9 @@
 <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 <link rel="icon" href="/static/icon-192.png">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<!-- 글꼴은 화면을 막지 않게 뒤에서 받는다(받기 전에는 기기 기본 글꼴) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"></noscript>
 <style>
 /* ── 토큰 ─────────────────────────────────────────────── */
 :root{
@@ -23,7 +25,6 @@
   --bg:#FFFFFF; --band:#F3F4F6; --line:#ECEEF0; --line-2:#D9DDE1; --press:#F3F4F6;
   --ink:#15181B; --ink-2:#4A5158; --ink-3:#646C74; --ink-4:#868D94;
   --brand:#0C7A4A; --brand-weak:#EEF8F2;
-  --lime:#D8F25C; --on-lime:#1A2A0B;
   --alert:#C9371F; --on-alert:#FFFFFF;
   --shadow:0 -6px 32px rgba(15,23,30,.14);
   --font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
@@ -42,7 +43,7 @@
 *{box-sizing:border-box;margin:0}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html.lock{overflow:hidden}
-body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--font);letter-spacing:-.01em;
+body{background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--font);letter-spacing:-.01em;
   -webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
 button{font:inherit;letter-spacing:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;
   -webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -54,7 +55,7 @@ summary::-webkit-details-marker{display:none}
 svg{display:block;flex:none}
 .num{font-variant-numeric:tabular-nums}
 
-.app{max-width:520px;min-height:100dvh;margin:0 auto;background:var(--bg)}
+.app{max-width:520px;min-height:100vh;min-height:100dvh;margin:0 auto;background:var(--bg)}
 @media (min-width:560px){
   body{background:var(--band)}
   .app{box-shadow:0 0 0 1px var(--line)}
@@ -63,15 +64,15 @@ svg{display:block;flex:none}
 /* ── 상단 바 ──────────────────────────────────────────── */
 .bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
   height:calc(56px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 0 20px;
-  background:color-mix(in srgb,var(--bg) 86%,transparent);
+  background:var(--bg);background:color-mix(in srgb,var(--bg) 86%,transparent);
   -webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px);
   border-bottom:1px solid transparent;transition:border-color .2s}
 .bar.scrolled{border-bottom-color:var(--line)}
-.brand{display:flex;align-items:center;gap:9px;min-height:44px;font-size:18px;font-weight:700;letter-spacing:-.03em}
-.brand svg{width:28px;height:28px}
+.brand{display:flex;align-items:center;gap:8px;min-height:44px;font-size:16px;font-weight:700;letter-spacing:-.03em}
+.brand svg{width:28px;height:28px;border-radius:8px}
 .bar-actions{display:flex;align-items:center}
-.sync{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 10px;border-radius:12px;
-  font-size:13px;font-weight:500;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sync{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 8px;border-radius:12px;
+  font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .sync svg{width:16px;height:16px}
 .sync[aria-busy=true] svg{animation:spin .8s linear infinite}
 .icon-btn{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--ink)}
@@ -79,158 +80,164 @@ svg{display:block;flex:none}
 .icon-btn.on{color:var(--brand)}
 .sync:active,.icon-btn:active{background:var(--press)}
 
-/* ── 다음 예약 오픈 ───────────────────────────────────── */
-.next{padding:18px 20px 22px}
+/* ── 맨 위: 다음 예약 오픈 / 방금 열린 예약 ───────────── */
+.next{padding:20px 20px 24px}
+.next.has-peek{padding-bottom:0}
 .next.is-open{background:var(--brand-weak)}
-.next:not(.is-open):has(.peek){padding-bottom:2px}
-.eyebrow{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--ink-3)}
-.eyebrow.live{color:var(--brand)}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
-.next-date{margin-top:14px;font-size:17px;font-weight:600;color:var(--ink-2);letter-spacing:-.02em}
-.next-h{margin-top:2px;font-size:inherit;font-weight:inherit;line-height:inherit}
-.next-time{display:block;margin-left:-2px;font-size:56px;line-height:1.05;font-weight:700;letter-spacing:-.045em;font-variant-numeric:normal}
-.next-venue{display:block;margin-top:10px;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.035em}
-.next-meta{margin-top:3px;font-size:14px;color:var(--ink-3)}
-.next-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
-.remain{display:inline-flex;align-items:center;height:34px;padding:0 12px;border-radius:10px;
-  background:var(--lime);color:var(--on-lime);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.eyebrow{font-size:13px;font-weight:600;color:var(--ink-3)}
+.eyebrow.live{font-size:14px;color:var(--brand)}
+.next-date{margin-top:12px;font-size:16px;font-weight:600;color:var(--ink-2)}
+.next-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.next-h{min-width:0;font-size:inherit;font-weight:inherit;line-height:inherit}
+.next-time{display:block;margin-left:-2px;font-size:56px;line-height:1.1;font-weight:700;letter-spacing:-.04em}
+.next-venue{display:block;margin-top:8px;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
+.next-meta{margin-top:4px;font-size:14px;color:var(--ink-3)}
+.remain{flex:none;display:inline-flex;align-items:center;height:32px;margin-top:15px;padding:0 12px;border-radius:8px;
+  background:var(--brand-weak);color:var(--brand);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .remain.soon{background:var(--alert);color:var(--on-alert)}
-.ghost{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 2px;font-size:14px;font-weight:600;color:var(--ink-2)}
-.ghost svg{width:18px;height:18px}
-.ghost.on{color:var(--brand)}
-.peek{margin-top:16px;border-top:1px solid var(--line)}
-.peek>summary{display:flex;align-items:center;justify-content:space-between;min-height:50px;
+.alarm{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:48px;margin-top:20px;
+  border:1px solid var(--line-2);border-radius:12px;font-size:16px;font-weight:600}
+.alarm svg{width:20px;height:20px}
+.alarm.on{border-color:var(--brand);border-color:color-mix(in srgb,var(--brand) 45%,transparent);color:var(--brand)}
+.alarm:active{background:var(--press)}
+.peek{margin-top:4px}
+.peek>summary{display:flex;align-items:center;justify-content:space-between;min-height:52px;
   font-size:14px;font-weight:600;color:var(--ink-2)}
-.peek .picker{padding:2px 0 6px}
-.chev{width:18px;height:18px;color:var(--ink-4);transition:transform .2s}
+.peek .picker{padding-bottom:20px}
+.chev{width:20px;height:20px;color:var(--ink-4);transition:transform .2s}
 details[open]>summary .chev{transform:rotate(180deg)}
 
-.opened+.opened{margin-top:28px;padding-top:24px;border-top:1px solid color-mix(in srgb,var(--brand) 18%,transparent)}
-.venue-title{margin-top:10px;font-size:26px;line-height:1.25;font-weight:700;letter-spacing:-.035em}
-.opened .picker{margin-top:18px}
-.hint{display:flex;gap:7px;margin-top:16px;font-size:13px;line-height:1.5;color:var(--ink-2)}
-.row-note{padding:0 0 16px;font-size:13px;color:var(--ink-3)}
-.hint svg{width:16px;height:16px;margin-top:2px}
+.opened+.opened{margin-top:28px;padding-top:24px;border-top:1px solid var(--line-2)}
+.venue-title{margin-top:8px;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
+.opened .picker{margin-top:16px}
+.note{margin-top:16px;font-size:13px;line-height:1.5;color:var(--ink-2)}
 
-.none-title{margin-top:12px;font-size:22px;line-height:1.35;font-weight:700;letter-spacing:-.03em}
-.none-sub{margin-top:6px;font-size:14px;color:var(--ink-3)}
-.none-cta{margin-top:18px}
-.ghost.outline{padding:0 16px;border:1px solid var(--line-2);border-radius:12px;color:var(--ink)}
-.ghost.outline.on{border-color:color-mix(in srgb,var(--brand) 40%,transparent);color:var(--brand)}
-.ghost.outline:active{background:var(--press)}
+.none-title{margin-top:12px;font-size:20px;line-height:1.4;font-weight:700;letter-spacing:-.03em}
+.none-sub{margin-top:8px;font-size:14px;color:var(--ink-3)}
+.retry{display:inline-flex;align-items:center;height:48px;margin-top:20px;padding:0 20px;border-radius:12px;
+  border:1px solid var(--line-2);font-size:16px;font-weight:600}
 
 /* ── 섹션 ─────────────────────────────────────────────── */
 .band{height:8px;background:var(--band)}
-.sec{padding:24px 20px 6px}
-.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.sec-head h2{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
-.count{font-size:14px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sec{padding:24px 20px 8px}
+.sec h2{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
 .sec-sub{margin-top:4px;font-size:13px;color:var(--ink-3)}
-.sub-label{margin-top:22px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.sub-label{margin-top:24px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.app.is-error .band,.app.is-error #schedule,.app.is-error #available{display:none}
 
-.rows{margin-top:6px}
+.rows{margin-top:8px}
 .row{border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
-.row>summary{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;min-height:70px;padding:12px 0}
-.when b{display:block;font-size:17px;line-height:1.25;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.when span{display:block;font-size:12.5px;color:var(--ink-3)}
-.what strong{display:block;font-size:16px;line-height:1.35;font-weight:600;letter-spacing:-.02em}
-.what span{display:block;font-size:13px;line-height:1.45;color:var(--ink-3)}
-.tail{display:flex;align-items:center;gap:6px}
+.row>summary{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;min-height:72px;padding:12px 0}
+.when,.what,.when>*,.what>*{display:block}
+.when b{font-size:16px;line-height:1.4;font-weight:700;font-variant-numeric:tabular-nums}
+.when span{font-size:13px;color:var(--ink-3)}
+.what strong{font-size:16px;line-height:1.4;font-weight:600}
+.what span{font-size:13px;line-height:1.5;color:var(--ink-3)}
+.tail{display:flex;align-items:center;gap:8px}
 .dday{padding:4px 8px;border-radius:8px;background:var(--band);color:var(--ink-2);
   font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .dday.near{background:var(--brand-weak);color:var(--brand)}
-.row .picker{padding:2px 0 18px}
-.pend{padding:13px 0;border-bottom:1px solid var(--line)}
+.row .picker{padding-bottom:16px}
+.row-note{padding-bottom:16px;font-size:13px;color:var(--ink-3)}
+.pend{padding:12px 0;border-bottom:1px solid var(--line)}
 .pend:last-child{border-bottom:0}
 
-/* ── 지금 예약 가능 ───────────────────────────────────── */
-.venue{padding:18px 0 20px;border-bottom:1px solid var(--line)}
+/* ── 지금 접수 중인 코트 ──────────────────────────────── */
+.venue{padding:20px 0;border-bottom:1px solid var(--line)}
 .venue:last-child{border-bottom:0}
-.venue h3{display:flex;align-items:baseline;gap:6px;font-size:17px;line-height:1.35;font-weight:700;letter-spacing:-.025em}
-.venue h3 span{font-size:13px;font-weight:500;color:var(--ink-3);letter-spacing:-.01em}
-.venue-meta{margin-top:2px;font-size:13px;color:var(--ink-3)}
+.venue h3{display:flex;align-items:baseline;gap:8px;font-size:16px;line-height:1.4;font-weight:700;letter-spacing:-.03em}
+.venue h3 span{font-size:13px;font-weight:400;letter-spacing:-.01em;color:var(--ink-3)}
+.venue-meta{margin-top:4px;font-size:13px;color:var(--ink-3)}
+.batch+.batch{margin-top:20px}
 .venue .picker{margin-top:12px}
 
+/* 코트 고르기: 코트마다 예약이 하나면 번호 타일, 여럿이면 '코트 번호 | 시간대 버튼' 줄 */
 .group+.group{margin-top:16px}
-.group-label{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;font-size:13px;font-weight:600;color:var(--ink-2)}
-.group-label span{font-weight:500;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.group-label{margin-bottom:8px;font-size:13px;font-weight:600;color:var(--ink-2)}
 .courts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .courts[data-cols="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 .courts[data-cols="1"]{grid-template-columns:minmax(0,1fr)}
-.court{position:relative;display:flex;flex-direction:column;justify-content:center;gap:1px;min-height:66px;
-  padding:10px 12px;border:1px solid var(--line-2);border-radius:14px;background:var(--bg);
-  transition:transform .12s,background .12s,border-color .12s}
-.court b{padding-right:16px;font-size:19px;line-height:1.25;font-weight:700;letter-spacing:-.03em}
-.court b small{margin-left:1px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.court,.chip{display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line-2);border-radius:12px;
+  background:var(--bg);transition:background .12s,border-color .12s}
+.court{gap:2px;min-height:64px;padding:8px 12px}
+.court b,.mno{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.court b small,.mno small{margin-left:1px;font-size:13px;font-weight:600;letter-spacing:-.01em;color:var(--ink-2)}
 .court b.word{font-size:16px}
-.court span{font-size:12.5px;line-height:1.4;color:var(--ink-3);letter-spacing:-.02em}
-.court em{font-style:normal;font-weight:600;color:var(--brand)}
-.court .out{position:absolute;top:10px;right:9px;width:13px;height:13px;color:var(--ink-4)}
-.court:active{background:var(--press);transform:scale(.98)}
-@media (hover:hover){.court:hover{border-color:var(--ink-3)}}
-.court.off{opacity:.5}
-.courts[data-cols="1"] .court{min-height:60px}
+.court span{font-size:13px;line-height:1.4;color:var(--ink-2)}
+.court span.sub,.chip span.sub{font-size:13px;font-weight:400;color:var(--ink-3)}
+.matrix{display:grid;gap:8px}
+.mrow{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:4px}
+.mchips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mchips[data-cols="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+.chip{min-height:52px;padding:6px 12px}
+.mchips[data-cols="3"] .chip{padding-left:8px;padding-right:8px}
+.chip span{font-size:14px;line-height:1.4;font-weight:600}
+.chip.col2{grid-column:2}
+.court em,.chip em{font-style:normal;font-weight:600;color:var(--brand)}
+.court:active,.chip:active{background:var(--press)}
+@media (hover:hover){.court:hover,.chip:hover{border-color:var(--ink-4)}}
+.off{opacity:.5}
 
-.empty{margin-top:14px;padding:22px 0 26px}
-.empty strong{display:block;font-size:16px;font-weight:600}
+.empty{margin-top:12px;padding:20px 0 24px}
+.empty strong{display:block;font-weight:600}
 .empty p{margin-top:4px;font-size:14px;color:var(--ink-3)}
 
 /* ── 설정 줄 · 꼬리말 ─────────────────────────────────── */
 .cells{padding:4px 20px}
-.cell{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;text-align:left;border-bottom:1px solid var(--line)}
+.cell{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;text-align:left;border-bottom:1px solid var(--line)}
 .cell:last-child{border-bottom:0}
 .cell .lead{width:22px;height:22px;color:var(--ink-2)}
-.cell .t{flex:1;font-size:16px;font-weight:500;letter-spacing:-.02em}
+.cell .t{flex:1;font-weight:500}
 .cell .v{font-size:14px;color:var(--ink-3)}
 .cell .v.on{font-weight:600;color:var(--brand)}
-.cell .chev-r{width:18px;height:18px;color:var(--ink-4)}
+.cell .chev-r{width:20px;height:20px;color:var(--ink-4)}
 .cell:active{background:var(--press)}
-.foot{padding:18px 20px calc(28px + env(safe-area-inset-bottom));font-size:12.5px;line-height:1.6;color:var(--ink-3)}
+.foot{padding:16px 20px calc(28px + env(safe-area-inset-bottom));font-size:13px;line-height:1.6;color:var(--ink-3)}
 
 /* ── 알림 시트 ────────────────────────────────────────── */
-dialog{width:100%;max-width:520px;max-height:min(90dvh,760px);margin:auto auto 0;padding:0;border:0;
-  border-radius:22px 22px 0 0;background:var(--bg);color:var(--ink);box-shadow:var(--shadow);overflow:auto}
+dialog{width:100%;max-width:520px;max-height:90vh;max-height:min(90dvh,760px);margin:auto auto 0;padding:0;border:0;
+  border-radius:20px 20px 0 0;background:var(--bg);color:var(--ink);box-shadow:var(--shadow);overflow:auto}
 dialog::backdrop{background:rgba(8,10,12,.52)}
 dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
-@media (min-width:560px){dialog{max-width:440px;margin:auto;border-radius:22px}}
-.sheet{padding:6px 20px calc(18px + env(safe-area-inset-bottom))}
-.grab{width:36px;height:4px;margin:6px auto 2px;border-radius:2px;background:var(--line-2)}
-.sheet-head{display:flex;align-items:center;justify-content:space-between;min-height:52px;margin-right:-10px}
+@media (min-width:560px){dialog{max-width:440px;margin:auto;border-radius:20px}}
+.sheet{padding:8px 20px calc(20px + env(safe-area-inset-bottom))}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;min-height:56px;margin-right:-10px}
 .sheet-head h2{font-size:20px;font-weight:700;letter-spacing:-.03em}
-.sheet-desc{font-size:14px;color:var(--ink-3)}
-.sheet-label{margin:22px 0 2px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;
+  border-bottom:1px solid var(--line);cursor:pointer}
+.switch:last-of-type{border-bottom:0}
+.switch.master{min-height:72px;border-bottom:0}
+.switch.master b{display:block;font-weight:600}
+.switch.master small{display:block;margin-top:2px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+.switch input{appearance:none;-webkit-appearance:none;position:relative;flex:none;width:52px;height:32px;margin:0;
+  border-radius:16px;background:var(--ink-4);transition:background .2s;cursor:pointer}
+.switch input::before{content:'';position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;
+  background:var(--bg);transition:transform .2s}
+.switch input:checked{background:var(--brand)}
+.switch input:checked::before{transform:translateX(20px)}
+.switch input:disabled{opacity:.4;cursor:default}
+.push-status{margin-top:4px;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.push-status:empty{display:none}
+.install{margin-top:12px;padding:16px;border-radius:12px;background:var(--band);font-size:14px}
+.install strong{display:block;font-weight:600}
+.install p{margin-top:4px;color:var(--ink-2)}
+.install ol{margin:8px 0 0;padding-left:20px;color:var(--ink-2)}
+.install li{padding:2px 0}
+.sheet-label{margin:24px 0 4px;font-size:13px;font-weight:600;color:var(--ink-3)}
 .pick{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;
-  border-bottom:1px solid var(--line);font-size:16px;letter-spacing:-.02em;cursor:pointer}
+  border-bottom:1px solid var(--line);cursor:pointer}
 .pick:last-of-type{border-bottom:0}
 .pick input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
 .pick svg{width:24px;height:24px}
-.pick svg circle{fill:none;stroke:var(--line-2);stroke-width:1.6}
+.pick svg circle{fill:none;stroke:var(--ink-4);stroke-width:1.8}
 .pick svg path{stroke:transparent;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .pick input:checked~svg circle{fill:var(--brand);stroke:var(--brand)}
 .pick input:checked~svg path{stroke:var(--bg)}
-.pick input:focus-visible~span{outline:2px solid var(--brand);outline-offset:4px;border-radius:6px}
-.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;
-  border-bottom:1px solid var(--line);font-size:16px;letter-spacing:-.02em;cursor:pointer}
-.switch:last-of-type{border-bottom:0}
-.switch input{appearance:none;-webkit-appearance:none;position:relative;flex:none;width:50px;height:30px;margin:0;
-  border-radius:15px;background:var(--line-2);transition:background .2s;cursor:pointer}
-.switch input::before{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
-  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.28);transition:transform .2s}
-.switch input:checked{background:var(--brand)}
-.switch input:checked::before{transform:translateX(20px)}
-.install{margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--band);font-size:14px}
-.install strong{display:block;font-weight:600}
-.install ol{margin:8px 0 0;padding-left:20px;color:var(--ink-2)}
-.install li{padding:2px 0}
-.primary{width:100%;height:54px;margin-top:22px;border-radius:14px;background:var(--ink);color:var(--bg);
-  font-size:16px;font-weight:700;letter-spacing:-.02em;transition:opacity .15s,transform .12s}
-.primary:active{transform:scale(.99);opacity:.86}
-.primary:disabled{opacity:.5}
-.push-status{min-height:20px;margin-top:12px;font-size:13px;text-align:center;color:var(--ink-3)}
-.sheet-foot{display:flex;justify-content:center;gap:24px;margin-top:4px}
-.text-btn{min-height:44px;padding:0 4px;font-size:14px;font-weight:500;color:var(--ink-2);
-  text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:4px}
+.pick input:focus-visible~span{outline:2px solid var(--brand);outline-offset:4px;border-radius:8px}
+.text-btn{min-height:44px;font-size:14px;font-weight:500;color:var(--ink-2);
+  text-decoration:underline;text-decoration-color:var(--ink-4);text-underline-offset:4px}
+.sheet-foot{margin-top:12px}
 
 /* ── 토스트 · 뼈대 ────────────────────────────────────── */
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));z-index:60;
@@ -238,37 +245,33 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
   font-size:14px;font-weight:500;text-align:center;opacity:0;transform:translate(-50%,8px);pointer-events:none;
   transition:opacity .2s,transform .2s}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.sk{border-radius:8px;background:linear-gradient(90deg,var(--band) 25%,var(--line) 37%,var(--band) 63%);
-  background-size:400% 100%;animation:sk 1.4s ease infinite}
+.sk{border-radius:8px;background:var(--band)}
 .slow{margin-top:16px;font-size:13px;color:var(--ink-3)}
-.retry{display:inline-flex;align-items:center;height:44px;margin-top:14px;padding:0 16px;border-radius:12px;
-  border:1px solid var(--line-2);font-size:14px;font-weight:600}
 
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
-@keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (prefers-color-scheme:dark){.brand svg{box-shadow:0 0 0 1px var(--line-2)}}
 @media (max-width:359px){
-  .next,.sec{padding-left:16px;padding-right:16px}
-  .cells{padding-left:16px;padding-right:16px}
-  .foot{padding-left:16px;padding-right:16px}
+  .next,.sec,.cells,.foot{padding-left:16px;padding-right:16px}
   .bar{padding-left:16px}
-  .next-time{font-size:52px}
-  .court{padding-left:10px;padding-right:10px}
+  .next-time{font-size:48px}
+  .remain{margin-top:11px}
+  .court{padding-left:8px;padding-right:8px}
 }
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" id="app">
   <header class="bar" id="bar">
     <a class="brand" href="/" aria-label="코트 오픈 홈">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E2A20"/><circle cx="16" cy="16" r="8.5" fill="#D8F25C"/><path d="M9.6 10.4c2.7 1.6 4.1 3.5 4.1 5.6s-1.4 4-4.1 5.6M22.4 10.4c-2.7 1.6-4.1 3.5-4.1 5.6s1.4 4 4.1 5.6" fill="none" stroke="#0E2A20" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" fill="#0E2A20"/><circle cx="16" cy="16" r="8.5" fill="#D8F25C"/><path d="M9.6 10.4c2.7 1.6 4.1 3.5 4.1 5.6s-1.4 4-4.1 5.6M22.4 10.4c-2.7 1.6-4.1 3.5-4.1 5.6s1.4 4 4.1 5.6" fill="none" stroke="#0E2A20" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span>코트 오픈</span>
     </a>
     <div class="bar-actions">
-      <button class="sync" id="refresh" aria-label="공식 데이터 새로 고침">
+      <button class="sync" id="refresh" aria-label="서울시 정보 새로 고침">
         <span id="stamp">불러오는 중</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>
       </button>
       <button class="icon-btn" id="bell" data-act="sheet" aria-label="오픈 알림 설정"></button>
     </div>
@@ -277,21 +280,21 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
   <main>
     <section class="next" id="next" aria-label="다음 예약 오픈">
       <div class="sk" style="width:96px;height:16px"></div>
-      <div class="sk" style="width:150px;height:20px;margin-top:16px"></div>
-      <div class="sk" style="width:190px;height:58px;margin-top:8px"></div>
-      <div class="sk" style="width:170px;height:24px;margin-top:14px"></div>
-      <div class="sk" style="width:210px;height:16px;margin-top:8px"></div>
+      <div class="sk" style="width:160px;height:20px;margin-top:16px"></div>
+      <div class="sk" style="width:180px;height:56px;margin-top:8px"></div>
+      <div class="sk" style="width:170px;height:28px;margin-top:12px"></div>
+      <div class="sk" style="width:220px;height:16px;margin-top:8px"></div>
       <p class="slow" id="slow" hidden>불러오는 중이에요. 처음 열 때는 30초쯤 걸릴 수 있어요.</p>
     </section>
 
     <div class="band" id="band-next" hidden></div>
-    <section class="sec" id="schedule" hidden></section>
+    <section class="sec" id="schedule" aria-label="오픈 일정" hidden></section>
 
     <div class="band"></div>
     <section class="sec" id="available" aria-label="지금 접수 중인 코트">
-      <div class="sk" style="width:130px;height:24px"></div>
-      <div class="sk" style="height:66px;margin-top:18px;border-radius:14px"></div>
-      <div class="sk" style="height:66px;margin-top:10px;border-radius:14px"></div>
+      <div class="sk" style="width:150px;height:24px"></div>
+      <div class="sk" style="height:64px;margin-top:20px;border-radius:12px"></div>
+      <div class="sk" style="height:64px;margin:8px 0 16px;border-radius:12px"></div>
     </section>
 
     <div class="band"></div>
@@ -299,45 +302,42 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
       <button class="cell" data-act="sheet">
         <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
         <span class="t">오픈 알림</span><span class="v" id="push-value">꺼짐</span>
-        <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
       </button>
       <button class="cell" id="share">
         <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="m8 8 4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
         <span class="t">친구에게 공유</span>
-        <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
       </button>
     </div>
-    <footer class="foot">서울시 공공서비스예약의 공식 데이터를 보여드려요. 날짜와 시간별로 남은 자리는 예약 화면에서 확인해 주세요.</footer>
+    <footer class="foot">서울시 공공서비스예약에 올라온 정보를 그대로 보여 드려요.</footer>
   </main>
 </div>
 
 <dialog id="sheet" aria-labelledby="sheet-title">
   <div class="sheet">
-    <div class="grab" aria-hidden="true"></div>
     <div class="sheet-head">
       <h2 id="sheet-title" tabindex="-1">오픈 알림</h2>
       <button class="icon-btn" id="sheet-close" aria-label="닫기">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
     </div>
-    <p class="sheet-desc">예약이 열리기 전날과 1시간 전에 이 기기로 알려드려요.</p>
-    <div class="install" id="install" hidden>
-      <strong>아이폰은 홈 화면에 추가한 뒤에 켤 수 있어요</strong>
-      <ol><li>Safari 아래쪽 공유 버튼을 눌러요</li><li>‘홈 화면에 추가’를 골라요</li><li>홈 화면의 코트 오픈을 열고 알림을 켜요</li></ol>
-    </div>
-    <p class="sheet-label" id="areas-label">알림 받을 곳</p>
-    <div id="areas" role="group" aria-labelledby="areas-label"></div>
-    <p class="sheet-label" id="when-label">알림 시점</p>
-    <div role="group" aria-labelledby="when-label">
-      <label class="switch"><span>오픈 전날</span><input type="checkbox" role="switch" id="d1"></label>
-      <label class="switch"><span>오픈 1시간 전</span><input type="checkbox" role="switch" id="h1"></label>
-    </div>
-    <button class="primary" id="subscribe">알림 켜기</button>
+    <label class="switch master">
+      <span><b>이 기기로 알림 받기</b><small>예약이 열리기 전날 아침과 1시간 전에 알려 드려요.</small></span>
+      <input type="checkbox" role="switch" id="master">
+    </label>
     <p class="push-status" id="push-status" role="status"></p>
-    <div class="sheet-foot">
-      <button class="text-btn" id="test" hidden>테스트 알림 보내기</button>
-      <button class="text-btn" id="unsubscribe" hidden>알림 끄기</button>
+    <div class="install" id="install" hidden></div>
+    <div id="prefs">
+      <p class="sheet-label" id="areas-label">알림 받을 테니스장</p>
+      <div id="areas" role="group" aria-labelledby="areas-label"></div>
+      <p class="sheet-label" id="when-label">알림 시간</p>
+      <div role="group" aria-labelledby="when-label">
+        <label class="switch"><span>오픈 전날</span><input type="checkbox" role="switch" id="d1"></label>
+        <label class="switch"><span>오픈 1시간 전</span><input type="checkbox" role="switch" id="h1"></label>
+      </div>
     </div>
+    <div class="sheet-foot"><button class="text-btn" id="test" hidden>테스트 알림 보내기</button></div>
   </div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -348,30 +348,40 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
 /* 코트 오픈 — 화면 스크립트.
    서버(/board, /refresh, /push/*)만 호출한다. 서울시 예약 사이트 주소는 사람이 누르는 링크로만 쓴다. */
 const $ = (id) => document.getElementById(id);
+const sheet = $('sheet');
 const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty
 const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
 const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장'};
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
-// 예약 링크는 서울시 사이트(https)일 때만 건다.
-const safeURL = (s) => { try { const u = new URL(s); return u.protocol === 'https:' && /(^|\.)seoul\.go\.kr$/.test(u.hostname) ? u.href : ''; } catch { return ''; } };
+// 예약 링크는 서울시 사이트일 때만 걸고, 항상 https 로 연다.
+const safeURL = (s) => {
+  try {
+    const u = new URL(s);
+    if (!/(^|\.)seoul\.go\.kr$/.test(u.hostname)) return '';
+    if (u.protocol === 'http:') u.protocol = 'https:';
+    return u.protocol === 'https:' ? u.href : '';
+  } catch { return ''; }
+};
+class UserError extends Error {}     // 사용자에게 그대로 보여 줘도 되는 안내 문구
 
 const ICON = {
-  chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
-  out: '<svg class="out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
   bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
   bellOn: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0" fill="none"/></svg>',
-  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.2"/></svg>',
   check: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.3 3 3 6-6.4"/></svg>',
 };
 
-/* ── 시간: 서버 문자열은 모두 한국시간 'YYYY-MM-DD HH:MM[:SS]' ───────── */
+/* ── 시간: 서버 문자열은 모두 한국 시간 'YYYY-MM-DD HH:MM[:SS]' ─────── */
+let skew = 0;                                   // 서버 시계 − 기기 시계(ms). 기기 시계가 틀려도 서버 기준으로 계산한다.
+const nowMs = () => Date.now() + skew;
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
 function kstMs(s) {
   s = String(s || '');
   if (s.length < 16) return NaN;
   return Date.parse(`${s.slice(0, 10)}T${s.slice(11, 16)}:${s.length >= 19 ? s.slice(17, 19) : '00'}+09:00`);
 }
-const todayKST = () => new Intl.DateTimeFormat('sv-SE', {timeZone: 'Asia/Seoul'}).format(new Date());
+const dayFmt = new Intl.DateTimeFormat('sv-SE', {timeZone: 'Asia/Seoul'});
+const todayKST = () => dayFmt.format(new Date(nowMs()));
 const ymd = (s) => ({y: +s.slice(0, 4), m: +s.slice(5, 7), d: +s.slice(8, 10)});
 const utcDay = (s) => { const {y, m, d} = ymd(s); return Date.UTC(y, m - 1, d); };
 const weekday = (s) => WD[new Date(utcDay(s)).getUTCDay()];
@@ -379,44 +389,52 @@ const dayDiff = (s) => Math.round((utcDay(s) - utcDay(todayKST())) / 864e5);
 const longDate = (s) => { const {m, d} = ymd(s); return `${m}월 ${d}일 ${weekday(s)}요일`; };
 const shortDate = (s) => { const {m, d} = ymd(s); return `${m}.${d}`; };
 const hm = (s) => String(s).slice(11, 16);
-function remainText(ms) {
+function remainText(ms, openAt) {
   if (ms <= 0) return '지금 열려요';
+  if (ms < 6e5) {                               // 10분 안쪽은 초까지
+    const t = Math.ceil(ms / 1000);
+    return t < 60 ? `${t}초 남음` : `${Math.floor(t / 60)}분 ${String(t % 60).padStart(2, '0')}초 남음`;
+  }
   const min = Math.ceil(ms / 60000);
   if (min < 60) return `${min}분 남음`;
   const h = Math.floor(min / 60), m = min % 60;
   if (h < 24) return m ? `${h}시간 ${m}분 남음` : `${h}시간 남음`;
-  const d = Math.floor(h / 24), hh = h % 24;
-  return d < 3 && hh ? `${d}일 ${hh}시간 남음` : `${d}일 남음`;
+  if (h < 48) return h % 24 ? `1일 ${h % 24}시간 남음` : '1일 남음';
+  return `${dayDiff(openAt)}일 남음`;           // 이틀 넘게 남으면 달력 날짜 기준(일정 줄의 D-n 과 같게)
 }
+const isSoon = (ms) => Math.ceil(ms / 60000) < 60;
 const ddayText = (n) => (n <= 0 ? '오늘' : n === 1 ? '내일' : `D-${n}`);
 
-/* ── 코트 버튼 ────────────────────────────────────────── */
+/* ── 코트 고르기 ──────────────────────────────────────── */
 const isLit = (c) => /조명/.test(c.court || '');
 const courtNo = (c) => { const m = /^(\d+)/.exec(c.court || ''); return m ? +m[1] : 999; };
-const shortSlot = (s) => (!s || s === '매일' ? '' : String(s).replace(/주말·공휴일/g, '주말').replace(/\s+·\s+/g, ', '));
+const isNumbered = (c) => /^(\d+|[A-Za-z])/.test(String(c.court || ''));
+const physKey = (c) => String(c.court || '').replace(/\s*조명$/, '').trim();      // 같은 면의 조명 예약은 같은 코트
+// '평일 야간 · 주말·공휴일' → '평일 야간, 주말·휴일'. 가운뎃점 앞뒤에서는 줄이 바뀌지 않게 한다(U+2060).
+const shortSlot = (s) => (!s || s === '매일' ? '' : String(s).replace(/주말·공휴일/g, '주말·휴일').replace(/\s+·\s+/g, ', ').replace(/·/g, '\u2060·\u2060'));
 function hoursText(t) {
   const m = /^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/.exec(String(t || '').trim());
   if (!m) return '';
-  return m[2] === '00' && m[4] === '00' ? `${m[1]}–${m[3]}시` : `${m[1]}:${m[2]}–${m[3]}:${m[4]}`;
+  return m[2] === '00' && m[4] === '00' ? `${+m[1]}~${+m[3]}시` : `${+m[1]}:${m[2]}~${+m[3]}:${m[4]}`;
 }
+/* day = 평일 낮, night = 야간·주말·공휴일(토·일 포함), any = 구분 없음 */
 function slotKind(c) {
   const s = c.slot || '';
-  if (/야간|주말|공휴일/.test(s) || /(^|[\s·])[월화수목금토일](?=$|[\s·])/.test(s)) return 'night';
-  if (/평일|주간|새벽/.test(s)) return 'day';
+  if (/야간|주말|공휴일/.test(s) || /(^|[\s·,])[토일](?=$|[\s·,])/.test(s)) return 'night';
+  if (/평일|주간|새벽/.test(s) || /(^|[\s·,])[월화수목금](?=$|[\s·,])/.test(s)) return 'day';
   return 'any';
 }
+const KIND_ORDER = {day: 0, night: 1, any: 2};
 function kindLabel(k, list) {
   const has = (re) => list.some((c) => re.test(c.slot || ''));
   if (k === 'day') return has(/새벽/) ? '평일 새벽 · 주간' : has(/주간/) ? '평일 주간' : '평일';
   if (k === 'night') {
-    const wk = has(/주말|공휴일|(^|[\s·])[토일](?=$|[\s·])/);
+    const wk = has(/주말|공휴일|(^|[\s·,])[토일](?=$|[\s·,])/);
     return [has(/야간/) ? '야간' : '', wk ? (has(/공휴일/) ? '주말 · 공휴일' : '주말') : ''].filter(Boolean).join(' · ') || '야간 · 주말';
   }
   return '상시';
 }
-const isNumbered = (c) => /^(\d+|[A-Za-z])/.test(String(c.court || ''));
-const physKey = (c) => String(c.court || '').replace(/\s*조명$/, '').trim();
-/* 실제 코트 수 — 같은 코트의 시간대별 예약은 한 번만 센다. 번호가 없는 예약이 섞이면 세지 않는다. */
+/* 실제 코트 수 — 같은 코트의 시간대별 예약은 한 번만 센다. 번호 없는 예약이 섞이면 세지 않는다. */
 function courtCount(courts) {
   const list = courts || [];
   return list.length && list.every(isNumbered) ? new Set(list.map(physKey)).size : 0;
@@ -427,115 +445,150 @@ function commonHours(courts) {
   if (!list.length || !list.every(isNumbered) || new Set(list.map((c) => c.time)).size > 1) return '';
   return hoursText(list[0].time);
 }
-
-function courtHTML(c, ctx) {
-  const m = /^(\d+|[A-Za-z])\s*(번|면)?/.exec(String(c.court || ''));
-  const slot = shortSlot(c.slot), hours = hoursText(c.time);
-  const line1 = [];
-  let main, unit = '';
-  if (m) { main = m[1]; unit = m[2] || (/\d/.test(m[1]) ? '번' : '코트'); if (slot) line1.push(esc(slot)); }
-  else main = slot || '예약';
-  if (isLit(c)) line1.push('조명');
-  if (!c.is_paid) line1.push('<em>무료</em>'); else if (ctx.mixedFee) line1.push('유료');
-  if (ctx.mixedConfirm && c.confirmed) line1.push('<em>접수 중</em>');
-  const line2 = ctx.hideHours ? '' : hours;
-  const inner = `<b${m ? '' : ' class="word"'}>${esc(main)}${unit ? `<small>${unit}</small>` : ''}</b>`
-    + (line1.length ? `<span>${line1.join(' · ')}</span>` : '')
-    + (line2 ? `<span class="num">${esc(line2)}</span>` : '') + ICON.out;
+function courtLines(c, ctx) {
+  const tags = [], slot = shortSlot(c.slot), hours = hoursText(c.time);
+  if (slot) tags.push(esc(slot));
+  if (isLit(c)) tags.push('조명');
+  if (!c.is_paid) tags.push('<em>무료</em>'); else if (ctx.mixedFee) tags.push('유료');
+  if (ctx.mixedConfirm && c.confirmed) tags.push('<em>접수 중</em>');
+  return {slot, tags, hours: ctx.hideHours ? '' : hours,
+    label: [c.court, c.slot, hours, c.is_paid ? '' : '무료', '예약 화면 열기'].filter(Boolean).join(', ')};
+}
+function linkHTML(cls, c, inner, label) {
   const u = safeURL(c.reserve_url);
-  const label = [c.court, c.slot, hours, c.is_paid ? '' : '무료', '예약 화면 열기'].filter(Boolean).join(', ');
   return u
-    ? `<a class="court" href="${esc(u)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(label)}">${inner}</a>`
-    : `<span class="court off" aria-disabled="true">${inner}</span>`;
+    ? `<a class="${cls}" href="${esc(u)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(label)}">${inner}</a>`
+    : `<span class="${cls} off" aria-disabled="true">${inner}</span>`;
+}
+const unitOf = (m) => m[2] || (/\d/.test(m[1]) ? '번' : '코트');
+function tileHTML(c, ctx) {                     // 코트 번호가 주인공인 버튼
+  const m = /^(\d+|[A-Za-z])\s*(번|면)?/.exec(String(c.court || ''));
+  const {slot, tags, hours, label} = courtLines(c, ctx);
+  const head = m ? `<b>${esc(m[1])}<small>${unitOf(m)}</small></b>` : `<b class="word">${slot ? esc(slot) : '예약'}</b>`;
+  const rest = !m && slot ? tags.slice(1) : tags;
+  return linkHTML('court', c, head + (rest.length ? `<span>${rest.join(' · ')}</span>` : '')
+    + (hours ? `<span class="sub num">${esc(hours)}</span>` : ''), label);
+}
+function chipHTML(c, ctx, col2) {               // 코트 번호 옆에 놓이는 시간대 버튼
+  const {tags, hours, label} = courtLines(c, ctx);
+  return linkHTML('chip' + (col2 ? ' col2' : ''), c, `<span>${tags.length ? tags.join(' · ') : '예약'}</span>`
+    + (hours ? `<span class="sub num">${esc(hours)}</span>` : ''), label);
 }
 function pickerHTML(courts, keepHours) {
-  const list = [...(courts || [])].sort((a, b) => (isLit(a) - isLit(b)) || (courtNo(a) - courtNo(b))
-    || String(a.court).localeCompare(String(b.court), 'ko') || String(a.slot).localeCompare(String(b.slot), 'ko'));
+  const list = [...(courts || [])].sort((a, b) => (courtNo(a) - courtNo(b)) || physKey(a).localeCompare(physKey(b), 'ko')
+    || (KIND_ORDER[slotKind(a)] - KIND_ORDER[slotKind(b)]) || (isLit(a) - isLit(b))
+    || String(a.slot).localeCompare(String(b.slot), 'ko'));
   const ctx = {
     mixedFee: list.some((c) => c.is_paid) && list.some((c) => !c.is_paid),
     mixedConfirm: list.some((c) => c.confirmed) && list.some((c) => !c.confirmed),
     hideHours: !keepHours && Boolean(commonHours(list)),
   };
+  if (list.length && list.every(isNumbered)) {
+    const byCourt = new Map();
+    list.forEach((c) => { const k = physKey(c); byCourt.set(k, [...(byCourt.get(k) || []), c]); });
+    const rows = [...byCourt.values()];
+    const cols = Math.min(3, Math.max(...rows.map((l) => l.length)));
+    if (cols > 1) {                             // 한 코트에 예약이 여럿 → 코트 번호는 한 번만, 시간대를 옆에
+      const paired = rows.some((l) => l.length === 2 && slotKind(l[0]) === 'day' && slotKind(l[1]) === 'night');
+      return `<div class="picker matrix">${rows.map((l) => {
+        const m = /^(\d+|[A-Za-z])\s*(번|면)?/.exec(physKey(l[0]));
+        const col2 = cols === 2 && paired && l.length === 1 && slotKind(l[0]) === 'night';
+        return `<div class="mrow"><b class="mno">${esc(m[1])}<small>${unitOf(m)}</small></b>`
+          + `<div class="mchips" data-cols="${cols}">${l.map((c) => chipHTML(c, ctx, col2)).join('')}</div></div>`;
+      }).join('')}</div>`;
+    }
+  }
   const groups = ['day', 'night', 'any'].map((k) => [k, list.filter((c) => slotKind(c) === k)]).filter(([, l]) => l.length);
-  const grid = (l) => `<div class="courts" data-cols="${l.length === 1 ? 1 : (l.length === 2 || l.length === 4) ? 2 : 3}">${l.map((c) => courtHTML(c, ctx)).join('')}</div>`;
+  const grid = (l) => `<div class="courts" data-cols="${l.length === 1 ? 1 : (l.length === 2 || l.length === 4) ? 2 : 3}">${l.map((c) => tileHTML(c, ctx)).join('')}</div>`;
   return `<div class="picker">${groups.map(([k, l]) => `<div class="group">${
-    groups.length > 1 ? `<p class="group-label">${kindLabel(k, l)}<span>${l.length}</span></p>` : ''}${grid(l)}</div>`).join('')}</div>`;
+    groups.length > 1 ? `<p class="group-label">${kindLabel(k, l)}</p>` : ''}${grid(l)}</div>`).join('')}</div>`;
 }
 const dots = (t) => String(t || '').replace(/(\d{1,2})\/(\d{1,2})/g, '$1.$2');
 const periodText = (p) => (!p ? '' : /이용분$/.test(p) ? dots(p) : `${dots(p)} 이용분`);
 
 /* ── 그리기 ───────────────────────────────────────────── */
 const HOT_MS = 2 * 36e5;   // 예약이 열리고 2시간까지는 맨 위에 코트 버튼을 펼쳐 둔다
-let board = null, updatedAt = '', nextOpenMs = null, coolAtMs = null, renderedDay = '';
+let board = null, updatedAt = '', nextOpenMs = null, nextOpenAt = '', coolAtMs = null, renderedDay = '';
+const placeOf = (x) => x.place || NAMES[x.area] || x.area;
+const keyOf = (x) => `${x.area}|${x.open_at}|${x.period || ''}`;
 
-function alarmButton(area, outline) {
+function alarmHTML(area) {
   const on = subscribedTo(area);
-  return `<button class="ghost${outline ? ' outline' : ''}${on ? ' on' : ''}" data-act="sheet" data-alarm="${esc(area)}">${on ? ICON.bellOn : ICON.bell}<span>${on ? '알림 켜짐' : '알림 받기'}</span></button>`;
+  return `<button class="alarm${on ? ' on' : ''}" data-act="sheet" data-alarm="${esc(area)}">${on ? ICON.bellOn : ICON.bell}<span>${on ? '알림 켜짐' : '알림 받기'}</span></button>`;
+}
+function metaOf(x) {
+  const n = courtCount(x.courts);
+  return [periodText(x.period), n ? `코트 ${n}면` : '', commonHours(x.courts)].filter(Boolean).join(' · ');
 }
 function openedHTML(x, i) {
   const allOk = x.courts.length > 0 && x.courts.every((c) => c.confirmed);
-  const n = courtCount(x.courts);
-  const meta = [periodText(x.period), n ? `코트 ${n}면` : '', commonHours(x.courts)].filter(Boolean).join(' · ');
-  const note = allOk ? '날짜별 빈 시간은 예약 화면에서 확인해 주세요.'
-    : '서울시 접수 상태가 아직 반영되지 않았어요. 이미 마감된 코트가 있을 수 있으니 예약 화면에서 확인해 주세요.';
+  const meta = metaOf(x);
   return `<article class="opened">
-    <p class="eyebrow live"><i class="dot"></i>오늘 ${esc(hm(x.open_at))}에 예약이 열렸어요</p>
-    <${i ? 'h2' : 'h1'} class="venue-title">${esc(x.place || NAMES[x.area] || x.area)}</${i ? 'h2' : 'h1'}>
+    <p class="eyebrow live">오늘 ${esc(hm(x.open_at))}에 예약이 열렸어요</p>
+    <${i ? 'h2' : 'h1'} class="venue-title">${esc(placeOf(x))}</${i ? 'h2' : 'h1'}>
     ${meta ? `<p class="next-meta">${esc(meta)}</p>` : ''}
     ${pickerHTML(x.courts)}
-    <p class="hint">${ICON.info}<span>${note}</span></p>
+    <p class="note">${allOk ? '코트를 누르면 서울시 예약 화면이 열려요.'
+      : '서울시 화면에 마감 여부가 아직 안 올라왔어요. 이미 찬 코트도 있을 수 있어요.'}</p>
   </article>`;
 }
 function nextHTML(x) {
-  const diff = dayDiff(x.open_at), ms = kstMs(x.open_at) - Date.now(), n = courtCount(x.courts);
+  const diff = dayDiff(x.open_at), ms = kstMs(x.open_at) - nowMs(), meta = metaOf(x);
   const rel = diff === 0 ? '오늘 · ' : diff === 1 ? '내일 · ' : '';
-  const meta = [periodText(x.period), n ? `코트 ${n}면` : '', commonHours(x.courts)].filter(Boolean).join(' · ');
   return `<p class="eyebrow">다음 예약 오픈</p>
     <p class="next-date">${rel}${longDate(x.open_at)}</p>
-    <h1 class="next-h"><span class="next-time">${esc(hm(x.open_at))}</span> <span class="next-venue">${esc(x.place || NAMES[x.area] || x.area)}</span></h1>
+    <div class="next-row">
+      <h1 class="next-h"><span class="next-time">${esc(hm(x.open_at))}</span> <span class="next-venue">${esc(placeOf(x))}</span></h1>
+      <span class="remain${isSoon(ms) ? ' soon' : ''}" id="remain">${remainText(ms, x.open_at)}</span>
+    </div>
     ${meta ? `<p class="next-meta">${esc(meta)}</p>` : ''}
-    <div class="next-foot"><span class="remain${ms < 36e5 ? ' soon' : ''}" id="remain">${remainText(ms)}</span>${alarmButton(x.area)}</div>
-    <details class="peek"><summary><span>${n ? `코트 ${n}면 보기` : '코트 보기'}</span>${ICON.chev}</summary>${pickerHTML(x.courts)}</details>`;
+    ${alarmHTML(x.area)}
+    <details class="peek" data-key="${esc(keyOf(x))}"><summary><span>열리는 코트 보기</span>${ICON.chev}</summary>${pickerHTML(x.courts)}</details>`;
 }
-function noneHTML() {
-  return `<p class="eyebrow">다음 예약 오픈</p>
-    <h1 class="none-title">아직 등록된 오픈 일정이 없어요</h1>
-    <p class="none-sub">서울시가 다음 회차를 올리면 날짜와 시각이 여기에 나와요.</p>
-    <div class="none-cta">${alarmButton('', true)}</div>`;
+function noneHTML(noData) {
+  return noData
+    ? `<p class="eyebrow">다음 예약 오픈</p>
+      <h1 class="none-title">서울시 정보를 아직 받지 못했어요</h1>
+      <p class="none-sub">잠시 뒤 위쪽의 새로 고침을 눌러 주세요.</p>`
+    : `<p class="eyebrow">다음 예약 오픈</p>
+      <h1 class="none-title">다음 오픈 날짜가 아직 안 나왔어요</h1>
+      <p class="none-sub">서울시가 일정을 올리면 여기에 바로 보여 드려요.</p>
+      ${alarmHTML('')}`;
 }
 function rowHTML(x) {
-  const diff = dayDiff(x.open_at), n = courtCount(x.courts);
-  const sub = [`${hm(x.open_at)} 오픈`, periodText(x.period), n ? `${n}면` : ''].filter(Boolean).join(' · ');
+  const diff = dayDiff(x.open_at);
+  const sub = [`${hm(x.open_at)} 오픈`, periodText(x.period)].filter(Boolean).join(' · ');
   const chip = x.opened ? '<span class="dday near">열림</span>' : `<span class="dday${diff <= 1 ? ' near' : ''}">${ddayText(diff)}</span>`;
-  return `<details class="row"><summary>
-      <div class="when"><b>${shortDate(x.open_at)}</b><span>${weekday(x.open_at)}요일</span></div>
-      <div class="what"><strong>${esc(x.place || NAMES[x.area] || x.area)}</strong><span>${esc(sub)}</span></div>
-      <div class="tail">${chip}${ICON.chev}</div>
-    </summary>${pickerHTML(x.courts, true)}${x.opened ? '<p class="row-note">마감됐을 수 있어요. 예약 화면에서 확인해 주세요.</p>' : ''}</details>`;
+  return `<details class="row" data-key="${esc(keyOf(x))}"><summary>
+      <span class="when"><b>${shortDate(x.open_at)}</b><span>${weekday(x.open_at)}요일</span></span>
+      <span class="what"><strong>${esc(placeOf(x))}</strong><span>${esc(sub)}</span></span>
+      <span class="tail">${chip}${ICON.chev}</span>
+    </summary>${pickerHTML(x.courts, true)}${x.opened ? '<p class="row-note">이미 찬 코트도 있을 수 있어요. 예약 화면에서 확인해 주세요.</p>' : ''}</details>`;
 }
 function pendHTML(p) {
-  const past = (p.past_opens || []).slice(0, 2).map((s) => `${shortDate(s)} (${weekday(s)}) ${hm(s)}`).join(' · ');
-  return `<div class="pend what"><strong>${esc(p.place || NAMES[p.area] || p.area)}</strong><span class="num">지난 오픈 ${esc(past)}</span></div>`;
+  const past = (p.past_opens || []).slice(0, 2).map((s) => `${shortDate(s)}(${weekday(s)}) ${hm(s)}`).join(', ');
+  return `<div class="pend what"><strong>${esc(placeOf(p))}</strong><span class="num">지난번 ${esc(past)}에 열림</span></div>`;
 }
-function venueHTML(p) {
-  const cs = p.courts || [], full = Number(p.full_count) || 0;
-  const meta = [
-    p.until_kind === 'use' && p.period ? periodText(p.period) : dots(p.until_label),
-    full ? `나머지 ${full}개 마감` : '',
-    commonHours(cs),
-  ].filter(Boolean).join(' · ');
+function venueHTML(g) {                          // 한 곳 — 회차(이용 기간)가 여럿이면 제목은 한 번, 회차별로 나눠서
+  const first = g[0];
   return `<article class="venue">
-    <h3>${esc(p.place || NAMES[p.area] || p.area)}${p.region ? `<span>${esc(p.region)}</span>` : ''}</h3>
-    <p class="venue-meta num">${esc(meta)}</p>
-    ${pickerHTML(cs)}
+    <h3>${esc(placeOf(first))}${first.region ? `<span>${esc(first.region)}</span>` : ''}</h3>
+    ${g.map((p) => {
+      const full = Number(p.full_count) || 0;
+      const meta = [
+        p.until_kind === 'use' && p.period ? periodText(p.period) : dots(p.until_label),
+        full ? `다른 코트·시간대 ${full}건 마감` : '',
+        commonHours(p.courts),
+      ].filter(Boolean).join(' · ');
+      return `<div class="batch">${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}${pickerHTML(p.courts)}</div>`;
+    }).join('')}
   </article>`;
 }
 
 function renderBoard(d) {
-  board = d;
   if (d.updated_at) updatedAt = d.updated_at;
   renderedDay = todayKST();
-  const now = Date.now();
+  const now = nowMs();
   const arr = (v) => (Array.isArray(v) ? v.filter(Boolean) : []);
   // 잘못된 항목은 빼고 그린다. 열린 예약은 오늘 것만(서버 기준과 같게).
   const openings = arr(d.openings).filter((x) => Number.isFinite(kstMs(x.open_at)))
@@ -546,70 +599,88 @@ function renderBoard(d) {
   const hot = opened.filter((x) => now - kstMs(x.open_at) < HOT_MS);      // 방금 열림 → 맨 위에 펼침
   const cold = opened.filter((x) => !hot.includes(x));                    // 열린 지 오래됨 → 일정 줄로
   const upcoming = openings.filter((x) => !x.opened);
-  nextOpenMs = upcoming.length ? kstMs(upcoming[0].open_at) : null;
-  coolAtMs = hot.length ? Math.min(...hot.map((x) => kstMs(x.open_at) + HOT_MS)) : null;
+  // 맨 위에서 이미 보여 준 코트는 '지금 접수 중인 코트'에서 다시 보여 주지 않는다.
+  const shown = new Set(hot.flatMap((x) => x.courts.map((c) => c.reserve_url)).filter(Boolean));
+  const avail = arr(d.available).map((p) => ({...p, courts: arr(p.courts).filter((c) => !shown.has(c.reserve_url))}))
+    .filter((p) => p.courts.length);
+  const venues = new Map();                                               // 곳별로 묶기(회차가 여럿이어도 제목은 한 번)
+  avail.forEach((p) => venues.set(p.area, [...(venues.get(p.area) || []), p]));
 
+  const openKeys = new Set([...document.querySelectorAll('details[data-key][open]')].map((el) => el.dataset.key));
+  $('app').classList.remove('is-error');
   const next = $('next');
-  next.className = 'next' + (hot.length ? ' is-open' : '');
+  next.className = 'next' + (hot.length ? ' is-open' : upcoming.length ? ' has-peek' : '');
   next.setAttribute('aria-label', hot.length ? '오늘 열린 예약' : '다음 예약 오픈');
-  next.innerHTML = hot.length ? hot.map(openedHTML).join('') : upcoming.length ? nextHTML(upcoming[0]) : noneHTML();
+  next.innerHTML = hot.length ? hot.map(openedHTML).join('')
+    : upcoming.length ? nextHTML(upcoming[0])
+    : noneHTML(!MOCK && !d.updated_at && !avail.length);
 
   const rest = [...cold, ...(hot.length ? upcoming : upcoming.slice(1))];
   const busy = new Set(openings.map((x) => x.area));
   const pending = arr(d.places).filter((p) => !busy.has(p.area) && arr(p.past_opens).length);
-  const title = hot.length ? '다음 오픈 일정' : cold.length ? '오픈 일정' : '이후 오픈 일정';
+  const sameTime = !hot.length && rest.length && upcoming.length && rest[0].open_at === upcoming[0].open_at;
+  const title = cold.length || sameTime ? '오픈 일정' : hot.length ? '다음 오픈 일정' : '이후 오픈 일정';
   const sch = $('schedule');
   sch.hidden = !rest.length && !pending.length;
   $('band-next').hidden = sch.hidden || hot.length > 0;
   sch.innerHTML = (rest.length
-      ? `<div class="sec-head"><h2>${title}</h2></div><div class="rows">${rest.map(rowHTML).join('')}</div>`
-        + (pending.length ? '<p class="sub-label">일정 미정</p>' : '')
-      : '<div class="sec-head"><h2>일정 미정</h2></div><p class="sec-sub">지난 오픈 날짜와 시각을 참고하세요.</p>')
+      ? `<h2>${title}</h2><div class="rows">${rest.map(rowHTML).join('')}</div>`
+        + (pending.length ? '<p class="sub-label">오픈 날짜 미정</p>' : '')
+      : '<h2>오픈 날짜 미정</h2><p class="sec-sub">지난번에 열린 날짜를 참고해 주세요.</p>')
     + (pending.length ? `<div class="rows">${pending.map(pendHTML).join('')}</div>` : '');
 
-  const avail = arr(d.available).map((p) => ({...p, courts: arr(p.courts)})).filter((p) => p.courts.length);
-  $('available').innerHTML = '<div class="sec-head"><h2>지금 접수 중인 코트</h2></div>'
-    + (avail.length
-      ? `<p class="sec-sub">코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈 시간은 그 화면에서 확인해 주세요.</p>${avail.map(venueHTML).join('')}`
-      : '<div class="empty"><strong>지금 접수 중인 코트가 없어요</strong><p>예약이 열리면 여기에 코트 번호가 나타나요.</p></div>');
+  $('available').innerHTML = '<h2>지금 접수 중인 코트</h2>'
+    + (venues.size
+      ? `<p class="sec-sub">코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈 시간은 그 화면에서 확인해 주세요.</p>${[...venues.values()].map(venueHTML).join('')}`
+      : `<div class="empty"><strong>${shown.size ? '위에 보이는 코트 말고는 접수 중인 코트가 없어요' : '지금 접수 중인 코트가 없어요'}</strong><p>예약이 열리면 여기에 코트 번호가 나타나요.</p></div>`);
 
+  document.querySelectorAll('details[data-key]').forEach((el) => { if (openKeys.has(el.dataset.key)) el.open = true; });   // 펼쳐 둔 목록 유지
+  board = d;
+  nextOpenAt = upcoming.length ? upcoming[0].open_at : '';
+  nextOpenMs = upcoming.length ? kstMs(nextOpenAt) : null;
+  coolAtMs = hot.length ? Math.min(...hot.map((x) => kstMs(x.open_at) + HOT_MS)) : null;
   paintStamp();
   paintPush();
-  const badge = Math.max(0, Number(d.badge) || 0);
-  try { if (navigator.setAppBadge) Promise.resolve(badge ? navigator.setAppBadge(badge) : navigator.clearAppBadge()).catch(() => {}); } catch {}
+  if (!MOCK) {
+    const badge = Math.max(0, Number(d.badge) || 0);
+    try { if (navigator.setAppBadge) Promise.resolve(badge ? navigator.setAppBadge(badge) : navigator.clearAppBadge()).catch(() => {}); } catch {}
+  }
 }
 function renderError() {
+  $('app').classList.add('is-error');
   $('next').className = 'next';
   $('next').innerHTML = `<p class="eyebrow">연결 문제</p><h1 class="none-title">정보를 불러오지 못했어요</h1>
     <p class="none-sub">인터넷 연결을 확인하고 다시 시도해 주세요.</p><button class="retry" data-act="retry">다시 시도</button>`;
-  $('available').innerHTML = '';
   $('stamp').textContent = '연결 안 됨';
 }
 function paintStamp() {
-  if (!updatedAt) return;
+  const el = $('stamp');
+  if (!updatedAt) { el.textContent = '정보 없음'; return; }
   const same = updatedAt.slice(0, 10) === todayKST();
-  const text = same ? `${hm(updatedAt)} 기준` : `${shortDate(updatedAt)} ${hm(updatedAt)} 기준`;
-  $('stamp').textContent = text;
-  $('refresh').setAttribute('aria-label', `공식 데이터 새로 고침, ${text}`);
+  const old = nowMs() - kstMs(updatedAt) > 20 * 60000;
+  const text = (same ? `${hm(updatedAt)} 기준` : `${shortDate(updatedAt)} ${hm(updatedAt)} 기준`) + (old ? ' · 오래됨' : '');
+  el.textContent = text;
+  $('refresh').setAttribute('aria-label', `서울시 정보 새로 고침, ${text}`);
 }
 function tick() {
-  if (sheetShown && !sheet.open) sheetClosed();      // 닫힘 이벤트를 놓쳤어도 스크롤 잠금이 남지 않게
+  if (sheetShown && !sheet.open) sheetClosed();        // 닫힘 이벤트를 놓쳤어도 스크롤 잠금이 남지 않게
   if (!board) return;
-  const now = Date.now();
+  const now = nowMs();
   if (renderedDay !== todayKST()) { renderBoard(board); refreshData(); return; }      // 자정이 지남 → 날짜 문구 다시
   const opening = Boolean(nextOpenMs && now >= nextOpenMs);
   if (opening || (coolAtMs && now >= coolAtMs)) { renderBoard(board); if (opening) refreshData(); return; }
   const el = $('remain');
   if (el && nextOpenMs) {
-    const ms = nextOpenMs - now;
-    el.textContent = remainText(ms);
-    el.classList.toggle('soon', ms < 36e5);
+    const ms = nextOpenMs - now, text = remainText(ms, nextOpenAt);
+    if (el.textContent !== text) el.textContent = text;
+    el.classList.toggle('soon', isSoon(ms));
   }
 }
 
 /* ── 토스트 ───────────────────────────────────────────── */
 let toastTimer = 0;
 function toast(msg) {
+  if (sheet.open) { say(msg); return; }                // 알림 시트가 열려 있으면 시트 안에 보여 준다(토스트는 시트에 가려짐)
   const t = $('toast');
   t.textContent = msg;
   t.classList.add('show');
@@ -624,28 +695,38 @@ async function api(path, body) {
   const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 65000);
   try {
     const r = await fetch(path, {signal: ctrl.signal, ...(body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {})});
-    if (!r.ok) throw Error('서버 응답 오류');
-    const d = await r.json();
-    if (d.ok === false) throw Error('요청을 처리하지 못했어요');
+    let d = null;
+    try { d = await r.json(); } catch {}
+    if (!r.ok || !d || d.ok === false) {
+      const msg = d && (typeof d.detail === 'string' ? d.detail : typeof d.error === 'string' ? d.error : '');
+      const e = msg ? new UserError(msg) : Error('서버 응답 오류');   // 서버가 적어 준 안내만 그대로 보여 준다
+      e.status = r.status;
+      throw e;
+    }
     return d;
   } finally { clearTimeout(timer); }
 }
-let boardReq = 0, refreshing = null;
+let boardReq = 0, refreshing = null, lastSig = '';
 async function loadBoard() {
   const id = ++boardReq;
-  try {
-    const d = await api('/board');
-    if (id !== boardReq) return 'ignored';                                   // 더 새 요청이 있음
-    if (updatedAt && d.updated_at && d.updated_at < updatedAt) return 'ignored';   // 더 오래된 응답
-    renderBoard(d);
+  let d;
+  try { d = await api('/board'); }
+  catch { if (id === boardReq && !board) renderError(); return false; }
+  if (id !== boardReq) return 'ignored';                                         // 더 새 요청이 있음
+  if (updatedAt && d.updated_at && d.updated_at < updatedAt) return 'ignored';   // 더 오래된 응답
+  if (Number.isFinite(d.now_ms)) { const s = d.now_ms - Date.now(); skew = Math.abs(s) < 1500 ? 0 : s; }
+  const sig = JSON.stringify([d.openings, d.available, d.places]);
+  if (board && sig === lastSig && renderedDay === todayKST()) {                  // 내용이 같으면 다시 그리지 않는다
+    board = d;
+    if (d.updated_at) updatedAt = d.updated_at;
+    paintStamp();
     return true;
-  } catch {
-    if (id === boardReq && !board) renderError();
-    return false;
   }
+  try { renderBoard(d); lastSig = sig; return true; }
+  catch (e) { console.error(e); if (!lastSig) renderError(); return false; }
 }
 function refreshData(manual = false) {
-  if (refreshing) return refreshing;
+  if (refreshing) { if (manual) refreshing.then(() => toast('이미 최신 정보예요.')); return refreshing; }
   ++boardReq;
   const btn = $('refresh');
   btn.setAttribute('aria-busy', 'true');
@@ -655,9 +736,9 @@ function refreshData(manual = false) {
       try { res = await api('/refresh', {}); } catch { res = {reason: 'error'}; }
       const loaded = await loadBoard();
       if (manual) {
-        toast(!loaded ? '정보를 받지 못했어요. 잠시 뒤 다시 시도해 주세요.'
-          : ['error', 'empty'].includes(res.reason) ? '서울시 데이터를 받지 못해 마지막 정보를 보여드려요.'
-          : res.refreshed ? '최신 정보로 바꿨어요.' : '방금 받은 최신 정보예요.');
+        toast(loaded === false ? '정보를 받지 못했어요. 잠시 뒤 다시 시도해 주세요.'
+          : ['error', 'empty'].includes(res.reason) ? '서울시 정보를 받지 못해 마지막 정보를 보여 드려요.'
+          : res.refreshed && loaded === true ? '새 정보를 불러왔어요.' : '이미 최신 정보예요.');
       }
       return res;
     } finally {
@@ -667,21 +748,25 @@ function refreshData(manual = false) {
   })();
   return refreshing;
 }
-const isStale = () => { const t = kstMs(updatedAt); return !Number.isFinite(t) || Date.now() - t > 180000; };
+const isStale = () => { const t = kstMs(updatedAt); return !Number.isFinite(t) || nowMs() - t > 180000; };
 
 /* ── 알림(웹 푸시) ────────────────────────────────────── */
 let sub = null, swReady = null, pushBusy = false, pushAgain = false, saveTimer = 0;
-let settings = {areas: [...AREAS], d1: true, h1: true, enabled: false};
-try {
-  const v = JSON.parse(localStorage.getItem('tn_push'));
-  if (v) {
-    settings = {...settings, ...v};
-    settings.areas = Array.isArray(v.areas) ? v.areas.filter((a) => AREAS.includes(a)) : [...AREAS];
-    if (!settings.areas.length) settings.areas = [...AREAS];
-  }
-} catch {}
+let serverOk = false, retryTimer = 0, retryStep = 0;   // serverOk: 이번에 서버 등록까지 확인됨
+let settings = {areas: [...AREAS], d1: true, h1: true, enabled: false, off: false};
+if (!MOCK) {
+  try {
+    const v = JSON.parse(localStorage.getItem('tn_push'));
+    if (v) {
+      settings = {...settings, ...v};
+      settings.areas = Array.isArray(v.areas) ? v.areas.filter((a) => AREAS.includes(a)) : [...AREAS];
+      if (!settings.areas.length) settings.areas = [...AREAS];
+    }
+  } catch {}
+}
 let cacheWrite = Promise.resolve();
 function saveSettings() {
+  if (MOCK) return;                                   // 미리보기는 기기에 아무것도 남기지 않는다
   try { localStorage.setItem('tn_push', JSON.stringify(settings)); } catch {}
   // 서비스워커가 구독을 다시 만들 때 읽는 사본
   const value = JSON.stringify({areas: settings.areas, d1: settings.d1, h1: settings.h1});
@@ -691,13 +776,20 @@ function saveSettings() {
 }
 saveSettings();
 
-const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const UA = navigator.userAgent || '';
+const isiOS = /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const standalone = Boolean(navigator.standalone) || matchMedia('(display-mode: standalone)').matches;
+const inApp = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(UA);    // 카카오톡 등 앱 안 브라우저
 const needInstall = isiOS && !standalone;
 const canPush = 'Notification' in window && 'PushManager' in window && 'serviceWorker' in navigator;
+const blocked = !MOCK && (needInstall || !canPush);   // 이 화면에서는 알림을 켤 수 없음
+let booting = !MOCK && !blocked && settings.enabled && !settings.off && Notification.permission === 'granted';
 const pushOn = () => Boolean(sub && settings.enabled);
 const subscribedTo = (area) => pushOn() && (!area || settings.areas.includes(area));
 const say = (msg) => { $('push-status').textContent = msg; };
+const deniedText = () => (isiOS && standalone
+  ? '알림이 꺼져 있어요. 아이폰 설정 > 알림 > 코트 오픈에서 허용해 주세요.'
+  : '알림이 차단되어 있어요. 브라우저 설정에서 이 사이트의 알림을 허용한 뒤 다시 켜 주세요.');
 
 function b64Bytes(s) {
   const n = s.replace(/-/g, '+').replace(/_/g, '/');
@@ -709,7 +801,7 @@ function sameKey(a, b) {
   return x.length === y.length && x.every((v, i) => v === y[i]);
 }
 function worker() {
-  if (!('serviceWorker' in navigator)) return Promise.reject(Error('이 브라우저는 앱 알림을 지원하지 않아요.'));
+  if (!('serviceWorker' in navigator)) return Promise.reject(new UserError('이 브라우저에서는 알림을 켤 수 없어요.'));
   if (!swReady) {
     swReady = navigator.serviceWorker.register('/sw.js')
       .then(async (r) => { await navigator.serviceWorker.ready; return r; })
@@ -717,29 +809,29 @@ function worker() {
   }
   return swReady;
 }
-/* mode: 'auto' 앱을 열 때 서버에 다시 등록 · 'user' [알림 켜기] · 'save' 설정 변경 저장 */
+/* mode: 'auto' 앱을 열 때 서버에 다시 등록 · 'user' 스위치를 켬 · 'save' 설정 변경 저장 */
 async function syncPush(mode) {
   if (pushBusy) { if (mode === 'save') pushAgain = true; return; }   // 저장 중에 또 바뀜 → 끝나면 최신 설정을 다시 보냄
   pushBusy = true;
-  $('subscribe').disabled = true;
+  $('master').disabled = true;
   try {
     if (MOCK) {
       if (mode === 'auto') return;
-      sub = {endpoint: 'mock'}; settings.enabled = true; saveSettings();
-      say(mode === 'user' ? '미리보기예요. 실제 알림은 보내지 않아요.' : '변경 내용을 저장했어요.');
+      sub = {endpoint: 'mock'}; settings.enabled = true; settings.off = false; serverOk = true;
+      say(mode === 'user' ? '미리보기예요. 실제 알림은 보내지 않아요.' : '바꾼 내용을 저장했어요.');
       return;
     }
     if (needInstall) return;
     if (mode === 'auto' && settings.off) return;                     // 직접 끈 기기는 다시 등록하지 않음
-    if (!canPush) throw Error('이 브라우저는 알림을 지원하지 않아요. Safari나 Chrome 최신 버전에서 열어 주세요.');
+    if (!canPush) throw new UserError('이 브라우저에서는 알림을 켤 수 없어요. Chrome이나 Safari에서 열어 주세요.');
     if (mode !== 'user' && Notification.permission !== 'granted') return;
     if (mode === 'user') {
       const p = await Notification.requestPermission();
-      if (p !== 'granted') throw Error(p === 'denied' ? '알림이 차단되어 있어요. 브라우저 설정에서 이 사이트의 알림을 허용해 주세요.' : '알림을 허용해야 받을 수 있어요.');
+      if (p !== 'granted') throw new UserError(p === 'denied' ? deniedText() : '알림을 허용해야 받을 수 있어요.');
     }
     const reg = await worker();
     sub = await reg.pushManager.getSubscription();
-    if (mode !== 'user' && !sub) return;
+    if (mode !== 'user' && !sub && !settings.enabled) return;        // 켠 적이 없는 기기
     const {publicKey} = await api('/push/key'), key = b64Bytes(publicKey);
     if (sub && !sameKey(sub.options.applicationServerKey, key)) {     // 서버 키가 바뀌었으면 다시 구독
       const old = sub;
@@ -747,19 +839,27 @@ async function syncPush(mode) {
       sub = null;
       try { await api('/push/unsubscribe', {endpoint: old.endpoint}); } catch {}
     }
+    // 켜 둔 기기인데 브라우저가 구독을 지웠으면 조용히 다시 만든다(권한은 이미 허용됨).
     if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: key});
     await api('/push/subscribe', {subscription: sub.toJSON(), areas: settings.areas, d1: settings.d1, h1: settings.h1});
     settings.enabled = true;
     settings.off = false;
+    serverOk = true;
+    retryStep = 0;
+    clearTimeout(retryTimer);
     saveSettings();
-    if (mode === 'user') say('알림을 켰어요. 예약이 열리기 전에 알려드릴게요.');
-    else if (mode === 'save') say('변경 내용을 저장했어요.');
+    if (mode === 'user') say('알림을 켰어요. 예약이 열리기 전에 알려 드릴게요.');
+    else if (mode === 'save') say('바꾼 내용을 저장했어요.');
   } catch (e) {
-    if (mode === 'save') say('바꾼 내용을 저장하지 못했어요. 연결을 확인한 뒤 다시 바꿔 주세요.');
-    else if (mode !== 'auto') say(e.message && !/fetch|network|abort/i.test(e.message) ? e.message : '연결이 어려워요. 잠시 뒤 다시 시도해 주세요.');
+    if (mode === 'user') say(e instanceof UserError ? e.message : '연결이 원활하지 않아요. 잠시 뒤 다시 켜 주세요.');
+    else {                                                           // 서버 등록이 안 됨 → 표시하고 다시 시도
+      serverOk = false;
+      retryLater();
+      if (mode === 'save') say('바꾼 내용을 저장하지 못했어요. 연결되면 다시 보낼게요.');
+    }
   } finally {
     pushBusy = false;
-    $('subscribe').disabled = false;
+    booting = false;
     paintPush();
     resave();
   }
@@ -769,21 +869,50 @@ function resave() {
   pushAgain = false;
   if (pushOn()) syncPush('save');
 }
+function retryLater() {                               // 30초 뒤, 2분 뒤에 한 번씩 더
+  clearTimeout(retryTimer);
+  if (retryStep >= 2) return;
+  retryTimer = setTimeout(() => syncPush('auto'), [30000, 120000][retryStep++]);
+}
+const wantsPush = () => !blocked && !MOCK && (settings.enabled || Boolean(sub)) && !settings.off;
+function reconnectPush() {                            // 화면으로 돌아오거나 인터넷이 다시 연결됐을 때
+  if (!wantsPush() || serverOk || pushBusy) return;
+  retryStep = 0;
+  syncPush('auto');
+}
 /* 화면을 열어 둔 사이 권한이 바뀌었거나 구독이 사라졌는지 다시 확인한다. */
 async function checkPush() {
-  if (MOCK || !canPush || pushBusy) return;
+  if (MOCK || blocked || pushBusy) return;
   try {
     let cur = null;
     if (Notification.permission === 'granted') cur = await (await worker()).pushManager.getSubscription();
     if (pushBusy) return;
-    if ((cur && cur.endpoint) !== (sub && sub.endpoint)) { sub = cur; paintPush(); sheetNote(); }
+    if ((cur && cur.endpoint) !== (sub && sub.endpoint)) {
+      sub = cur;
+      serverOk = false;
+      paintPush();
+      sheetNote();
+      reconnectPush();
+    }
   } catch {}
 }
-function sheetNote() {
-  if (pushOn() || MOCK || needInstall) return;
-  if (!canPush) say('이 브라우저는 알림을 지원하지 않아요. Chrome이나 Safari 최신 버전에서 열어 주세요.');
-  else if (Notification.permission === 'denied') say('알림이 차단되어 있어요. 브라우저 설정에서 이 사이트의 알림을 허용한 뒤 다시 눌러 주세요.');
-  else say('');
+async function turnOff() {
+  if (pushBusy) return;
+  pushBusy = true;
+  clearTimeout(saveTimer);
+  clearTimeout(retryTimer);
+  pushAgain = false;
+  $('master').disabled = true;
+  try {
+    if (sub && !MOCK) {
+      await api('/push/unsubscribe', {endpoint: sub.endpoint});
+      try { await sub.unsubscribe(); } catch {}      // 서버에서는 이미 지워졌으므로 화면은 꺼짐으로 맞춘다
+    }
+    sub = null; serverOk = false; settings.enabled = false; settings.off = true;
+    saveSettings();
+    say('알림을 껐어요. 언제든 다시 켤 수 있어요.');
+  } catch { say('알림을 끄지 못했어요. 다시 시도해 주세요.'); }
+  finally { pushBusy = false; paintPush(); }
 }
 function settingsChanged() {
   saveSettings();
@@ -797,67 +926,75 @@ function paintPush() {
   $('bell').innerHTML = on ? ICON.bellOn : ICON.bell;
   $('bell').classList.toggle('on', on);
   $('bell').setAttribute('aria-label', on ? '오픈 알림 설정, 켜져 있음' : '오픈 알림 설정, 꺼져 있음');
-  $('push-value').textContent = on ? `켜짐 · ${settings.areas.length}곳` : '꺼짐';
-  $('push-value').classList.toggle('on', on);
+  const v = $('push-value');
+  v.textContent = on ? (serverOk ? `켜짐 · ${settings.areas.length}곳` : '연결 확인 중') : booting ? '확인 중' : '꺼짐';
+  v.classList.toggle('on', on);
   document.querySelectorAll('[data-alarm]').forEach((el) => {
     const mine = subscribedTo(el.dataset.alarm);
     el.classList.toggle('on', mine);
     el.innerHTML = `${mine ? ICON.bellOn : ICON.bell}<span>${mine ? '알림 켜짐' : '알림 받기'}</span>`;
   });
-  $('install').hidden = !needInstall;
-  $('subscribe').hidden = on || needInstall;
+  const m = $('master');
+  m.checked = on;
+  m.disabled = pushBusy || blocked;
+  $('install').hidden = !blocked;
+  $('prefs').hidden = blocked;                        // 여기서 고른 설정은 홈 화면 앱·다른 브라우저로 이어지지 않는다
   $('test').hidden = !on;
-  $('unsubscribe').hidden = !on;
-  if (!$('push-status').textContent && on) say('알림이 켜져 있어요. 바꾼 내용은 바로 저장돼요.');
+}
+function sheetNote() {
+  if (blocked) say('');
+  else if (pushOn()) say(serverOk || MOCK ? '알림이 켜져 있어요. 바꾼 내용은 바로 저장돼요.' : '서버 연결을 확인하고 있어요. 잠시 뒤 자동으로 다시 등록돼요.');
+  else if (!MOCK && Notification.permission === 'denied') say(deniedText());
+  else say('');
 }
 function renderAreas() {
   $('areas').innerHTML = AREAS.map((a) => `<label class="pick"><input type="checkbox" value="${esc(a)}"${settings.areas.includes(a) ? ' checked' : ''}><span>${esc(NAMES[a] || a)}</span>${ICON.check}</label>`).join('');
+}
+function renderInstall() {                            // 이 화면에서 알림을 켤 수 없을 때의 안내
+  if (!blocked) return;
+  const copy = '<p><button class="text-btn" data-act="copy">이 주소 복사하기</button></p>';
+  $('install').innerHTML = needInstall && !inApp
+    ? `<strong>아이폰은 홈 화면에 추가한 뒤에 켤 수 있어요</strong>
+       <ol><li>Safari 아래쪽 공유 버튼 누르기</li><li>‘홈 화면에 추가’ 선택</li><li>홈 화면에서 코트 오픈을 열고 알림 켜기</li></ol>`
+    : needInstall
+      ? `<strong>이 화면에서는 알림을 켤 수 없어요</strong><p>Safari에서 이 주소를 연 다음, 공유 버튼에서 ‘홈 화면에 추가’를 선택해 주세요.</p>${copy}`
+      : `<strong>이 브라우저에서는 알림을 켤 수 없어요</strong><p>Chrome이나 Safari에서 이 주소를 열어 주세요.</p>${copy}`;
 }
 $('areas').addEventListener('change', (e) => {
   const box = e.target;
   if (!AREAS.includes(box.value)) return;
   const picked = box.checked ? [...new Set([...settings.areas, box.value])] : settings.areas.filter((a) => a !== box.value);
-  if (!picked.length) { box.checked = true; toast('한 곳 이상은 골라 주세요.'); return; }
+  if (!picked.length) { box.checked = true; toast('테니스장을 한 곳 이상 골라 주세요.'); return; }
   settings.areas = AREAS.filter((a) => picked.includes(a));
   settingsChanged();
 });
 ['d1', 'h1'].forEach((id) => {
   $(id).checked = settings[id];
   $(id).addEventListener('change', () => {
-    if (!$('d1').checked && !$('h1').checked) { $(id).checked = true; toast('알림 시점을 하나 이상 켜 주세요.'); return; }
+    if (!$('d1').checked && !$('h1').checked) { $(id).checked = true; toast('알림 시간을 하나 이상 켜 주세요.'); return; }
     settings[id] = $(id).checked;
     settingsChanged();
   });
 });
-$('subscribe').onclick = () => syncPush('user');
-$('unsubscribe').onclick = async () => {
-  if (pushBusy) return;
-  pushBusy = true;
-  clearTimeout(saveTimer);
-  pushAgain = false;
-  try {
-    if (!sub) throw Error();
-    if (!MOCK) {
-      await api('/push/unsubscribe', {endpoint: sub.endpoint});
-      try { await sub.unsubscribe(); } catch {}      // 서버에서는 이미 지워졌으므로 화면은 꺼짐으로 맞춘다
-    }
-    sub = null; settings.enabled = false; settings.off = true; saveSettings();
-    say('알림을 껐어요. 언제든 다시 켤 수 있어요.');
-  } catch { say('알림을 끄지 못했어요. 다시 시도해 주세요.'); }
-  finally { pushBusy = false; paintPush(); }
-};
+$('master').addEventListener('change', () => ($('master').checked ? syncPush('user') : turnOff()));
 $('test').onclick = async () => {
   if (MOCK) { say('미리보기에서는 알림을 보내지 않아요.'); return; }
   if (!sub || pushBusy) return;
-  pushBusy = true;
   $('test').disabled = true;
-  try { await api('/push/test', {endpoint: sub.endpoint}); say('테스트 알림을 보냈어요. 기기 알림을 확인해 주세요.'); }
-  catch { say('테스트 알림을 보내지 못했어요. 1분 뒤 다시 시도해 주세요.'); }
-  finally { pushBusy = false; $('test').disabled = false; resave(); }
+  try {
+    try { await api('/push/test', {endpoint: sub.endpoint}); }
+    catch (e) {
+      if (e.status !== 400 || !/찾지 못했/.test(e.message)) throw e;
+      await syncPush('auto');                         // 서버에 이 기기 등록이 없으면 다시 등록하고 한 번 더 보낸다
+      if (!serverOk || !sub) throw e;
+      await api('/push/test', {endpoint: sub.endpoint});
+    }
+    say('테스트 알림을 보냈어요. 기기 알림을 확인해 주세요.');
+  } catch (e) { say(e instanceof UserError ? e.message : '테스트 알림을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.'); }
+  finally { $('test').disabled = false; }
 };
 
 /* ── 시트 · 공유 · 공통 동작 ──────────────────────────── */
-const sheet = $('sheet');
 let sheetOpener = null, sheetShown = false;
 function openSheet(from) {
   if (sheet.open) return;
@@ -882,27 +1019,32 @@ sheet.addEventListener('close', sheetClosed);
 sheet.addEventListener('cancel', () => setTimeout(() => { if (!sheet.open) sheetClosed(); }, 0));   // Esc
 sheet.addEventListener('click', (e) => { if (e.target === sheet) closeSheet(); });
 $('sheet-close').onclick = closeSheet;
-document.addEventListener('click', (e) => {
+const appURL = () => { const u = new URL(location.href); u.search = ''; u.hash = ''; return u.href; };
+document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-act]');
   if (!el) return;
   if (el.dataset.act === 'sheet') openSheet(el);
-  if (el.dataset.act === 'retry') { $('next').innerHTML = '<div class="sk" style="width:190px;height:58px"></div>'; loadBoard(); }
+  if (el.dataset.act === 'retry') { $('next').innerHTML = '<div class="sk" style="width:180px;height:56px"></div>'; loadBoard(); }
+  if (el.dataset.act === 'copy') {
+    try { await navigator.clipboard.writeText(appURL()); toast('주소를 복사했어요.'); }
+    catch { toast('복사하지 못했어요. 주소창의 주소를 길게 눌러 복사해 주세요.'); }
+  }
 });
 $('refresh').onclick = () => refreshData(true);
 $('share').onclick = async () => {
-  const u = new URL(location.href);
-  u.search = ''; u.hash = '';
   try {
-    if (navigator.share) await navigator.share({title: '코트 오픈', text: '서울 공공 테니스장 예약 오픈 일정을 한눈에 볼 수 있어요.', url: u.href});
-    else { await navigator.clipboard.writeText(u.href); toast('링크를 복사했어요.'); }
-  } catch (e) { if (e.name !== 'AbortError') toast('공유하지 못했어요. 주소창의 링크를 복사해 주세요.'); }
+    if (navigator.share) await navigator.share({title: '코트 오픈', text: '한남·장충·마루공원·선우공원·서울숲 테니스장 예약이 언제 열리는지 알려 주는 앱이에요.', url: appURL()});
+    else { await navigator.clipboard.writeText(appURL()); toast('주소를 복사했어요.'); }
+  } catch (e) { if (e.name !== 'AbortError') toast('공유하지 못했어요. 주소창의 주소를 복사해 주세요.'); }
 };
 const onScroll = () => $('bar').classList.toggle('scrolled', window.scrollY > 4);
 window.addEventListener('scroll', onScroll, {passive: true});
+window.addEventListener('online', reconnectPush);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   tick();
   checkPush();
+  reconnectPush();
   if (!MOCK && isStale()) refreshData();
 });
 
@@ -912,14 +1054,15 @@ function mockStamp() {
 }
 function mockBoard(kind) {
   const url = 'https://yeyak.seoul.go.kr/web/main.do';
-  const at = (mins) => {                       // 지금부터 mins 분 뒤의 한국시간 문자열
+  const at = (mins) => {                       // 지금부터 mins 분 뒤의 한국 시간 문자열
     const d = new Date(Date.now() + mins * 60000 + 9 * 36e5);
     return `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(11, 16)}`;
   };
   const day = (n, t) => `${at(n * 1440).slice(0, 10)} ${t}`;
-  const c = (court, slot, time, paid = true) => ({court, slot, time, is_paid: paid, reserve_url: url});
+  let seq = 0;
+  const c = (court, slot, time, paid = true, confirmed = false) => ({court, slot, time, is_paid: paid, confirmed, reserve_url: `${url}?mock=${++seq}`});
   const hannam = [
-    c('1번', '평일 주간', '06:00-15:00'), c('1번', '일', '20:00-22:00'), c('2번', '평일 주간', '06:00-17:00'), c('2번', '금 야간 · 일', '17:00-22:00'),
+    c('1번', '평일 주간', '06:00-15:00', true, true), c('1번', '일', '20:00-22:00'), c('2번', '평일 주간', '06:00-17:00', true, true), c('2번', '금 야간 · 일', '17:00-22:00'),
     c('3번', '평일 새벽·주간', '06:00-17:00'), c('3번', '평일 야간 · 주말·공휴일', '06:00-22:00'), c('4번', '평일 새벽·주간', '06:00-17:00'), c('4번', '평일 야간 · 일', '12:00-22:00'),
     c('5번', '평일 새벽·주간', '06:00-17:00'), c('5번', '월 야간 · 주말·공휴일', '16:00-22:00'), c('6번', '평일 새벽·주간', '06:00-17:00'), c('6번', '평일 야간 · 주말·공휴일', '06:00-22:00'),
     c('8번', '평일 주간', '12:00-14:00'), c('9번', '평일 주간', '12:00-14:00'), c('10번', '평일 새벽·주간', '06:00-15:00'), c('10번', '월 야간 · 주말·공휴일', '12:00-22:00'),
@@ -928,6 +1071,7 @@ function mockBoard(kind) {
   const jang = [2, 3, 4, 7, 8, 9].flatMap((n) => [c(`${n}번`, '평일 주간', '06:00-18:00'), c(`${n}번`, '평일 야간', '18:00-22:00'), c(`${n}번`, '주말·공휴일', '06:00-22:00')]);
   const forest = {area: '서울숲', place: '서울숲 테니스장', region: '성동구', open_at: day(19, '09:01'), opened: false, period: '2027년 이용분', courts: [c('코트', '주말·공휴일', '06:00-19:00')]};
   const available = kind === 'empty' ? [] : [
+    ...(kind === 'late' ? [{area: '장충', place: '장충테니스장', region: '중구', until_label: '11/15까지 이용', until_kind: 'use', period: '11/1~11/15', full_count: 17, courts: [c('3번', '평일 야간', '18:00-22:00')]}] : []),
     {area: '장충', place: '장충테니스장', region: '중구', until_label: '11/30까지 이용', until_kind: 'use', period: '11/16~11/30', full_count: 16, courts: [c('8번', '평일 주간', '06:00-18:00'), c('9번', '평일 주간', '06:00-18:00')]},
     {area: '마루공원', place: '마루공원', region: '강남구', until_label: '상시 예약', until_kind: '', full_count: 0, courts: [c('1면', '매일', '06:00-22:00', false), c('1면 조명', '매일', '06:00-22:00'), c('2면', '매일', '06:00-22:00', false), c('2면 조명', '매일', '06:00-22:00'), c('3면', '매일', '06:00-22:00', false), c('3면 조명', '매일', '06:00-22:00')]},
     {area: '선우공원', place: '선우공원', region: '관악구', until_label: '11/30까지 접수', until_kind: 'rcpt', full_count: 2, courts: [c('B', '평일 주간', '06:00-18:00')]},
@@ -945,13 +1089,14 @@ function mockBoard(kind) {
   const busy = new Set(openings.map((x) => x.area));
   const past = {'한남': [day(-12, '09:00')], '장충': [day(-2, '10:00'), day(-18, '10:00')], '선우공원': [day(-16, '09:30'), day(-50, '09:30')]};
   const places = AREAS.map((a) => ({area: a, place: NAMES[a], next_open: (openings.find((x) => x.area === a && !x.opened) || {}).open_at || '',
-    available: (available.find((p) => p.area === a) || {courts: []}).courts.length, past_opens: busy.has(a) ? [] : (past[a] || [])}));
+    past_opens: busy.has(a) ? [] : (past[a] || [])}));
   return {now: mockStamp().slice(0, 16), updated_at: mockStamp(), badge: 0, areas: AREAS, places, openings, available};
 }
 
 /* ── 시작 ─────────────────────────────────────────────── */
 async function init() {
   renderAreas();
+  renderInstall();
   paintPush();
   onScroll();
   const slow = setTimeout(() => { const s = $('slow'); if (s) s.hidden = false; }, 6000);
@@ -961,7 +1106,7 @@ async function init() {
   if (!MOCK && ok === true && isStale()) refreshData();
 }
 setInterval(() => { if (!MOCK && document.visibilityState === 'visible') refreshData(); }, 180000);
-setInterval(tick, 15000);
+setInterval(tick, 1000);
 init();
 </script>
 </body>

@@ -194,7 +194,7 @@ def send_test(session: Session, endpoint: str) -> dict:
         return {"ok": False, "error": "이 기기의 알림 구독을 찾지 못했어요. 알림 받기를 다시 눌러 주세요."}
     ok = _send(session, row, {
         "title": "코트 오픈 알림이 켜졌어요",
-        "body": "고른 지역의 테니스장 예약이 열리기 전날·1시간 전에 알려 드릴게요.",
+        "body": "고른 테니스장의 예약이 열리기 전에 알려 드릴게요.",
         "url": "/", "tag": "test", "badge": 0,
     }, ttl=600)
     return {"ok": ok} if ok else {"ok": False, "error": "보내지 못했어요. 잠시 뒤 다시 시도해 주세요."}
@@ -207,7 +207,7 @@ def _fmt(open_at: str) -> str:
     except (ValueError, TypeError):
         return open_at
     wd = ["월", "화", "수", "목", "금", "토", "일"][dt.weekday()]
-    return f"{dt.month}/{dt.day}({wd}) {dt:%H:%M}"
+    return f"{dt.month}.{dt.day}({wd}) {dt:%H:%M}"
 
 
 def _event_key(g: dict) -> str:
@@ -245,11 +245,11 @@ def send_opening_alerts(session: Session | None, groups: list[dict], badge: int 
         is_today = (top.get("open_at") or "")[:10] == _now().strftime("%Y-%m-%d")
         when = f"{'오늘' if is_today else '내일'} {hhmm}"
         title = f"{top['place']} 예약 {when} 오픈"
-        lines = [f"{g['place']} {g['count']}면 · {_fmt(g['open_at'])}" for g in mine[:4]]
+        lines = [f"{g['place']} · {_fmt(g['open_at'])}" for g in mine[:4]]
         if len(mine) > 4:
             lines.append(f"외 {len(mine) - 4}곳")
         payload = {"title": title, "body": "\n".join(lines),
-                   "url": (top.get("reserve_url") or "/") if top["kind"] == "h1" else "/",
+                   "url": "/",
                    "tag": f"open-{top['kind']}-{top['open_at']}", "badge": badge}
         endpoint = row.endpoint
         if _send(session, row, payload, ttl=3600 if h1 else 6 * 3600):
