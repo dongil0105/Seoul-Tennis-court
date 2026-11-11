@@ -695,14 +695,40 @@ def board(session: Session) -> dict:
         a = areas_of(s.region, s.facility_name, s.court_name)
         return a[0] if a else place_label(s)
 
+    def batch_of(uf, ut, exact, dt, cd) -> tuple[str, str, str]:
+        """지금 접수 중인 코트를 묶는 회차: (종류, 끝나는 날, 이용 기간 표시).
+
+        날짜용 회차는 이용 끝날까지('use'), 월 단위 접수(선우공원: 이용기간은 1년, 접수는 한 달)는
+        접수 마감일까지('rcpt'), 둘 다 아니면 상시('')."""
+        if exact and ut:
+            return "use", ut.isoformat(), (f"{_md(uf)}~{_md(ut)}" if uf else "")
+        if cd and dt and (cd - dt).days <= 45:
+            return "rcpt", cd.date().isoformat(), ""
+        return "", "", ""
+
     opens: dict[tuple, dict] = {}
-    avail: dict[str, dict] = {}
+    avail: dict[tuple, dict] = {}     # (곳, 회차) → 지금 접수중인 코트 묶음
+    past: dict[str, dict] = {}        # 곳 → {오픈 날짜: 가장 이른 오픈 일시} (회차형만)
+    fulls: dict[tuple, int] = {}      # (곳, 회차) → 예약마감 서비스 수(상시 예약은 세지 않음)
+    meta: dict[str, dict] = {}        # 곳 → 이름·지역
     for s in rows:
         if period_conflict(s):
             continue
         st = effective_status(s, now)
         uf, ut, exact = use_period(s)
         dt = _parse_dt(s.open_at)
+        cd = _parse_dt(s.close_at)
+        a = area(s)
+        meta.setdefault(a, {"place": place_label(s), "region": s.region})
+        # 회차형 = 날짜용 회차이거나 접수 기간이 45일 이하(선우공원처럼 달마다 여는 곳)
+        batch = bool(exact or (cd and dt and (cd - dt).days <= 45))
+        if dt and dt <= now and batch:
+            day = past.setdefault(a, {})
+            if dt.date() not in day or s.open_at < day[dt.date()]:
+                day[dt.date()] = s.open_at
+        bk = batch_of(uf, ut, exact, dt, cd)
+        if st == "예약마감" and bk[0] and not (ut and ut < today):
+            fulls[(a, bk)] = fulls.get((a, bk), 0) + 1
         if dt and not _ends_before(s, dt) and (
                 (st == "안내중" and dt > now) or (st in (UNCONFIRMED, "접수중") and dt.date() == today)):
             yr = _NAME_YEAR.search(s.facility_name)
@@ -717,23 +743,17 @@ def board(session: Session) -> dict:
                                        "period": period, "reserve_url": s.reserve_url, "courts": []})
             if s.open_at < e["open_at"]:
                 e["open_at"], e["opened"] = s.open_at, dt <= now
-            e["courts"].append(_chip(s))
+            chip = _chip(s)
+            # 공식 상태가 '접수중'으로 바뀐 것만 확인된 접수 — 오픈 시각만 지난 것은 미확인
+            chip["confirmed"] = st == "접수중"
+            e["courts"].append(chip)
         if st == "접수중" and not (ut and ut < today):
-            a = area(s)
-            e = avail.setdefault(a, {"area": a, "place": place_label(s), "region": s.region,
-                                     "until": "", "until_kind": "",
-                                     "courts": []})
-            # 날짜용 회차는 이용 끝날까지, 월 단위 접수(선우공원: 이용기간은 1년, 접수는 한 달)는
-            # 접수 마감일까지. 둘 다 아니면 상시.
-            cd = _parse_dt(s.close_at)
-            if exact and ut:
-                end, kind = ut.isoformat(), "use"
-            elif cd and dt and (cd - dt).days <= 45:
-                end, kind = cd.date().isoformat(), "rcpt"
-            else:
-                end, kind = "", ""
-            if end and end > e["until"]:
-                e["until"], e["until_kind"] = end, kind
+            # 같은 곳이어도 회차(이용 기간·접수 마감)가 다르면 따로 묶는다 — 앞 회차 코트가
+            # 뒤 회차 기간으로 보이지 않게.
+            kind, end, period = bk
+            e = avail.setdefault((a, bk), {"area": a, "place": place_label(s), "region": s.region,
+                                           "until": end, "until_kind": kind, "period": period,
+                                           "courts": []})
             e["courts"].append(_chip(s))
 
     openings = sorted(opens.values(), key=lambda x: (x["open_at"], order.index(x["area"])
@@ -741,7 +761,11 @@ def board(session: Session) -> dict:
     for e in openings:
         e["courts"].sort(key=_chip_key)
         e["court_count"] = len(e["courts"])
-    available = sorted(avail.values(), key=lambda x: order.index(x["area"]) if x["area"] in order else 99)
+    for key, e in avail.items():
+        # 같은 회차 가운데 이미 마감된 예약 수 — '나머지 16개 마감'
+        e["full_count"] = fulls.get(key, 0)
+    available = sorted(avail.values(), key=lambda x: (order.index(x["area"]) if x["area"] in order else 99,
+                                                      x["until"] or "9999"))
     for e in available:
         e["courts"].sort(key=_chip_key)
         e["court_count"] = len(e["courts"])
@@ -752,8 +776,12 @@ def board(session: Session) -> dict:
     for e in openings:
         if not e["opened"]:
             nxt.setdefault(e["area"], e["open_at"])
-    places = [{"area": a, "next_open": nxt.get(a, ""),
-               "available": next((x["court_count"] for x in available if x["area"] == a), 0)}
+    places = [{"area": a, "place": meta.get(a, {}).get("place", a),
+               "region": meta.get(a, {}).get("region") or "",
+               "next_open": nxt.get(a, ""),
+               "available": sum(x["court_count"] for x in available if x["area"] == a),
+               # 지난 오픈 일시(최근 것부터 3개) — 다음 회차가 아직 등록 안 됐을 때 참고용
+               "past_opens": sorted(past.get(a, {}).values(), reverse=True)[:3]}
               for a in order]
     from app.services import sync as SYNC
     return {

@@ -77,8 +77,8 @@ def manifest() -> JSONResponse:
         "start_url": "/?source=pwa",
         "scope": "/",
         "display": "standalone",
-        "background_color": "#0B1F17",
-        "theme_color": "#0B1F17",
+        "background_color": "#FFFFFF",
+        "theme_color": "#FFFFFF",
         "icons": [
             {"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png"},
             {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png"},

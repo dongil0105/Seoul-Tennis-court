@@ -1,95 +1,968 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>코트 오픈 · 5곳 예약 안내</title>
-<meta name="theme-color" content="#F5F6F1" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#101C19" media="(prefers-color-scheme: dark)">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="코트 오픈"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/static/apple-touch-icon.png"><link rel="icon" href="/static/icon-192.png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>코트 오픈</title>
+<meta name="description" content="한남·장충·마루공원·선우공원·서울숲 테니스장의 예약 오픈 일정과 지금 예약할 수 있는 코트">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111315" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="코트 오픈">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<link rel="icon" href="/static/icon-192.png">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<style>:root{color-scheme:light dark;--bg:#F4F3EE;--card:#fff;--ink:#10201A;--muted:#5B6B63;--line:#D9DED5;--soft:#EEF0EA;--green:#0F2D24;--lime:#D5F04A;--orange:#B8461E;--warning:#FBEEE7}*{box-sizing:border-box;min-width:0}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 'Pretendard Variable',sans-serif;-webkit-text-size-adjust:100%;font-variant-numeric:tabular-nums}h1,h2,h3,p{margin:0}h1{font-size:18px;font-weight:800;letter-spacing:-.4px}h2{font-size:21px;font-weight:800;letter-spacing:-.5px;line-height:1.3}h3{font-size:18px;font-weight:800;letter-spacing:-.3px}button,input{font:inherit}button{border:0;color:inherit;cursor:pointer}a{color:inherit;text-decoration:none}button,a,input{-webkit-tap-highlight-color:transparent;touch-action:manipulation}button,a{transition:transform .16s,opacity .16s}button:active,a:active{transform:scale(.975)}button:disabled{opacity:.5;cursor:wait}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #8EAB21;outline-offset:3px}[hidden]{display:none!important}p,span,strong,h3{overflow-wrap:anywhere}.app{max-width:440px;margin:auto;padding-bottom:env(safe-area-inset-bottom)}.header{display:flex;align-items:center;justify-content:space-between;padding:calc(20px + env(safe-area-inset-top)) 20px 12px;gap:12px}.brand{display:flex;align-items:center;gap:10px}.brand img{border-radius:11px;object-fit:cover}.brand p{font-size:11px;color:var(--muted)}.bell{position:relative;width:44px;height:44px;flex-shrink:0;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center}.bell svg{width:20px;height:20px}.badge{position:absolute;top:6px;right:7px;width:9px;height:9px;border-radius:50%;background:#E2683C;border:2px solid var(--card)}.content{padding:0 20px}.overview{padding-top:8px}.place-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;background:var(--card);padding:16px 10px 14px;border-radius:22px;box-shadow:0 1px 2px #10201A0A}.place-tile{display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;padding:0}.orb{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10.5px;white-space:nowrap}.orb.today{border:3px solid #E2683C;color:var(--orange)}.orb.available{background:var(--lime);color:#10201A}.orb.next{background:#0F2D24;color:var(--lime);font-size:13px}.orb.waiting{border:3px dashed #C9CEC6;color:var(--muted)}.place-tile strong{font-size:12px;white-space:nowrap}.place-tile small{font-size:10px;line-height:1.3;color:var(--muted)}.legend{display:flex;gap:14px;justify-content:center;padding-top:10px;font-size:11px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.legend i{width:8px;height:8px;border-radius:50%;background:var(--lime);border:1px solid #8AA11D}.legend span:nth-child(2) i{background:#E2683C;border:0}.legend span:nth-child(3) i{background:#0F2D24;border:0}.section{margin-top:28px}.section-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.section-top h2{flex-shrink:0}#refresh{font-size:10.5px;color:var(--muted);background:none;padding:0;min-height:44px;text-align:right}#refresh[aria-busy=true]{opacity:.55}.cards{display:grid;gap:12px}.hero{position:relative;background:#0F2D24;color:white;border-radius:26px;padding:22px 22px 20px;isolation:isolate;overflow:hidden}.hero:before{content:'';position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,#0F2D24 12%,#0F2D2480),url('static/hero-pattern.webp') right center/cover;opacity:.7}.hero-top{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#C4D3CA}.hero-top b{font-size:12px;color:var(--lime)}.hero-clock{display:flex;align-items:flex-end;gap:12px;margin:14px 0}.hero-clock time{font-size:54px;font-weight:800;line-height:1;letter-spacing:-2px;color:var(--lime);white-space:nowrap}.hero-clock strong{font-size:15px;padding-bottom:5px}.hero-bottom{border-top:1px solid #ffffff24;padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}.hero-bottom h3{font-size:17px}.hero-bottom p{font-size:12px;color:#C4D3CA;margin-top:3px}.subscription-chip{font-size:10.5px;font-weight:700;border-radius:99px;background:#D5F04A22;color:var(--lime);padding:7px 10px;white-space:nowrap;flex-shrink:0}.open-card,.available-place,.next-row{background:var(--card);border-radius:22px;padding:18px;box-shadow:0 1px 2px #10201A0A;scroll-margin-top:20px}.open-card{display:flex;flex-direction:column;gap:12px}.row{display:flex;justify-content:space-between;align-items:center;gap:8px}.row small{font-size:10.5px;color:var(--muted);text-align:right}.opened{font-size:12px;color:var(--orange)}.warning{font-size:12px;color:#6E4A3A;background:var(--warning);padding:9px 11px;border-radius:12px}.slot-rows{display:grid;gap:9px}.slot-row{display:grid;grid-template-columns:104px minmax(0,1fr);gap:8px;align-items:center}.slot-row>span{font-size:12px;color:var(--muted);line-height:1.45}.chips{display:flex;flex-wrap:wrap;gap:6px}.court-chip{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 30px;border-radius:9px;background:var(--soft);font-weight:700;font-size:13px}.night{background:#0F2D24!important;color:var(--lime)!important}.action{display:flex;align-items:center;justify-content:center;gap:8px;background:#0F2D24;color:white;border-radius:14px;min-height:48px;padding:10px 12px;font-size:14px;font-weight:700}.open-card .action{margin-top:4px}.action span{color:var(--lime)}.notice{font-size:12.5px;border:1px dashed #AAB4AA;border-radius:16px;padding:12px 14px;color:var(--muted);margin-top:12px}.sub{font-size:12px;color:var(--muted);margin:4px 0 12px}.note{font-size:11px;color:var(--muted);margin-top:10px;overflow-wrap:anywhere}.note:empty{display:none}.next-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.next-row h3{font-size:15px}.next-row p{font-size:12px;color:var(--muted)}.next-row>strong{font-size:12px;text-align:right}.available-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.full{grid-column:1/-1}.place-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:14px}.place-head p{font-size:11px;color:var(--muted);margin-top:2px}.pill{font-size:10px;font-weight:700;background:var(--soft);border-radius:99px;padding:6px 8px;flex-shrink:0;max-width:45%}.available-group+.available-group{margin-top:12px}.group-label{font-size:12px;color:var(--muted);display:block;margin-bottom:8px}.court-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.court-button{height:58px;border-radius:16px;background:var(--lime);color:#10201A;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:18px;font-weight:800;text-align:center;line-height:1.2;padding:4px}.court-button small{font-size:10.5px;font-weight:600;margin-top:4px}.court-button.night small{color:#C4D3CA}.compact{padding:16px}.compact .place-head{display:block;margin-bottom:10px}.compact h3{font-size:16px}.compact .pill{display:inline-block;max-width:100%;margin-top:6px;padding:4px 7px;font-size:10px}.compact .court-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.compact .court-grid:has(> :only-child){grid-template-columns:1fr}.compact .court-button{font-size:14px}.compact .group-label{font-size:10.5px}.notify-card{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:20px;background:#0F2D24;color:white;border-radius:22px;margin-top:28px}.notify-card>span:nth-child(2){flex:1}.notify-card strong{display:block;font-size:15px}.notify-card small{font-size:11px;color:#C4D3CA;display:block;margin-top:4px}.notify-icon{color:var(--lime);display:grid;place-items:center}.notify-card>span:last-child{font-size:26px;color:var(--lime)}.share{width:100%;min-height:48px;border:1px solid var(--line);background:transparent;border-radius:14px;margin-top:14px;font-weight:700;font-size:14px}footer{text-align:center;color:var(--muted);font-size:10.5px;padding:16px 0 24px}.empty{background:var(--card);border-radius:22px;padding:24px;text-align:center}.empty img{max-width:100%;height:auto;border-radius:16px}.empty h3{font-size:16px}.empty p{font-size:12px;color:var(--muted);margin:6px 0 16px}.notification{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:440px;max-height:90dvh;overflow-y:auto;border:0;border-radius:26px 26px 0 0;padding:26px 24px calc(24px + env(safe-area-inset-bottom));background:#0F2D24;color:#fff}.notification::backdrop{background:#06150FC0;backdrop-filter:blur(5px)}.close{float:right;background:#ffffff18;border-radius:50%;width:36px;height:36px;font-size:25px}.notification .eyebrow{font-size:10px;letter-spacing:1px;color:var(--lime);padding-top:6px}.notification h2{font-size:23px;margin:14px 0 6px}.notification .sub{color:#C4D3CA}.areas{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 18px}.area{min-height:44px;padding:8px 13px;border-radius:99px;background:#ffffff0B;border:1px solid #ffffff66;color:white;font-size:13px}.area[aria-pressed=true]{background:var(--lime);color:#10201A;border-color:var(--lime);font-weight:700}.toggle-row{display:flex;align-items:center;justify-content:space-between;min-height:55px;gap:12px;cursor:pointer}.toggle-row input{appearance:none;position:relative;width:42px;height:26px;flex:none;border-radius:20px;background:#718178;margin:0}.toggle-row input:before{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:white;transition:transform .18s}.toggle-row input:checked{background:var(--lime)}.toggle-row input:checked:before{transform:translateX(16px);background:#183e32}.wide{width:100%;margin-top:18px;background:var(--lime);color:#10201A}.push-status{font-size:12px;color:#C4D3CA;min-height:20px;margin-top:12px}.utility{display:flex;gap:20px}.utility button{background:none;color:inherit;text-decoration:underline;min-height:44px;font-size:12px;padding:5px 0}.install{margin-top:18px;border-top:1px solid #ffffff35;padding-top:16px}.install ol{padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.install li{font-size:11px;color:#C4D3CA}.install svg{display:block;width:28px;height:28px;margin:10px 0;color:var(--lime)}.step-number{font-size:10px;color:var(--lime)}@media(min-width:540px){body{padding:24px 0}.app{border:1px solid var(--line);border-radius:30px;box-shadow:0 16px 80px #10201A0A;overflow:hidden}}@media(max-width:359px){.content{padding:0 14px}.header{padding-left:14px;padding-right:14px}.place-tiles{padding-left:5px;padding-right:5px}.orb{width:46px;height:46px;font-size:9px}.place-tile strong{font-size:10.5px}.legend{font-size:10px;gap:8px}.hero{padding:20px 16px}.hero-clock time{font-size:46px}.slot-row{grid-template-columns:85px minmax(0,1fr)}.section-top h2{font-size:19px}.compact{padding:12px}.place-head{flex-wrap:wrap}.pill{max-width:100%}}@media(prefers-color-scheme:dark){:root{--bg:#0B1A15;--card:#13261F;--ink:#F1F5ED;--muted:#B8C7BC;--line:#354A3D;--soft:#263D30;--orange:#FFAD89;--warning:#39291F}.warning{color:#F2C9B4}.orb.next{border:1px solid #49634F}.legend span:nth-child(3) i{background:#B8C7BC}.action{background:#254A38}.hero{border:1px solid #354A3D}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
-/* Balanced v2: common center axes and card rhythm. */
-.app{max-width:480px}.section-top{align-items:baseline}.hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:24px 22px}.hero:before{background:linear-gradient(90deg,#0F2D24B8,#0F2D2480 50%,#0F2D24B8),url('static/hero-pattern.webp') center/cover;opacity:.3}.hero-top{justify-content:center}.hero-top b{background:#D5F04A1F;border-radius:99px;padding:6px 12px}.hero-clock{flex-direction:column;align-items:center;gap:12px;margin:0}.hero-clock time{font-size:60px}.hero-clock strong{padding:0;font-size:16px}.hero-bottom{display:flex;flex-direction:column;border:0;padding:0;gap:12px;width:100%}.hero-bottom p{margin:0}.subscription-chip{background:transparent;padding:0;min-height:28px;white-space:normal}.hero #countdown{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;border-block:1px solid #ffffff24;padding:12px 0}.hero #countdown>div{display:flex;flex-direction:column;align-items:center;gap:12px}.hero #countdown>div+div{border-left:1px solid #ffffff24}.hero #countdown strong{font-size:20px}.hero #countdown small{font-size:11px;color:#C4D3CA}.slot-rows{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch}.slot-row{display:flex;flex-direction:column;justify-content:center;gap:12px;padding:12px;background:var(--soft);border-radius:14px;text-align:center}.slot-row:last-child:nth-child(odd){grid-column:1/-1}.slot-row>span{color:var(--ink);text-wrap:balance}.chips{justify-content:center}.court-chip{width:28px;height:28px;flex-basis:28px;background:white;color:#10201A}.slot-row.night-tile{background:#0F2D24}.night-tile>span{color:var(--lime)}.slot-row .court-chip.night{background:white!important;color:#10201A!important}.court-grid{display:flex;justify-content:center;gap:8px}.court-grid+.court-grid{margin-top:8px}.court-grid>.court-button{flex:0 0 calc((100% - (var(--columns) - 1)*8px)/var(--columns))}.available-place{display:flex;flex-direction:column;gap:12px}.place-head{margin:0}.available-buttons{margin-top:auto}.available-group+.available-group{margin-top:12px}.compact{text-align:center}.compact .place-head{display:flex;flex-direction:column;align-items:center;gap:12px;margin:0}.compact .place-head p{margin-top:12px}.compact .pill{margin:0}.compact .court-button{height:58px}.compact:last-child{grid-column:1/-1}.compact:has(+.compact){grid-column:auto}.compact:has(+.compact)+.compact:last-child{grid-column:auto}.notice,.note,.sub,.share,.warning{text-align:center}.orb{font-size:17px}.place-tile{text-align:center}.place-tile small{white-space:nowrap;font-size:10px}.sub{margin:12px 0}.empty{display:flex;flex-direction:column;align-items:center;gap:12px}.empty p{margin:0}.share{margin-top:28px}.notification{max-width:480px}
+<style>
+/* ── 토큰 ─────────────────────────────────────────────── */
+:root{
+  color-scheme:light dark;
+  --bg:#FFFFFF; --band:#F3F4F6; --line:#ECEEF0; --line-2:#D9DDE1; --press:#F3F4F6;
+  --ink:#15181B; --ink-2:#4A5158; --ink-3:#646C74; --ink-4:#868D94;
+  --brand:#0C7A4A; --brand-weak:#EEF8F2;
+  --lime:#D8F25C; --on-lime:#1A2A0B;
+  --alert:#C9371F; --on-alert:#FFFFFF;
+  --shadow:0 -6px 32px rgba(15,23,30,.14);
+  --font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#111315; --band:#08090A; --line:#22262A; --line-2:#33383D; --press:#1A1D20;
+    --ink:#F2F4F5; --ink-2:#BBC1C7; --ink-3:#8E959C; --ink-4:#6E757C;
+    --brand:#56CF98; --brand-weak:#11221A;
+    --alert:#FF8D78; --on-alert:#2B0B05;
+    --shadow:0 -6px 32px rgba(0,0,0,.55);
+  }
+}
 
-.compact:last-child,.compact:has(+.compact)+.compact:last-child{grid-column:auto}.compact.span-all:last-child{grid-column:1/-1}
-.available-grid>.compact.span-all:last-child{grid-column:1/-1!important}
-.hero:before,.hero:after{content:'';position:absolute;z-index:-1;top:0;bottom:0;width:50%;background:linear-gradient(#0F2D2466,#0F2D2466),url('static/hero-pattern.webp') center/cover;opacity:.18;pointer-events:none}.hero:before{left:0;right:auto}.hero:after{right:0;left:auto;transform:scaleX(-1)}
+/* ── 기본 ─────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html.lock{overflow:hidden}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--font);letter-spacing:-.01em;
+  -webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+button{font:inherit;letter-spacing:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+a{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+summary::-webkit-details-marker{display:none}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:8px}
+[hidden]{display:none!important}
+svg{display:block;flex:none}
+.num{font-variant-numeric:tabular-nums}
 
-.court-chip{width:44px;height:44px;flex-basis:44px;background:transparent!important;display:grid;place-items:center}.court-chip>span{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:white;color:#10201A}.chips{gap:0;flex-wrap:wrap}.slot-row .court-chip.night{background:transparent!important}.subscription-chip{min-width:44px;min-height:44px}.close{width:44px;height:44px}.compact .available-buttons .court-grid{display:grid;grid-template-columns:repeat(var(--columns),minmax(0,1fr))}.compact .court-grid>.court-button{width:auto}.compact .court-button small{font-size:10px}.compact.span-all{grid-column:1/-1}
+.app{max-width:520px;min-height:100dvh;margin:0 auto;background:var(--bg)}
+@media (min-width:560px){
+  body{background:var(--band)}
+  .app{box-shadow:0 0 0 1px var(--line)}
+}
 
-.compact .court-button.unnumbered{font-size:11px;line-height:1.1}.compact .court-button.unnumbered small{font-size:9px;line-height:1.1;margin-top:2px}
-.hero,.notice{scroll-margin-top:20px}</style></head><body><main class="app"><header class="header"><div class="brand"><img src="static/icon-192.png" alt="" width="36" height="36"><div><h1>코트 오픈</h1><p>서울 공공 테니스장 5곳</p></div></div><button class="bell" id="bell" aria-label="알림 설정 열기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="badge" class="badge" hidden></span></button></header><div class="content"><section class="overview" aria-label="5곳 한눈에"><div id="places" class="place-tiles"></div><div class="legend"><span><i></i>지금 예약 가능</span><span><i></i>오늘 열림</span><span><i></i>오픈 예정</span></div></section><section class="section"><div class="section-top"><h2>다음 예약 오픈</h2><button id="refresh" aria-label="공식 데이터 새로 고침">공식 데이터 확인 중 ↻</button></div><p id="refresh-note" role="status" class="note"></p><div id="openings" class="cards" >오픈 일정을 불러오고 있어요.</div><p id="unannounced" class="notice"></p></section><section class="section"><h2>지금 예약 가능</h2><p class="sub">번호를 누르면 그 코트 예약 화면에서 날짜를 고를 수 있어요</p><div id="available" class="available-grid" ></div><p id="board-note" class="note"></p></section><button id="notify-card" class="notify-card"><span class="notify-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><span><strong id="notification-summary">오픈 알림 받기</strong><small id="notification-detail">원하는 코트가 열리기 전에 알려드려요</small></span><span aria-hidden="true">›</span></button><dialog id="notification" class="notification" aria-labelledby="push-title"><button id="close-sheet" class="close" aria-label="알림 설정 닫기">×</button><p class="eyebrow">기다림은 줄이고, 경기는 더</p><h2 id="push-title" tabindex="-1">오픈 소식, 먼저 받아요</h2><p class="sub">관심 지역과 알림 시간을 골라주세요.</p><div class="areas" id="areas" role="group" aria-label="관심 지역 다중 선택"></div><label class="toggle-row">오픈 전날 알림<input type="checkbox" id="d1" checked role="switch"></label><label class="toggle-row">오픈 1시간 전 알림<input type="checkbox" id="h1" checked role="switch"></label><div id="install" class="install" hidden><strong>홈 화면에서 알림을 켤 수 있어요</strong><ol><li><span class="step-number">01</span><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M16 22V3m-6 6 6-6 6 6M8 14H4v15h24V14h-4"/></svg>Safari 공유 버튼</li><li><span class="step-number">02</span><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="6"/><path d="M16 9v14M9 16h14"/></svg>홈 화면에 추가</li><li><span class="step-number">03</span><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="2" width="20" height="28" rx="4"/><path d="m12 16 3 3 6-7"/></svg>추가된 앱을 열고<br>알림 켜기</li></ol></div><button id="subscribe" class="action wide">알림 받기 ↗</button><p class="push-status" id="push-status" role="status">원하는 코트가 열리기 전에 알려드릴게요.</p><div class="utility"><button id="test">테스트 알림 보내기</button><button id="unsubscribe" hidden>알림 해제</button></div></dialog><button class="share" id="share">친구에게 공유 ↗</button><p id="share-status" class="note" role="status"></p><p id="toast" role="status"></p><footer>자료: 서울시 공공서비스예약 공식 데이터</footer></div></main><script>'use strict';
-const $=id=>document.getElementById(id), MOCK=new URLSearchParams(location.search).get('mock')==='1';
-const ALLOWED_AREAS=["한남","장충","마루공원","선우공원","서울숲"];let AREAS=['한남','장충','마루공원','선우공원','서울숲'];
-let seoulDate=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());
-function plusDate(base,n){const d=new Date(base+'T12:00:00+09:00');d.setUTCDate(d.getUTCDate()+n);return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(d)}
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function safeURL(s){try{const u=new URL(s);return ['https:','http:'].includes(u.protocol)?u.href:''}catch{return ''}}
-function link(s,label,cls='action'){const u=safeURL(s);return u?`<a class="${cls}" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label)} <span aria-hidden="true">↗</span></a>`:'<span class="note">예약 링크 없음</span>'}
-let subscription=null,swPromise=null,pushBusy=false;
-let settings={areas:[...AREAS],d1:true,h1:true,enabled:false};try{const v=JSON.parse(localStorage.getItem('tn_push'));if(v){settings={...settings,...v};settings.areas=Array.isArray(v.areas)?v.areas.filter(a=>AREAS.includes(a)):[...AREAS]}}catch{}
-let settingsCacheWrite=Promise.resolve();
-function save(){try{localStorage.setItem('tn_push',JSON.stringify(settings))}catch{}const value=JSON.stringify({areas:settings.areas,d1:settings.d1,h1:settings.h1});settingsCacheWrite=settingsCacheWrite.then(async()=>{try{await (await caches.open('tn-settings')).put('/__tn_push_settings',new Response(value,{headers:{'Content-Type':'application/json'}}))}catch{}})}
-save();
+/* ── 상단 바 ──────────────────────────────────────────── */
+.bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  height:calc(56px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 0 20px;
+  background:color-mix(in srgb,var(--bg) 86%,transparent);
+  -webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px);
+  border-bottom:1px solid transparent;transition:border-color .2s}
+.bar.scrolled{border-bottom-color:var(--line)}
+.brand{display:flex;align-items:center;gap:9px;min-height:44px;font-size:18px;font-weight:700;letter-spacing:-.03em}
+.brand svg{width:28px;height:28px}
+.bar-actions{display:flex;align-items:center}
+.sync{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 10px;border-radius:12px;
+  font-size:13px;font-weight:500;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sync svg{width:16px;height:16px}
+.sync[aria-busy=true] svg{animation:spin .8s linear infinite}
+.icon-btn{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--ink)}
+.icon-btn svg{width:22px;height:22px}
+.icon-btn.on{color:var(--brand)}
+.sync:active,.icon-btn:active{background:var(--press)}
 
-const MOCK_BOARD={"now":"2026-10-31 18:42","updated_at":"2026-10-31 18:42:18","badge":0,"areas":["한남","장충","마루공원","선우공원","서울숲"],"places":[{"area":"한남","next_open":"","available":0},{"area":"장충","next_open":"","available":0},{"area":"마루공원","next_open":"","available":6},{"area":"선우공원","next_open":"","available":1},{"area":"서울숲","next_open":"2026-12-01 09:01","available":2}],"openings":[{"area":"한남","place":"한남테니스장","open_at":"2026-10-31 09:00","d_day":0,"opened":true,"period":"10/31~11/15","reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813143523487045","courts":[{"court":"1번","slot":"일","time":"20:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813144033514252"},{"court":"1번","slot":"평일 주간","time":"06:00-15:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813143523487045"},{"court":"2번","slot":"금 야간 · 일","time":"17:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813144820469548"},{"court":"2번","slot":"평일 주간","time":"06:00-17:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813144403654672"},{"court":"3번","slot":"평일 새벽·주간","time":"06:00-17:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813145133514018"},{"court":"3번","slot":"평일 야간 · 주말·공휴일","time":"06:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813145738878825"},{"court":"4번","slot":"평일 새벽·주간","time":"06:00-17:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813150142451575"},{"court":"4번","slot":"평일 야간 · 일","time":"12:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813151139655081"},{"court":"5번","slot":"월 야간 · 주말·공휴일","time":"16:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813152246192756"},{"court":"5번","slot":"평일 새벽·주간","time":"06:00-17:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813151535797450"},{"court":"6번","slot":"평일 새벽·주간","time":"06:00-17:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813152806795130"},{"court":"6번","slot":"평일 야간 · 주말·공휴일","time":"06:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813153402210060"},{"court":"8번","slot":"평일 주간","time":"12:00-14:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813153729636892"},{"court":"9번","slot":"평일 주간","time":"12:00-14:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813153920689107"},{"court":"10번","slot":"월 야간 · 주말·공휴일","time":"12:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S261029140751043369"},{"court":"10번","slot":"평일 새벽·주간","time":"06:00-15:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S260813154108755166"},{"court":"11번","slot":"평일 새벽·주간","time":"06:00-17:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S261029141125921693"},{"court":"11번","slot":"평일 야간 · 주말·공휴일","time":"17:00-19:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S261029142226629758"},{"court":"12번","slot":"평일 새벽·주간","time":"06:00-17:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S261029142356807628"},{"court":"12번","slot":"평일 야간 · 주말·공휴일","time":"12:00-19:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S261029143130899016"}],"court_count":20},{"area":"서울숲","place":"서울숲 테니스장","open_at":"2026-12-01 09:01","d_day":31,"opened":false,"period":"2027년 이용분","reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S261026154937032676","courts":[{"court":"코트","slot":"주말·공휴일","time":"06:00-19:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S261026154937032676"}],"court_count":1}],"available":[{"area":"마루공원","place":"마루공원","until":"","until_kind":"","courts":[{"court":"1면","slot":"매일","time":"06:00-22:00","is_paid":false,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S210205141719898815"},{"court":"1면 조명","slot":"매일","time":"06:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S250509123306071137"},{"court":"2면","slot":"매일","time":"06:00-22:00","is_paid":false,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S210216130920543807"},{"court":"2면 조명","slot":"매일","time":"06:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S250514102016722793"},{"court":"3면","slot":"매일","time":"06:00-22:00","is_paid":false,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S210216131232290211"},{"court":"3면 조명","slot":"매일","time":"06:00-22:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S250514102531399124"}],"court_count":6,"until_label":"상시 예약"},{"area":"선우공원","place":"선우공원","until":"2026-11-30","until_kind":"rcpt","courts":[{"court":"B","slot":"평일 주간","time":"06:00-18:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S261026195440557280"}],"court_count":1,"until_label":"11/30까지 접수"},{"area":"서울숲","place":"서울숲 테니스장","until":"","until_kind":"","courts":[{"court":"코트","slot":"주말·공휴일","time":"06:00-19:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S251203110553292777"},{"court":"코트","slot":"평일","time":"06:00-19:00","is_paid":true,"reserve_url":"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S251203104822013240"}],"court_count":2,"until_label":"상시 예약"}],"note":"날짜·시간별 남은 자리는 서울시가 공개하지 않아요. 번호를 누르면 그 코트 예약 화면에서 날짜를 고르세요."};
-function mockBoard(){const d=JSON.parse(JSON.stringify(MOCK_BOARD));d.now=mockStamp();d.updated_at=d.now;d.openings.forEach((x,i)=>{x.d_day=i?i+1:0;x.open_at=plusDate(seoulDate,x.d_day)+' 09:00';x.opened=i===0;x.period=plusDate(seoulDate,i).slice(5).replace('-','/')+'~'+plusDate(seoulDate,i+15).slice(5).replace('-','/')});d.available.forEach(p=>{if(p.until){p.until=plusDate(seoulDate,30);p.until_label=p.until.slice(5).replace('-','/')+'까지 이용'}});d.places.forEach(p=>{p.next_open=d.openings.find(x=>x.area===p.area&&!x.opened)?.open_at||''});d.badge=1;return d}
-function mockStamp(){return seoulDate+' '+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date())}
-async function api(path,body){if(MOCK)return path==='/board'?mockBoard():{refreshed:false,reason:'recent',updated_at:mockStamp()};if(!/^\/(board|refresh|push\/(key|subscribe|unsubscribe|test))$/.test(path))throw Error('허용되지 않은 요청');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),65000);try{const r=await fetch(path,{signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});if(!r.ok)throw Error('서버 응답 오류');const d=await r.json();if(d.ok===false)throw Error('요청을 처리하지 못했어요');return d}finally{clearTimeout(timer)}}
-let updatedAt='',boardRequest=0,refreshPromise=null;
-let currentBoard=null,heroOpen=null;
-function stamp(s){return Date.parse(String(s).replace(' ','T')+(String(s).length===16?':00':'')+'+09:00')}
-function groups(courts,key){const m=new Map();for(const c of courts){const k=key(c);if(!m.has(k))m.set(k,[]);m.get(k).push(c)}return [...m]}
-function courtLabel(c){const s=String(c.court||'');return s.match(/^\d+|^[A-Za-z](?![A-Za-z])/)?.[0]||c.slot||'예약'}
-function courtUnit(c){return /면/.test(c.court)?'면':/번/.test(c.court)?'번':'코트'}
-function courtAnchor(c,cls,big=false,condition=false){const u=safeURL(c.reserve_url),label=courtLabel(c);return `<${u?'a':'span'} class="${cls}${label===c.slot?' unnumbered':''}" ${u?`href="${esc(u)}" target="_blank" rel="noopener noreferrer"`:'aria-disabled="true"'} aria-label="${esc(c.court+' · '+c.slot+' · '+c.time)}">${big?esc(label):'<span>'+esc(label)+'</span>'}${big?`<small>${esc(label===c.slot?c.time:condition?(c.slot||courtUnit(c)):courtUnit(c))}</small>`:''}</${u?'a':'span'}>`}
-function openSheet(){$('notification').showModal();$('push-title').focus()}
-function subscribed(area){return Boolean(subscription&&settings.enabled&&(!area||settings.areas.includes(area)))}
-function updateNotification(){const on=subscribed();$('notification-summary').textContent=on?'오픈 알림 켜짐':'오픈 알림 받기';$('notification-detail').textContent=on?[settings.areas.length+'곳',settings.d1?'오픈 전날':'',settings.h1?'1시간 전':''].filter(Boolean).join(' · '):'원하는 코트가 열리기 전에 알려드려요';document.querySelectorAll('.subscription-chip').forEach(el=>el.textContent=subscribed(el.dataset.area)?'✓ 알림 예약됨':'알림 꺼짐')}
-function dayLabel(x){const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());return 'D-'+Math.max(0,Math.ceil((stamp(x.open_at.slice(0,10)+' 00:00')-stamp(today+' 00:00'))/86400000))}
-function scrollToArea(area,state){const q=CSS.escape(area),sel=state==='today'?`.open-card[data-area="${q}"]`:state==='available'?`.available-place[data-area="${q}"]`:state==='next'?`[data-next-area="${q}"]`:'#unannounced';const el=document.querySelector(sel)||document.querySelector(`[data-area="${q}"]`)||document.querySelector(`[data-next-area="${q}"]`);el?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'})}
-function heroLabel(x){const d=dayLabel(x);return d==='D-0'?'다음 오픈 · 오늘':d==='D-1'?'다음 오픈 · 내일':'다음 오픈'}
-function countdown(x){const ms=Math.max(0,stamp(x.open_at)-Date.now());return [Math.floor(ms/86400000),Math.floor(ms/3600000)%24,Math.floor(ms/60000)%60].map((n,i)=>'<div><strong>'+n+'</strong><small>'+['일','시간','분'][i]+'</small></div>').join('')}
-function updateCountdown(){if(heroOpen&&Date.now()>=stamp(heroOpen.open_at)){renderBoard(currentBoard);refreshData();return}if(heroOpen&&$('countdown')){$('countdown').innerHTML=countdown(heroOpen);$('hero-day').textContent=heroLabel(heroOpen)}}
-function isNight(c){return /야간|조명/.test(c.slot+' '+c.court)||Number(String(c.time||'').match(/^\s*(\d{1,2}):/)?.[1])>=17}
-function buttonGrid(cs,condition=false){const rows=[];for(let i=0;i<cs.length;i+=4){rows.push('<div class="court-grid" style="--columns:'+Math.min(cs.length,4)+'">'+cs.slice(i,i+4).map(c=>courtAnchor(c,'court-button'+(isNight(c)?' night':''),true,condition)).join('')+'</div>')}return rows.join('')}
-function renderBoard(d){currentBoard=d;updatedAt=d.updated_at||'';$('refresh').textContent='공식 데이터 '+(updatedAt?updatedAt.slice(11,16):'시각 미확인')+' 기준 ↻';if(Array.isArray(d.areas)){AREAS=ALLOWED_AREAS.filter(a=>d.areas.includes(a));settings.areas=settings.areas.filter(a=>AREAS.includes(a));renderAreas();save()}
-const openings=(d.openings||[]).map(x=>({...x,justOpened:!x.opened&&stamp(x.open_at)<=Date.now(),opened:x.opened||stamp(x.open_at)<=Date.now()})),available=d.available||[],places=d.places||[];
-$('places').innerHTML=places.map((p,i)=>{const today=openings.find(x=>x.area===p.area&&x.opened),next=openings.filter(x=>x.area===p.area&&!x.opened).sort((a,b)=>a.open_at.localeCompare(b.open_at))[0],n=Number(p.available)||0;const state=today?'today':n?'available':p.next_open?'next':'waiting';const dd=next?.d_day??Math.max(0,Math.ceil((stamp(p.next_open)-stamp(d.now))/86400000));const secondary=today?'오늘 열림':n&&p.next_open?'다음 D-'+dd:state==='next'?'오픈 예정':state==='available'?n+'면 가능':'공지 전';return `<button class="place-tile" data-state="${state}" data-area="${esc(p.area)}" onclick="scrollToArea(this.dataset.area,this.dataset.state)"><span class="orb ${state}">${esc(state==='next'?'D-'+dd:p.area==='서울숲'?'숲':String(p.area).slice(0,1))}</span><strong>${esc(p.area)}</strong><small>${esc(secondary)}</small></button>`}).join('');
-const future=openings.filter(x=>!x.opened).sort((a,b)=>a.open_at.localeCompare(b.open_at));heroOpen=future[0]||null;
-const assigned=new Set();let sessionId=0;const idFor=a=>{const base='place-'+places.findIndex(p=>p.area===a);if(!assigned.has(base)){assigned.add(base);return base}return base+'-session-'+(++sessionId)};const date=s=>new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',weekday:'short'}).format(new Date(stamp(s)));
-let html=heroOpen?`<article class="hero" id="${idFor(heroOpen.area)}" data-next-area="${esc(heroOpen.area)}" data-open-at="${esc(heroOpen.open_at)}"><div class="hero-top"><b id="hero-day">${heroLabel(heroOpen)}</b></div><div class="hero-clock"><time>${esc(heroOpen.open_at.slice(11,16))}</time><strong>${date(heroOpen.open_at)}</strong></div><div id="countdown" role="timer" aria-live="off" aria-label="오픈까지 남은 일 시간 분">${countdown(heroOpen)}</div><div class="hero-bottom"><h3>${esc(heroOpen.place||heroOpen.area)}</h3><p>${heroOpen.period?esc(heroOpen.period)+' · ':''}${heroOpen.court_count||heroOpen.courts.length}면</p></div><button class="subscription-chip" aria-label="알림 설정 열기" data-area="${esc(heroOpen.area)}" onclick="openSheet()">알림 꺼짐</button></article>`:'';
-html+=future.slice(1).map(x=>`<article class="next-row" id="${idFor(x.area)}" data-next-area="${esc(x.area)}"><div><h3>${esc(x.place||x.area)}</h3>${x.period?'<p>'+esc(x.period)+'</p>':''}</div><strong>${date(x.open_at)}<br>${esc(x.open_at.slice(11,16))} · D-${Number(x.d_day)||0}</strong></article>`).join('');
-html+=openings.filter(x=>x.opened).map(x=>`<article class="open-card" id="${idFor(x.area)}" data-area="${esc(x.area)}"><div class="row"><b class="opened">● ${x.justOpened?'방금':'오늘'} ${esc(x.open_at.slice(11,16))} 열림</b><small>${x.period?esc(x.period)+' · ':''}${x.court_count||x.courts.length}면</small></div><h3>${esc(x.place||x.area)}</h3><p class="warning">인기 코트는 오픈 직후 다 차는 경우가 많아요. 남은 시간은 예약 화면에서 확인하세요.</p><div class="slot-rows">${groups(x.courts||[],c=>c.slot||'일반').sort((a,b)=>b[1].length-a[1].length).map(([slot,cs])=>`<div class="slot-row ${cs.some(isNight)?'night-tile':''}" data-slot="${esc(slot)}"><span>${esc(slot)}</span><div class="chips">${cs.map(c=>courtAnchor(c,'court-chip'+(isNight(c)?' night':''))).join('')}</div></div>`).join('')}</div>${link(x.courts?.[0]?.reserve_url||x.reserve_url,x.area+' 예약 화면 열기')}</article>`).join('');
-$('openings').innerHTML=html||'<div class="empty">예정된 예약 오픈이 없어요</div>';
-const waiting=places.filter(p=>!p.next_open&&!Number(p.available)&&!available.some(a=>a.area===p.area&&(a.courts||[]).length)&&!openings.some(x=>x.area===p.area&&x.opened));$('unannounced').innerHTML=waiting.map(p=>`<span id="${available.some(a=>a.area===p.area)?'waiting-'+idFor(p.area):idFor(p.area)}">${esc(p.area)}</span>`).join(' · ')+(waiting.length?' 다음 회차가 등록되면 여기에 나타나요 · 오픈 전날과 1시간 전에 알려드려요':'');$('unannounced').hidden=!waiting.length;
-const districts={'한남':'용산구','장충':'중구','마루공원':'강남구','선우공원':'관악구','서울숲':'성동구'};
-$('available').innerHTML=[...available.filter(p=>(p.courts||[]).length>2),...available.filter(p=>(p.courts||[]).length<=2)].map(p=>{const cs=p.courts||[],small=cs.length<=2,hasOpen=openings.some(x=>x.area===p.area);const paid=cs.some(c=>c.is_paid),free=cs.some(c=>!c.is_paid);return `<article class="available-place ${small?'compact'+(available.filter(a=>(a.courts||[]).length<=2).length%2===1&&p===available.filter(a=>(a.courts||[]).length<=2).at(-1)?' span-all':''):'full'}" ${hasOpen?'':`id="${idFor(p.area)}"`} data-area="${esc(p.area)}"><div class="place-head"><div><h3>${esc(p.area)}</h3><p>${esc(districts[p.area]||p.area)} · ${free?(paid?'무료·조명 유료':'무료'):'유료'} · ${esc(cs[0]?.time||'시간 확인')}</p></div><span class="pill">${esc(p.until_label||'예약 가능')} · ${p.court_count||cs.length}면</span></div><div class="available-buttons">${small?buttonGrid(cs,true):groups(cs,c=>/조명/.test(c.court)?'조명 (야간)':c.slot||'일반').map(([slot,list])=>`<div class="available-group">${small?'':`<span class="group-label">${esc(slot)}</span>`}${buttonGrid(list)}</div>`).join('')}</div></article>`}).join('')||'<div class="empty full"><img src="static/empty-court.webp" width="240" height="160" alt="라임 테니스공과 네트"><h3>지금 예약 가능한 코트가 없어요</h3><p>다음 오픈 소식을 알림으로 받아보세요.</p><button class="action" onclick="openSheet()">오픈 알림 받기</button></div>';
-$('board-note').textContent=d.note||'';const badge=Math.max(0,Number(d.badge)||0);$('badge').hidden=!badge;$('badge').textContent='';$('bell').setAttribute('aria-label','알림 설정 열기, 새 소식 '+badge+'건');try{if(navigator.setAppBadge)Promise.resolve(navigator.setAppBadge(badge)).catch(()=>{})}catch{}updateNotification();}
+/* ── 다음 예약 오픈 ───────────────────────────────────── */
+.next{padding:18px 20px 22px}
+.next.is-open{background:var(--brand-weak)}
+.next:not(.is-open):has(.peek){padding-bottom:2px}
+.eyebrow{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.eyebrow.live{color:var(--brand)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
+.next-date{margin-top:14px;font-size:17px;font-weight:600;color:var(--ink-2);letter-spacing:-.02em}
+.next-h{margin-top:2px;font-size:inherit;font-weight:inherit;line-height:inherit}
+.next-time{display:block;margin-left:-2px;font-size:56px;line-height:1.05;font-weight:700;letter-spacing:-.045em;font-variant-numeric:normal}
+.next-venue{display:block;margin-top:10px;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.035em}
+.next-meta{margin-top:3px;font-size:14px;color:var(--ink-3)}
+.next-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+.remain{display:inline-flex;align-items:center;height:34px;padding:0 12px;border-radius:10px;
+  background:var(--lime);color:var(--on-lime);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.remain.soon{background:var(--alert);color:var(--on-alert)}
+.ghost{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 2px;font-size:14px;font-weight:600;color:var(--ink-2)}
+.ghost svg{width:18px;height:18px}
+.ghost.on{color:var(--brand)}
+.peek{margin-top:16px;border-top:1px solid var(--line)}
+.peek>summary{display:flex;align-items:center;justify-content:space-between;min-height:50px;
+  font-size:14px;font-weight:600;color:var(--ink-2)}
+.peek .picker{padding:2px 0 6px}
+.chev{width:18px;height:18px;color:var(--ink-4);transition:transform .2s}
+details[open]>summary .chev{transform:rotate(180deg)}
 
-async function loadBoard(){const id=++boardRequest;try{const d=await api('/board');if(id!==boardRequest)return 'ignored';if(updatedAt&&d.updated_at&&d.updated_at<updatedAt)return 'ignored';renderBoard(d);return true}catch{if(id===boardRequest)$('refresh-note').textContent='데이터를 받지 못했어요. 새로고침으로 다시 시도해주세요.';return false}}
-function refreshData(){if(refreshPromise)return refreshPromise;++boardRequest;$('refresh').disabled=true;$('refresh').setAttribute('aria-busy','true');refreshPromise=(async()=>{try{let result;try{result=await api('/refresh',{})}catch{result={reason:'error'}}const loaded=await loadBoard();$('refresh-note').textContent=loaded==='ignored'?'최신 화면을 유지했어요.':!loaded?'데이터를 받지 못했어요. 다시 시도해주세요.':['error','empty'].includes(result.reason)?'최신 수집이 지연되어 마지막 공식 데이터를 표시해요.':result.reason==='recent'?'90초 안에 갱신한 공식 데이터예요.':'';return result}finally{$('refresh').disabled=false;$('refresh').setAttribute('aria-busy','false');refreshPromise=null}})();return refreshPromise}
-function isStale(){const t=Date.parse(updatedAt.replace(' ','T')+'+09:00');return !Number.isFinite(t)||Date.now()-t>180000}
-$('refresh').onclick=refreshData;
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&isStale())refreshData()});
-function renderAreas(){$('areas').innerHTML=AREAS.map(a=>`<button class="area" aria-pressed="${settings.areas.includes(a)}">${esc(a)}</button>`).join('');$('areas').querySelectorAll('button').forEach(b=>b.onclick=()=>{settings.areas=settings.areas.includes(b.textContent)?settings.areas.filter(a=>a!==b.textContent):[...settings.areas,b.textContent];save();renderAreas();$('push-status').textContent='설정을 적용하려면 알림 받기를 눌러주세요.'})}
-function b64Bytes(s){const normalized=s.replace(/-/g,'+').replace(/_/g,'/');return Uint8Array.from(atob(normalized+'='.repeat((4-normalized.length%4)%4)),c=>c.charCodeAt(0))}
-function equalBytes(a,b){if(!a)return false;const x=new Uint8Array(a),y=new Uint8Array(b);return x.length===y.length&&x.every((v,i)=>v===y[i])}
-function worker(){if(!('serviceWorker' in navigator))return Promise.reject(Error('이 브라우저는 앱 알림을 지원하지 않아요.'));if(!swPromise)swPromise=navigator.serviceWorker.register('/sw.js').then(async r=>{await navigator.serviceWorker.ready;return r}).catch(e=>{swPromise=null;throw e});return swPromise}
-const isiOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),standalone=Boolean(navigator.standalone)||matchMedia('(display-mode: standalone)').matches;
-$('install').hidden=!(isiOS&&!standalone);$('subscribe').hidden=isiOS&&!standalone;
-function pushUI(){updateNotification(); $('unsubscribe').hidden=!subscription;$('subscribe').textContent=subscription?'알림 설정 저장 ↗':'알림 받기 ↗'}
-async function syncPush(automatic=false){if(pushBusy)return;pushBusy=true;$('subscribe').disabled=true;try{if(MOCK){if(automatic)return;$('push-status').textContent='미리보기예요. 실제 알림은 서버에서 켤 수 있어요.';return}if(isiOS&&!standalone)return;if(!('Notification' in window)||!('PushManager' in window))throw Error('이 브라우저는 알림을 지원하지 않아요. 최신 Safari 또는 Chrome을 이용해주세요.');if(automatic&&Notification.permission!=='granted')return;if(!automatic&&!settings.areas.length)throw Error('관심 지역을 하나 이상 골라주세요.');if(!automatic){const permission=await Notification.requestPermission();if(permission!=='granted')throw Error(permission==='denied'?'브라우저 설정에서 이 사이트의 알림을 허용해주세요.':'알림 권한을 허용해야 소식을 받을 수 있어요.')}const reg=await worker();subscription=await reg.pushManager.getSubscription();if(automatic&&!subscription)return;const {publicKey}=await api('/push/key'),key=b64Bytes(publicKey);if(subscription&&!equalBytes(subscription.options.applicationServerKey,key)){const old=subscription;await old.unsubscribe();subscription=null;try{await api('/push/unsubscribe',{endpoint:old.endpoint})}catch{}}if(!subscription)subscription=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});await api('/push/subscribe',{subscription:subscription.toJSON(),areas:settings.areas,d1:settings.d1,h1:settings.h1});settings.enabled=true;save();$('push-status').textContent='알림이 켜졌어요. 선택한 지역의 오픈 소식을 알려드릴게요.'}catch(e){$('push-status').textContent=(e.message&& !/fetch|network|abort/i.test(e.message))?e.message:'알림 연결이 어려워요. 알림 받기를 눌러 다시 시도해주세요.'}finally{pushBusy=false;$('subscribe').disabled=false;pushUI()}}
-$('subscribe').onclick=()=>syncPush();$('unsubscribe').onclick=async()=>{if(pushBusy)return;pushBusy=true;try{if(!subscription)throw Error('켜진 알림이 없어요.');const old=subscription;await api('/push/unsubscribe',{endpoint:old.endpoint});await old.unsubscribe();subscription=null;settings.enabled=false;save();$('push-status').textContent='알림을 껐어요. 언제든 다시 켤 수 있어요.'}catch{$('push-status').textContent='알림 해제가 안 됐어요. 다시 시도해주세요.'}finally{pushBusy=false;pushUI()}};
-$('test').onclick=async()=>{if(MOCK){$('push-status').textContent='미리보기에서는 실제 알림을 보내지 않아요.';return}if(!subscription){$('push-status').textContent='먼저 알림 받기를 눌러주세요.';return}$('test').disabled=true;try{await api('/push/test',{endpoint:subscription.endpoint});$('push-status').textContent='테스트 알림을 보냈어요. 기기 알림을 확인해주세요.'}catch{$('push-status').textContent='테스트 알림을 보내지 못했어요. 다시 시도해주세요.'}finally{$('test').disabled=false}};
-$('d1').checked=settings.d1;$('h1').checked=settings.h1;['d1','h1'].forEach(id=>$(id).onchange=()=>{settings[id]=$(id).checked;save();$('push-status').textContent='설정을 적용하려면 알림 받기를 눌러주세요.'});renderAreas();
-$('bell').onclick=openSheet;
-$('share').onclick=async()=>{const u=new URL(location.href);u.searchParams.delete('mock');try{if(navigator.share)await navigator.share({title:'코트 오픈',text:'서울 공공 테니스장, 예약 오픈을 놓치지 마세요.',url:u.href});else{await navigator.clipboard.writeText(u.href);$('share-status').textContent='링크를 복사했어요.'}}catch(e){if(e.name!=='AbortError')$('share-status').textContent='링크 복사가 안 됐어요. 주소창의 링크를 복사해주세요.'}};
+.opened+.opened{margin-top:28px;padding-top:24px;border-top:1px solid color-mix(in srgb,var(--brand) 18%,transparent)}
+.venue-title{margin-top:10px;font-size:26px;line-height:1.25;font-weight:700;letter-spacing:-.035em}
+.opened .picker{margin-top:18px}
+.hint{display:flex;gap:7px;margin-top:16px;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.row-note{padding:0 0 16px;font-size:13px;color:var(--ink-3)}
+.hint svg{width:16px;height:16px;margin-top:2px}
 
-async function init(){if(!MOCK){worker().catch(()=>{});syncPush(true)}await loadBoard();if(!MOCK&&isStale())await refreshData()}
-$('notify-card').onclick=openSheet;
-$('close-sheet').onclick=()=>$('notification').close();
-$('notification').addEventListener('click',e=>{const r=$('notification').getBoundingClientRect();if(e.target===$('notification')&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))$('notification').close()});
-setInterval(()=>{if(document.visibilityState==='visible')refreshData()},180000);
-setInterval(updateCountdown,60000);
-init();</script></body></html>
+.none-title{margin-top:12px;font-size:22px;line-height:1.35;font-weight:700;letter-spacing:-.03em}
+.none-sub{margin-top:6px;font-size:14px;color:var(--ink-3)}
+.none-cta{margin-top:18px}
+.ghost.outline{padding:0 16px;border:1px solid var(--line-2);border-radius:12px;color:var(--ink)}
+.ghost.outline.on{border-color:color-mix(in srgb,var(--brand) 40%,transparent);color:var(--brand)}
+.ghost.outline:active{background:var(--press)}
+
+/* ── 섹션 ─────────────────────────────────────────────── */
+.band{height:8px;background:var(--band)}
+.sec{padding:24px 20px 6px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.sec-head h2{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
+.count{font-size:14px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sec-sub{margin-top:4px;font-size:13px;color:var(--ink-3)}
+.sub-label{margin-top:22px;font-size:13px;font-weight:600;color:var(--ink-3)}
+
+.rows{margin-top:6px}
+.row{border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row>summary{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;min-height:70px;padding:12px 0}
+.when b{display:block;font-size:17px;line-height:1.25;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.when span{display:block;font-size:12.5px;color:var(--ink-3)}
+.what strong{display:block;font-size:16px;line-height:1.35;font-weight:600;letter-spacing:-.02em}
+.what span{display:block;font-size:13px;line-height:1.45;color:var(--ink-3)}
+.tail{display:flex;align-items:center;gap:6px}
+.dday{padding:4px 8px;border-radius:8px;background:var(--band);color:var(--ink-2);
+  font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dday.near{background:var(--brand-weak);color:var(--brand)}
+.row .picker{padding:2px 0 18px}
+.pend{padding:13px 0;border-bottom:1px solid var(--line)}
+.pend:last-child{border-bottom:0}
+
+/* ── 지금 예약 가능 ───────────────────────────────────── */
+.venue{padding:18px 0 20px;border-bottom:1px solid var(--line)}
+.venue:last-child{border-bottom:0}
+.venue h3{display:flex;align-items:baseline;gap:6px;font-size:17px;line-height:1.35;font-weight:700;letter-spacing:-.025em}
+.venue h3 span{font-size:13px;font-weight:500;color:var(--ink-3);letter-spacing:-.01em}
+.venue-meta{margin-top:2px;font-size:13px;color:var(--ink-3)}
+.venue .picker{margin-top:12px}
+
+.group+.group{margin-top:16px}
+.group-label{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.group-label span{font-weight:500;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.courts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.courts[data-cols="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.courts[data-cols="1"]{grid-template-columns:minmax(0,1fr)}
+.court{position:relative;display:flex;flex-direction:column;justify-content:center;gap:1px;min-height:66px;
+  padding:10px 12px;border:1px solid var(--line-2);border-radius:14px;background:var(--bg);
+  transition:transform .12s,background .12s,border-color .12s}
+.court b{padding-right:16px;font-size:19px;line-height:1.25;font-weight:700;letter-spacing:-.03em}
+.court b small{margin-left:1px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.court b.word{font-size:16px}
+.court span{font-size:12.5px;line-height:1.4;color:var(--ink-3);letter-spacing:-.02em}
+.court em{font-style:normal;font-weight:600;color:var(--brand)}
+.court .out{position:absolute;top:10px;right:9px;width:13px;height:13px;color:var(--ink-4)}
+.court:active{background:var(--press);transform:scale(.98)}
+@media (hover:hover){.court:hover{border-color:var(--ink-3)}}
+.court.off{opacity:.5}
+.courts[data-cols="1"] .court{min-height:60px}
+
+.empty{margin-top:14px;padding:22px 0 26px}
+.empty strong{display:block;font-size:16px;font-weight:600}
+.empty p{margin-top:4px;font-size:14px;color:var(--ink-3)}
+
+/* ── 설정 줄 · 꼬리말 ─────────────────────────────────── */
+.cells{padding:4px 20px}
+.cell{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;text-align:left;border-bottom:1px solid var(--line)}
+.cell:last-child{border-bottom:0}
+.cell .lead{width:22px;height:22px;color:var(--ink-2)}
+.cell .t{flex:1;font-size:16px;font-weight:500;letter-spacing:-.02em}
+.cell .v{font-size:14px;color:var(--ink-3)}
+.cell .v.on{font-weight:600;color:var(--brand)}
+.cell .chev-r{width:18px;height:18px;color:var(--ink-4)}
+.cell:active{background:var(--press)}
+.foot{padding:18px 20px calc(28px + env(safe-area-inset-bottom));font-size:12.5px;line-height:1.6;color:var(--ink-3)}
+
+/* ── 알림 시트 ────────────────────────────────────────── */
+dialog{width:100%;max-width:520px;max-height:min(90dvh,760px);margin:auto auto 0;padding:0;border:0;
+  border-radius:22px 22px 0 0;background:var(--bg);color:var(--ink);box-shadow:var(--shadow);overflow:auto}
+dialog::backdrop{background:rgba(8,10,12,.52)}
+dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
+@media (min-width:560px){dialog{max-width:440px;margin:auto;border-radius:22px}}
+.sheet{padding:6px 20px calc(18px + env(safe-area-inset-bottom))}
+.grab{width:36px;height:4px;margin:6px auto 2px;border-radius:2px;background:var(--line-2)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;min-height:52px;margin-right:-10px}
+.sheet-head h2{font-size:20px;font-weight:700;letter-spacing:-.03em}
+.sheet-desc{font-size:14px;color:var(--ink-3)}
+.sheet-label{margin:22px 0 2px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.pick{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;
+  border-bottom:1px solid var(--line);font-size:16px;letter-spacing:-.02em;cursor:pointer}
+.pick:last-of-type{border-bottom:0}
+.pick input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.pick svg{width:24px;height:24px}
+.pick svg circle{fill:none;stroke:var(--line-2);stroke-width:1.6}
+.pick svg path{stroke:transparent;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.pick input:checked~svg circle{fill:var(--brand);stroke:var(--brand)}
+.pick input:checked~svg path{stroke:var(--bg)}
+.pick input:focus-visible~span{outline:2px solid var(--brand);outline-offset:4px;border-radius:6px}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;
+  border-bottom:1px solid var(--line);font-size:16px;letter-spacing:-.02em;cursor:pointer}
+.switch:last-of-type{border-bottom:0}
+.switch input{appearance:none;-webkit-appearance:none;position:relative;flex:none;width:50px;height:30px;margin:0;
+  border-radius:15px;background:var(--line-2);transition:background .2s;cursor:pointer}
+.switch input::before{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.28);transition:transform .2s}
+.switch input:checked{background:var(--brand)}
+.switch input:checked::before{transform:translateX(20px)}
+.install{margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--band);font-size:14px}
+.install strong{display:block;font-weight:600}
+.install ol{margin:8px 0 0;padding-left:20px;color:var(--ink-2)}
+.install li{padding:2px 0}
+.primary{width:100%;height:54px;margin-top:22px;border-radius:14px;background:var(--ink);color:var(--bg);
+  font-size:16px;font-weight:700;letter-spacing:-.02em;transition:opacity .15s,transform .12s}
+.primary:active{transform:scale(.99);opacity:.86}
+.primary:disabled{opacity:.5}
+.push-status{min-height:20px;margin-top:12px;font-size:13px;text-align:center;color:var(--ink-3)}
+.sheet-foot{display:flex;justify-content:center;gap:24px;margin-top:4px}
+.text-btn{min-height:44px;padding:0 4px;font-size:14px;font-weight:500;color:var(--ink-2);
+  text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:4px}
+
+/* ── 토스트 · 뼈대 ────────────────────────────────────── */
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));z-index:60;
+  max-width:min(92vw,440px);padding:12px 16px;border-radius:12px;background:var(--ink);color:var(--bg);
+  font-size:14px;font-weight:500;text-align:center;opacity:0;transform:translate(-50%,8px);pointer-events:none;
+  transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.sk{border-radius:8px;background:linear-gradient(90deg,var(--band) 25%,var(--line) 37%,var(--band) 63%);
+  background-size:400% 100%;animation:sk 1.4s ease infinite}
+.slow{margin-top:16px;font-size:13px;color:var(--ink-3)}
+.retry{display:inline-flex;align-items:center;height:44px;margin-top:14px;padding:0 16px;border-radius:12px;
+  border:1px solid var(--line-2);font-size:14px;font-weight:600}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (max-width:359px){
+  .next,.sec{padding-left:16px;padding-right:16px}
+  .cells{padding-left:16px;padding-right:16px}
+  .foot{padding-left:16px;padding-right:16px}
+  .bar{padding-left:16px}
+  .next-time{font-size:52px}
+  .court{padding-left:10px;padding-right:10px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar" id="bar">
+    <a class="brand" href="/" aria-label="코트 오픈 홈">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E2A20"/><circle cx="16" cy="16" r="8.5" fill="#D8F25C"/><path d="M9.6 10.4c2.7 1.6 4.1 3.5 4.1 5.6s-1.4 4-4.1 5.6M22.4 10.4c-2.7 1.6-4.1 3.5-4.1 5.6s1.4 4 4.1 5.6" fill="none" stroke="#0E2A20" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>코트 오픈</span>
+    </a>
+    <div class="bar-actions">
+      <button class="sync" id="refresh" aria-label="공식 데이터 새로 고침">
+        <span id="stamp">불러오는 중</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>
+      </button>
+      <button class="icon-btn" id="bell" data-act="sheet" aria-label="오픈 알림 설정"></button>
+    </div>
+  </header>
+
+  <main>
+    <section class="next" id="next" aria-label="다음 예약 오픈">
+      <div class="sk" style="width:96px;height:16px"></div>
+      <div class="sk" style="width:150px;height:20px;margin-top:16px"></div>
+      <div class="sk" style="width:190px;height:58px;margin-top:8px"></div>
+      <div class="sk" style="width:170px;height:24px;margin-top:14px"></div>
+      <div class="sk" style="width:210px;height:16px;margin-top:8px"></div>
+      <p class="slow" id="slow" hidden>불러오는 중이에요. 처음 열 때는 30초쯤 걸릴 수 있어요.</p>
+    </section>
+
+    <div class="band" id="band-next" hidden></div>
+    <section class="sec" id="schedule" hidden></section>
+
+    <div class="band"></div>
+    <section class="sec" id="available" aria-label="지금 접수 중인 코트">
+      <div class="sk" style="width:130px;height:24px"></div>
+      <div class="sk" style="height:66px;margin-top:18px;border-radius:14px"></div>
+      <div class="sk" style="height:66px;margin-top:10px;border-radius:14px"></div>
+    </section>
+
+    <div class="band"></div>
+    <div class="cells">
+      <button class="cell" data-act="sheet">
+        <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+        <span class="t">오픈 알림</span><span class="v" id="push-value">꺼짐</span>
+        <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <button class="cell" id="share">
+        <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="m8 8 4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
+        <span class="t">친구에게 공유</span>
+        <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+    </div>
+    <footer class="foot">서울시 공공서비스예약의 공식 데이터를 보여드려요. 날짜와 시간별로 남은 자리는 예약 화면에서 확인해 주세요.</footer>
+  </main>
+</div>
+
+<dialog id="sheet" aria-labelledby="sheet-title">
+  <div class="sheet">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <h2 id="sheet-title" tabindex="-1">오픈 알림</h2>
+      <button class="icon-btn" id="sheet-close" aria-label="닫기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <p class="sheet-desc">예약이 열리기 전날과 1시간 전에 이 기기로 알려드려요.</p>
+    <div class="install" id="install" hidden>
+      <strong>아이폰은 홈 화면에 추가한 뒤에 켤 수 있어요</strong>
+      <ol><li>Safari 아래쪽 공유 버튼을 눌러요</li><li>‘홈 화면에 추가’를 골라요</li><li>홈 화면의 코트 오픈을 열고 알림을 켜요</li></ol>
+    </div>
+    <p class="sheet-label" id="areas-label">알림 받을 곳</p>
+    <div id="areas" role="group" aria-labelledby="areas-label"></div>
+    <p class="sheet-label" id="when-label">알림 시점</p>
+    <div role="group" aria-labelledby="when-label">
+      <label class="switch"><span>오픈 전날</span><input type="checkbox" role="switch" id="d1"></label>
+      <label class="switch"><span>오픈 1시간 전</span><input type="checkbox" role="switch" id="h1"></label>
+    </div>
+    <button class="primary" id="subscribe">알림 켜기</button>
+    <p class="push-status" id="push-status" role="status"></p>
+    <div class="sheet-foot">
+      <button class="text-btn" id="test" hidden>테스트 알림 보내기</button>
+      <button class="text-btn" id="unsubscribe" hidden>알림 끄기</button>
+    </div>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<noscript><p style="padding:24px 20px">이 앱은 자바스크립트를 켜야 볼 수 있어요.</p></noscript>
+
+<script>
+'use strict';
+/* 코트 오픈 — 화면 스크립트.
+   서버(/board, /refresh, /push/*)만 호출한다. 서울시 예약 사이트 주소는 사람이 누르는 링크로만 쓴다. */
+const $ = (id) => document.getElementById(id);
+const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty
+const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
+const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장'};
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+// 예약 링크는 서울시 사이트(https)일 때만 건다.
+const safeURL = (s) => { try { const u = new URL(s); return u.protocol === 'https:' && /(^|\.)seoul\.go\.kr$/.test(u.hostname) ? u.href : ''; } catch { return ''; } };
+
+const ICON = {
+  chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+  out: '<svg class="out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+  bellOn: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0" fill="none"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.2"/></svg>',
+  check: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.3 3 3 6-6.4"/></svg>',
+};
+
+/* ── 시간: 서버 문자열은 모두 한국시간 'YYYY-MM-DD HH:MM[:SS]' ───────── */
+const WD = ['일', '월', '화', '수', '목', '금', '토'];
+function kstMs(s) {
+  s = String(s || '');
+  if (s.length < 16) return NaN;
+  return Date.parse(`${s.slice(0, 10)}T${s.slice(11, 16)}:${s.length >= 19 ? s.slice(17, 19) : '00'}+09:00`);
+}
+const todayKST = () => new Intl.DateTimeFormat('sv-SE', {timeZone: 'Asia/Seoul'}).format(new Date());
+const ymd = (s) => ({y: +s.slice(0, 4), m: +s.slice(5, 7), d: +s.slice(8, 10)});
+const utcDay = (s) => { const {y, m, d} = ymd(s); return Date.UTC(y, m - 1, d); };
+const weekday = (s) => WD[new Date(utcDay(s)).getUTCDay()];
+const dayDiff = (s) => Math.round((utcDay(s) - utcDay(todayKST())) / 864e5);
+const longDate = (s) => { const {m, d} = ymd(s); return `${m}월 ${d}일 ${weekday(s)}요일`; };
+const shortDate = (s) => { const {m, d} = ymd(s); return `${m}.${d}`; };
+const hm = (s) => String(s).slice(11, 16);
+function remainText(ms) {
+  if (ms <= 0) return '지금 열려요';
+  const min = Math.ceil(ms / 60000);
+  if (min < 60) return `${min}분 남음`;
+  const h = Math.floor(min / 60), m = min % 60;
+  if (h < 24) return m ? `${h}시간 ${m}분 남음` : `${h}시간 남음`;
+  const d = Math.floor(h / 24), hh = h % 24;
+  return d < 3 && hh ? `${d}일 ${hh}시간 남음` : `${d}일 남음`;
+}
+const ddayText = (n) => (n <= 0 ? '오늘' : n === 1 ? '내일' : `D-${n}`);
+
+/* ── 코트 버튼 ────────────────────────────────────────── */
+const isLit = (c) => /조명/.test(c.court || '');
+const courtNo = (c) => { const m = /^(\d+)/.exec(c.court || ''); return m ? +m[1] : 999; };
+const shortSlot = (s) => (!s || s === '매일' ? '' : String(s).replace(/주말·공휴일/g, '주말').replace(/\s+·\s+/g, ', '));
+function hoursText(t) {
+  const m = /^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/.exec(String(t || '').trim());
+  if (!m) return '';
+  return m[2] === '00' && m[4] === '00' ? `${m[1]}–${m[3]}시` : `${m[1]}:${m[2]}–${m[3]}:${m[4]}`;
+}
+function slotKind(c) {
+  const s = c.slot || '';
+  if (/야간|주말|공휴일/.test(s) || /(^|[\s·])[월화수목금토일](?=$|[\s·])/.test(s)) return 'night';
+  if (/평일|주간|새벽/.test(s)) return 'day';
+  return 'any';
+}
+function kindLabel(k, list) {
+  const has = (re) => list.some((c) => re.test(c.slot || ''));
+  if (k === 'day') return has(/새벽/) ? '평일 새벽 · 주간' : has(/주간/) ? '평일 주간' : '평일';
+  if (k === 'night') {
+    const wk = has(/주말|공휴일|(^|[\s·])[토일](?=$|[\s·])/);
+    return [has(/야간/) ? '야간' : '', wk ? (has(/공휴일/) ? '주말 · 공휴일' : '주말') : ''].filter(Boolean).join(' · ') || '야간 · 주말';
+  }
+  return '상시';
+}
+const isNumbered = (c) => /^(\d+|[A-Za-z])/.test(String(c.court || ''));
+const physKey = (c) => String(c.court || '').replace(/\s*조명$/, '').trim();
+/* 실제 코트 수 — 같은 코트의 시간대별 예약은 한 번만 센다. 번호가 없는 예약이 섞이면 세지 않는다. */
+function courtCount(courts) {
+  const list = courts || [];
+  return list.length && list.every(isNumbered) ? new Set(list.map(physKey)).size : 0;
+}
+/* 모든 코트의 운영 시간이 같으면 그 시간 — 버튼에서는 빼고 위 설명에 한 번만 쓴다. */
+function commonHours(courts) {
+  const list = courts || [];
+  if (!list.length || !list.every(isNumbered) || new Set(list.map((c) => c.time)).size > 1) return '';
+  return hoursText(list[0].time);
+}
+
+function courtHTML(c, ctx) {
+  const m = /^(\d+|[A-Za-z])\s*(번|면)?/.exec(String(c.court || ''));
+  const slot = shortSlot(c.slot), hours = hoursText(c.time);
+  const line1 = [];
+  let main, unit = '';
+  if (m) { main = m[1]; unit = m[2] || (/\d/.test(m[1]) ? '번' : '코트'); if (slot) line1.push(esc(slot)); }
+  else main = slot || '예약';
+  if (isLit(c)) line1.push('조명');
+  if (!c.is_paid) line1.push('<em>무료</em>'); else if (ctx.mixedFee) line1.push('유료');
+  if (ctx.mixedConfirm && c.confirmed) line1.push('<em>접수 중</em>');
+  const line2 = ctx.hideHours ? '' : hours;
+  const inner = `<b${m ? '' : ' class="word"'}>${esc(main)}${unit ? `<small>${unit}</small>` : ''}</b>`
+    + (line1.length ? `<span>${line1.join(' · ')}</span>` : '')
+    + (line2 ? `<span class="num">${esc(line2)}</span>` : '') + ICON.out;
+  const u = safeURL(c.reserve_url);
+  const label = [c.court, c.slot, hours, c.is_paid ? '' : '무료', '예약 화면 열기'].filter(Boolean).join(', ');
+  return u
+    ? `<a class="court" href="${esc(u)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(label)}">${inner}</a>`
+    : `<span class="court off" aria-disabled="true">${inner}</span>`;
+}
+function pickerHTML(courts, keepHours) {
+  const list = [...(courts || [])].sort((a, b) => (isLit(a) - isLit(b)) || (courtNo(a) - courtNo(b))
+    || String(a.court).localeCompare(String(b.court), 'ko') || String(a.slot).localeCompare(String(b.slot), 'ko'));
+  const ctx = {
+    mixedFee: list.some((c) => c.is_paid) && list.some((c) => !c.is_paid),
+    mixedConfirm: list.some((c) => c.confirmed) && list.some((c) => !c.confirmed),
+    hideHours: !keepHours && Boolean(commonHours(list)),
+  };
+  const groups = ['day', 'night', 'any'].map((k) => [k, list.filter((c) => slotKind(c) === k)]).filter(([, l]) => l.length);
+  const grid = (l) => `<div class="courts" data-cols="${l.length === 1 ? 1 : (l.length === 2 || l.length === 4) ? 2 : 3}">${l.map((c) => courtHTML(c, ctx)).join('')}</div>`;
+  return `<div class="picker">${groups.map(([k, l]) => `<div class="group">${
+    groups.length > 1 ? `<p class="group-label">${kindLabel(k, l)}<span>${l.length}</span></p>` : ''}${grid(l)}</div>`).join('')}</div>`;
+}
+const dots = (t) => String(t || '').replace(/(\d{1,2})\/(\d{1,2})/g, '$1.$2');
+const periodText = (p) => (!p ? '' : /이용분$/.test(p) ? dots(p) : `${dots(p)} 이용분`);
+
+/* ── 그리기 ───────────────────────────────────────────── */
+const HOT_MS = 2 * 36e5;   // 예약이 열리고 2시간까지는 맨 위에 코트 버튼을 펼쳐 둔다
+let board = null, updatedAt = '', nextOpenMs = null, coolAtMs = null, renderedDay = '';
+
+function alarmButton(area, outline) {
+  const on = subscribedTo(area);
+  return `<button class="ghost${outline ? ' outline' : ''}${on ? ' on' : ''}" data-act="sheet" data-alarm="${esc(area)}">${on ? ICON.bellOn : ICON.bell}<span>${on ? '알림 켜짐' : '알림 받기'}</span></button>`;
+}
+function openedHTML(x, i) {
+  const allOk = x.courts.length > 0 && x.courts.every((c) => c.confirmed);
+  const n = courtCount(x.courts);
+  const meta = [periodText(x.period), n ? `코트 ${n}면` : '', commonHours(x.courts)].filter(Boolean).join(' · ');
+  const note = allOk ? '날짜별 빈 시간은 예약 화면에서 확인해 주세요.'
+    : '서울시 접수 상태가 아직 반영되지 않았어요. 이미 마감된 코트가 있을 수 있으니 예약 화면에서 확인해 주세요.';
+  return `<article class="opened">
+    <p class="eyebrow live"><i class="dot"></i>오늘 ${esc(hm(x.open_at))}에 예약이 열렸어요</p>
+    <${i ? 'h2' : 'h1'} class="venue-title">${esc(x.place || NAMES[x.area] || x.area)}</${i ? 'h2' : 'h1'}>
+    ${meta ? `<p class="next-meta">${esc(meta)}</p>` : ''}
+    ${pickerHTML(x.courts)}
+    <p class="hint">${ICON.info}<span>${note}</span></p>
+  </article>`;
+}
+function nextHTML(x) {
+  const diff = dayDiff(x.open_at), ms = kstMs(x.open_at) - Date.now(), n = courtCount(x.courts);
+  const rel = diff === 0 ? '오늘 · ' : diff === 1 ? '내일 · ' : '';
+  const meta = [periodText(x.period), n ? `코트 ${n}면` : '', commonHours(x.courts)].filter(Boolean).join(' · ');
+  return `<p class="eyebrow">다음 예약 오픈</p>
+    <p class="next-date">${rel}${longDate(x.open_at)}</p>
+    <h1 class="next-h"><span class="next-time">${esc(hm(x.open_at))}</span> <span class="next-venue">${esc(x.place || NAMES[x.area] || x.area)}</span></h1>
+    ${meta ? `<p class="next-meta">${esc(meta)}</p>` : ''}
+    <div class="next-foot"><span class="remain${ms < 36e5 ? ' soon' : ''}" id="remain">${remainText(ms)}</span>${alarmButton(x.area)}</div>
+    <details class="peek"><summary><span>${n ? `코트 ${n}면 보기` : '코트 보기'}</span>${ICON.chev}</summary>${pickerHTML(x.courts)}</details>`;
+}
+function noneHTML() {
+  return `<p class="eyebrow">다음 예약 오픈</p>
+    <h1 class="none-title">아직 등록된 오픈 일정이 없어요</h1>
+    <p class="none-sub">서울시가 다음 회차를 올리면 날짜와 시각이 여기에 나와요.</p>
+    <div class="none-cta">${alarmButton('', true)}</div>`;
+}
+function rowHTML(x) {
+  const diff = dayDiff(x.open_at), n = courtCount(x.courts);
+  const sub = [`${hm(x.open_at)} 오픈`, periodText(x.period), n ? `${n}면` : ''].filter(Boolean).join(' · ');
+  const chip = x.opened ? '<span class="dday near">열림</span>' : `<span class="dday${diff <= 1 ? ' near' : ''}">${ddayText(diff)}</span>`;
+  return `<details class="row"><summary>
+      <div class="when"><b>${shortDate(x.open_at)}</b><span>${weekday(x.open_at)}요일</span></div>
+      <div class="what"><strong>${esc(x.place || NAMES[x.area] || x.area)}</strong><span>${esc(sub)}</span></div>
+      <div class="tail">${chip}${ICON.chev}</div>
+    </summary>${pickerHTML(x.courts, true)}${x.opened ? '<p class="row-note">마감됐을 수 있어요. 예약 화면에서 확인해 주세요.</p>' : ''}</details>`;
+}
+function pendHTML(p) {
+  const past = (p.past_opens || []).slice(0, 2).map((s) => `${shortDate(s)} (${weekday(s)}) ${hm(s)}`).join(' · ');
+  return `<div class="pend what"><strong>${esc(p.place || NAMES[p.area] || p.area)}</strong><span class="num">지난 오픈 ${esc(past)}</span></div>`;
+}
+function venueHTML(p) {
+  const cs = p.courts || [], full = Number(p.full_count) || 0;
+  const meta = [
+    p.until_kind === 'use' && p.period ? periodText(p.period) : dots(p.until_label),
+    full ? `나머지 ${full}개 마감` : '',
+    commonHours(cs),
+  ].filter(Boolean).join(' · ');
+  return `<article class="venue">
+    <h3>${esc(p.place || NAMES[p.area] || p.area)}${p.region ? `<span>${esc(p.region)}</span>` : ''}</h3>
+    <p class="venue-meta num">${esc(meta)}</p>
+    ${pickerHTML(cs)}
+  </article>`;
+}
+
+function renderBoard(d) {
+  board = d;
+  if (d.updated_at) updatedAt = d.updated_at;
+  renderedDay = todayKST();
+  const now = Date.now();
+  const arr = (v) => (Array.isArray(v) ? v.filter(Boolean) : []);
+  // 잘못된 항목은 빼고 그린다. 열린 예약은 오늘 것만(서버 기준과 같게).
+  const openings = arr(d.openings).filter((x) => Number.isFinite(kstMs(x.open_at)))
+    .map((x) => ({...x, courts: arr(x.courts), opened: Boolean(x.opened) || kstMs(x.open_at) <= now}))
+    .filter((x) => !x.opened || dayDiff(x.open_at) === 0)
+    .sort((a, b) => String(a.open_at).localeCompare(String(b.open_at)));
+  const opened = openings.filter((x) => x.opened);
+  const hot = opened.filter((x) => now - kstMs(x.open_at) < HOT_MS);      // 방금 열림 → 맨 위에 펼침
+  const cold = opened.filter((x) => !hot.includes(x));                    // 열린 지 오래됨 → 일정 줄로
+  const upcoming = openings.filter((x) => !x.opened);
+  nextOpenMs = upcoming.length ? kstMs(upcoming[0].open_at) : null;
+  coolAtMs = hot.length ? Math.min(...hot.map((x) => kstMs(x.open_at) + HOT_MS)) : null;
+
+  const next = $('next');
+  next.className = 'next' + (hot.length ? ' is-open' : '');
+  next.setAttribute('aria-label', hot.length ? '오늘 열린 예약' : '다음 예약 오픈');
+  next.innerHTML = hot.length ? hot.map(openedHTML).join('') : upcoming.length ? nextHTML(upcoming[0]) : noneHTML();
+
+  const rest = [...cold, ...(hot.length ? upcoming : upcoming.slice(1))];
+  const busy = new Set(openings.map((x) => x.area));
+  const pending = arr(d.places).filter((p) => !busy.has(p.area) && arr(p.past_opens).length);
+  const title = hot.length ? '다음 오픈 일정' : cold.length ? '오픈 일정' : '이후 오픈 일정';
+  const sch = $('schedule');
+  sch.hidden = !rest.length && !pending.length;
+  $('band-next').hidden = sch.hidden || hot.length > 0;
+  sch.innerHTML = (rest.length
+      ? `<div class="sec-head"><h2>${title}</h2></div><div class="rows">${rest.map(rowHTML).join('')}</div>`
+        + (pending.length ? '<p class="sub-label">일정 미정</p>' : '')
+      : '<div class="sec-head"><h2>일정 미정</h2></div><p class="sec-sub">지난 오픈 날짜와 시각을 참고하세요.</p>')
+    + (pending.length ? `<div class="rows">${pending.map(pendHTML).join('')}</div>` : '');
+
+  const avail = arr(d.available).map((p) => ({...p, courts: arr(p.courts)})).filter((p) => p.courts.length);
+  $('available').innerHTML = '<div class="sec-head"><h2>지금 접수 중인 코트</h2></div>'
+    + (avail.length
+      ? `<p class="sec-sub">코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈 시간은 그 화면에서 확인해 주세요.</p>${avail.map(venueHTML).join('')}`
+      : '<div class="empty"><strong>지금 접수 중인 코트가 없어요</strong><p>예약이 열리면 여기에 코트 번호가 나타나요.</p></div>');
+
+  paintStamp();
+  paintPush();
+  const badge = Math.max(0, Number(d.badge) || 0);
+  try { if (navigator.setAppBadge) Promise.resolve(badge ? navigator.setAppBadge(badge) : navigator.clearAppBadge()).catch(() => {}); } catch {}
+}
+function renderError() {
+  $('next').className = 'next';
+  $('next').innerHTML = `<p class="eyebrow">연결 문제</p><h1 class="none-title">정보를 불러오지 못했어요</h1>
+    <p class="none-sub">인터넷 연결을 확인하고 다시 시도해 주세요.</p><button class="retry" data-act="retry">다시 시도</button>`;
+  $('available').innerHTML = '';
+  $('stamp').textContent = '연결 안 됨';
+}
+function paintStamp() {
+  if (!updatedAt) return;
+  const same = updatedAt.slice(0, 10) === todayKST();
+  const text = same ? `${hm(updatedAt)} 기준` : `${shortDate(updatedAt)} ${hm(updatedAt)} 기준`;
+  $('stamp').textContent = text;
+  $('refresh').setAttribute('aria-label', `공식 데이터 새로 고침, ${text}`);
+}
+function tick() {
+  if (sheetShown && !sheet.open) sheetClosed();      // 닫힘 이벤트를 놓쳤어도 스크롤 잠금이 남지 않게
+  if (!board) return;
+  const now = Date.now();
+  if (renderedDay !== todayKST()) { renderBoard(board); refreshData(); return; }      // 자정이 지남 → 날짜 문구 다시
+  const opening = Boolean(nextOpenMs && now >= nextOpenMs);
+  if (opening || (coolAtMs && now >= coolAtMs)) { renderBoard(board); if (opening) refreshData(); return; }
+  const el = $('remain');
+  if (el && nextOpenMs) {
+    const ms = nextOpenMs - now;
+    el.textContent = remainText(ms);
+    el.classList.toggle('soon', ms < 36e5);
+  }
+}
+
+/* ── 토스트 ───────────────────────────────────────────── */
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ── 서버 호출 · 새로 고침 ────────────────────────────── */
+async function api(path, body) {
+  if (MOCK) return path === '/board' ? mockBoard(MOCK) : {ok: true, refreshed: false, reason: 'recent', updated_at: mockStamp(), publicKey: ''};
+  if (!/^\/(board|refresh|push\/(key|subscribe|unsubscribe|test))$/.test(path)) throw Error('허용되지 않은 요청');
+  const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 65000);
+  try {
+    const r = await fetch(path, {signal: ctrl.signal, ...(body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {})});
+    if (!r.ok) throw Error('서버 응답 오류');
+    const d = await r.json();
+    if (d.ok === false) throw Error('요청을 처리하지 못했어요');
+    return d;
+  } finally { clearTimeout(timer); }
+}
+let boardReq = 0, refreshing = null;
+async function loadBoard() {
+  const id = ++boardReq;
+  try {
+    const d = await api('/board');
+    if (id !== boardReq) return 'ignored';                                   // 더 새 요청이 있음
+    if (updatedAt && d.updated_at && d.updated_at < updatedAt) return 'ignored';   // 더 오래된 응답
+    renderBoard(d);
+    return true;
+  } catch {
+    if (id === boardReq && !board) renderError();
+    return false;
+  }
+}
+function refreshData(manual = false) {
+  if (refreshing) return refreshing;
+  ++boardReq;
+  const btn = $('refresh');
+  btn.setAttribute('aria-busy', 'true');
+  refreshing = (async () => {
+    try {
+      let res;
+      try { res = await api('/refresh', {}); } catch { res = {reason: 'error'}; }
+      const loaded = await loadBoard();
+      if (manual) {
+        toast(!loaded ? '정보를 받지 못했어요. 잠시 뒤 다시 시도해 주세요.'
+          : ['error', 'empty'].includes(res.reason) ? '서울시 데이터를 받지 못해 마지막 정보를 보여드려요.'
+          : res.refreshed ? '최신 정보로 바꿨어요.' : '방금 받은 최신 정보예요.');
+      }
+      return res;
+    } finally {
+      btn.setAttribute('aria-busy', 'false');
+      refreshing = null;
+    }
+  })();
+  return refreshing;
+}
+const isStale = () => { const t = kstMs(updatedAt); return !Number.isFinite(t) || Date.now() - t > 180000; };
+
+/* ── 알림(웹 푸시) ────────────────────────────────────── */
+let sub = null, swReady = null, pushBusy = false, pushAgain = false, saveTimer = 0;
+let settings = {areas: [...AREAS], d1: true, h1: true, enabled: false};
+try {
+  const v = JSON.parse(localStorage.getItem('tn_push'));
+  if (v) {
+    settings = {...settings, ...v};
+    settings.areas = Array.isArray(v.areas) ? v.areas.filter((a) => AREAS.includes(a)) : [...AREAS];
+    if (!settings.areas.length) settings.areas = [...AREAS];
+  }
+} catch {}
+let cacheWrite = Promise.resolve();
+function saveSettings() {
+  try { localStorage.setItem('tn_push', JSON.stringify(settings)); } catch {}
+  // 서비스워커가 구독을 다시 만들 때 읽는 사본
+  const value = JSON.stringify({areas: settings.areas, d1: settings.d1, h1: settings.h1});
+  cacheWrite = cacheWrite.then(async () => {
+    try { await (await caches.open('tn-settings')).put('/__tn_push_settings', new Response(value, {headers: {'Content-Type': 'application/json'}})); } catch {}
+  });
+}
+saveSettings();
+
+const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standalone = Boolean(navigator.standalone) || matchMedia('(display-mode: standalone)').matches;
+const needInstall = isiOS && !standalone;
+const canPush = 'Notification' in window && 'PushManager' in window && 'serviceWorker' in navigator;
+const pushOn = () => Boolean(sub && settings.enabled);
+const subscribedTo = (area) => pushOn() && (!area || settings.areas.includes(area));
+const say = (msg) => { $('push-status').textContent = msg; };
+
+function b64Bytes(s) {
+  const n = s.replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(n + '='.repeat((4 - n.length % 4) % 4)), (c) => c.charCodeAt(0));
+}
+function sameKey(a, b) {
+  if (!a) return false;
+  const x = new Uint8Array(a), y = new Uint8Array(b);
+  return x.length === y.length && x.every((v, i) => v === y[i]);
+}
+function worker() {
+  if (!('serviceWorker' in navigator)) return Promise.reject(Error('이 브라우저는 앱 알림을 지원하지 않아요.'));
+  if (!swReady) {
+    swReady = navigator.serviceWorker.register('/sw.js')
+      .then(async (r) => { await navigator.serviceWorker.ready; return r; })
+      .catch((e) => { swReady = null; throw e; });
+  }
+  return swReady;
+}
+/* mode: 'auto' 앱을 열 때 서버에 다시 등록 · 'user' [알림 켜기] · 'save' 설정 변경 저장 */
+async function syncPush(mode) {
+  if (pushBusy) { if (mode === 'save') pushAgain = true; return; }   // 저장 중에 또 바뀜 → 끝나면 최신 설정을 다시 보냄
+  pushBusy = true;
+  $('subscribe').disabled = true;
+  try {
+    if (MOCK) {
+      if (mode === 'auto') return;
+      sub = {endpoint: 'mock'}; settings.enabled = true; saveSettings();
+      say(mode === 'user' ? '미리보기예요. 실제 알림은 보내지 않아요.' : '변경 내용을 저장했어요.');
+      return;
+    }
+    if (needInstall) return;
+    if (mode === 'auto' && settings.off) return;                     // 직접 끈 기기는 다시 등록하지 않음
+    if (!canPush) throw Error('이 브라우저는 알림을 지원하지 않아요. Safari나 Chrome 최신 버전에서 열어 주세요.');
+    if (mode !== 'user' && Notification.permission !== 'granted') return;
+    if (mode === 'user') {
+      const p = await Notification.requestPermission();
+      if (p !== 'granted') throw Error(p === 'denied' ? '알림이 차단되어 있어요. 브라우저 설정에서 이 사이트의 알림을 허용해 주세요.' : '알림을 허용해야 받을 수 있어요.');
+    }
+    const reg = await worker();
+    sub = await reg.pushManager.getSubscription();
+    if (mode !== 'user' && !sub) return;
+    const {publicKey} = await api('/push/key'), key = b64Bytes(publicKey);
+    if (sub && !sameKey(sub.options.applicationServerKey, key)) {     // 서버 키가 바뀌었으면 다시 구독
+      const old = sub;
+      await old.unsubscribe();
+      sub = null;
+      try { await api('/push/unsubscribe', {endpoint: old.endpoint}); } catch {}
+    }
+    if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: key});
+    await api('/push/subscribe', {subscription: sub.toJSON(), areas: settings.areas, d1: settings.d1, h1: settings.h1});
+    settings.enabled = true;
+    settings.off = false;
+    saveSettings();
+    if (mode === 'user') say('알림을 켰어요. 예약이 열리기 전에 알려드릴게요.');
+    else if (mode === 'save') say('변경 내용을 저장했어요.');
+  } catch (e) {
+    if (mode === 'save') say('바꾼 내용을 저장하지 못했어요. 연결을 확인한 뒤 다시 바꿔 주세요.');
+    else if (mode !== 'auto') say(e.message && !/fetch|network|abort/i.test(e.message) ? e.message : '연결이 어려워요. 잠시 뒤 다시 시도해 주세요.');
+  } finally {
+    pushBusy = false;
+    $('subscribe').disabled = false;
+    paintPush();
+    resave();
+  }
+}
+function resave() {
+  if (!pushAgain) return;
+  pushAgain = false;
+  if (pushOn()) syncPush('save');
+}
+/* 화면을 열어 둔 사이 권한이 바뀌었거나 구독이 사라졌는지 다시 확인한다. */
+async function checkPush() {
+  if (MOCK || !canPush || pushBusy) return;
+  try {
+    let cur = null;
+    if (Notification.permission === 'granted') cur = await (await worker()).pushManager.getSubscription();
+    if (pushBusy) return;
+    if ((cur && cur.endpoint) !== (sub && sub.endpoint)) { sub = cur; paintPush(); sheetNote(); }
+  } catch {}
+}
+function sheetNote() {
+  if (pushOn() || MOCK || needInstall) return;
+  if (!canPush) say('이 브라우저는 알림을 지원하지 않아요. Chrome이나 Safari 최신 버전에서 열어 주세요.');
+  else if (Notification.permission === 'denied') say('알림이 차단되어 있어요. 브라우저 설정에서 이 사이트의 알림을 허용한 뒤 다시 눌러 주세요.');
+  else say('');
+}
+function settingsChanged() {
+  saveSettings();
+  paintPush();
+  if (!pushOn()) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => syncPush('save'), 500);
+}
+function paintPush() {
+  const on = pushOn();
+  $('bell').innerHTML = on ? ICON.bellOn : ICON.bell;
+  $('bell').classList.toggle('on', on);
+  $('bell').setAttribute('aria-label', on ? '오픈 알림 설정, 켜져 있음' : '오픈 알림 설정, 꺼져 있음');
+  $('push-value').textContent = on ? `켜짐 · ${settings.areas.length}곳` : '꺼짐';
+  $('push-value').classList.toggle('on', on);
+  document.querySelectorAll('[data-alarm]').forEach((el) => {
+    const mine = subscribedTo(el.dataset.alarm);
+    el.classList.toggle('on', mine);
+    el.innerHTML = `${mine ? ICON.bellOn : ICON.bell}<span>${mine ? '알림 켜짐' : '알림 받기'}</span>`;
+  });
+  $('install').hidden = !needInstall;
+  $('subscribe').hidden = on || needInstall;
+  $('test').hidden = !on;
+  $('unsubscribe').hidden = !on;
+  if (!$('push-status').textContent && on) say('알림이 켜져 있어요. 바꾼 내용은 바로 저장돼요.');
+}
+function renderAreas() {
+  $('areas').innerHTML = AREAS.map((a) => `<label class="pick"><input type="checkbox" value="${esc(a)}"${settings.areas.includes(a) ? ' checked' : ''}><span>${esc(NAMES[a] || a)}</span>${ICON.check}</label>`).join('');
+}
+$('areas').addEventListener('change', (e) => {
+  const box = e.target;
+  if (!AREAS.includes(box.value)) return;
+  const picked = box.checked ? [...new Set([...settings.areas, box.value])] : settings.areas.filter((a) => a !== box.value);
+  if (!picked.length) { box.checked = true; toast('한 곳 이상은 골라 주세요.'); return; }
+  settings.areas = AREAS.filter((a) => picked.includes(a));
+  settingsChanged();
+});
+['d1', 'h1'].forEach((id) => {
+  $(id).checked = settings[id];
+  $(id).addEventListener('change', () => {
+    if (!$('d1').checked && !$('h1').checked) { $(id).checked = true; toast('알림 시점을 하나 이상 켜 주세요.'); return; }
+    settings[id] = $(id).checked;
+    settingsChanged();
+  });
+});
+$('subscribe').onclick = () => syncPush('user');
+$('unsubscribe').onclick = async () => {
+  if (pushBusy) return;
+  pushBusy = true;
+  clearTimeout(saveTimer);
+  pushAgain = false;
+  try {
+    if (!sub) throw Error();
+    if (!MOCK) {
+      await api('/push/unsubscribe', {endpoint: sub.endpoint});
+      try { await sub.unsubscribe(); } catch {}      // 서버에서는 이미 지워졌으므로 화면은 꺼짐으로 맞춘다
+    }
+    sub = null; settings.enabled = false; settings.off = true; saveSettings();
+    say('알림을 껐어요. 언제든 다시 켤 수 있어요.');
+  } catch { say('알림을 끄지 못했어요. 다시 시도해 주세요.'); }
+  finally { pushBusy = false; paintPush(); }
+};
+$('test').onclick = async () => {
+  if (MOCK) { say('미리보기에서는 알림을 보내지 않아요.'); return; }
+  if (!sub || pushBusy) return;
+  pushBusy = true;
+  $('test').disabled = true;
+  try { await api('/push/test', {endpoint: sub.endpoint}); say('테스트 알림을 보냈어요. 기기 알림을 확인해 주세요.'); }
+  catch { say('테스트 알림을 보내지 못했어요. 1분 뒤 다시 시도해 주세요.'); }
+  finally { pushBusy = false; $('test').disabled = false; resave(); }
+};
+
+/* ── 시트 · 공유 · 공통 동작 ──────────────────────────── */
+const sheet = $('sheet');
+let sheetOpener = null, sheetShown = false;
+function openSheet(from) {
+  if (sheet.open) return;
+  sheetShown = true;
+  sheetOpener = from || document.activeElement;
+  sheetNote();
+  checkPush();
+  sheet.showModal();
+  document.documentElement.classList.add('lock');
+  $('sheet-title').focus({preventScroll: true});
+}
+function sheetClosed() {          // 닫기 버튼·바깥 누름·Esc 어느 쪽으로 닫혀도 한 번만
+  if (!sheetShown) return;
+  sheetShown = false;
+  document.documentElement.classList.remove('lock');
+  const back = sheetOpener && sheetOpener.isConnected ? sheetOpener : $('bell');   // 연 버튼이 다시 그려져 사라졌으면 종 버튼으로
+  sheetOpener = null;
+  try { back.focus({preventScroll: true}); } catch {}
+}
+const closeSheet = () => { sheet.close(); sheetClosed(); };
+sheet.addEventListener('close', sheetClosed);
+sheet.addEventListener('cancel', () => setTimeout(() => { if (!sheet.open) sheetClosed(); }, 0));   // Esc
+sheet.addEventListener('click', (e) => { if (e.target === sheet) closeSheet(); });
+$('sheet-close').onclick = closeSheet;
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  if (el.dataset.act === 'sheet') openSheet(el);
+  if (el.dataset.act === 'retry') { $('next').innerHTML = '<div class="sk" style="width:190px;height:58px"></div>'; loadBoard(); }
+});
+$('refresh').onclick = () => refreshData(true);
+$('share').onclick = async () => {
+  const u = new URL(location.href);
+  u.search = ''; u.hash = '';
+  try {
+    if (navigator.share) await navigator.share({title: '코트 오픈', text: '서울 공공 테니스장 예약 오픈 일정을 한눈에 볼 수 있어요.', url: u.href});
+    else { await navigator.clipboard.writeText(u.href); toast('링크를 복사했어요.'); }
+  } catch (e) { if (e.name !== 'AbortError') toast('공유하지 못했어요. 주소창의 링크를 복사해 주세요.'); }
+};
+const onScroll = () => $('bar').classList.toggle('scrolled', window.scrollY > 4);
+window.addEventListener('scroll', onScroll, {passive: true});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  tick();
+  checkPush();
+  if (!MOCK && isStale()) refreshData();
+});
+
+/* ── 미리보기 데이터(?mock=opened|late|next|soon|none|empty) ── */
+function mockStamp() {
+  return `${todayKST()} ${new Intl.DateTimeFormat('en-GB', {timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit'}).format(new Date())}`;
+}
+function mockBoard(kind) {
+  const url = 'https://yeyak.seoul.go.kr/web/main.do';
+  const at = (mins) => {                       // 지금부터 mins 분 뒤의 한국시간 문자열
+    const d = new Date(Date.now() + mins * 60000 + 9 * 36e5);
+    return `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(11, 16)}`;
+  };
+  const day = (n, t) => `${at(n * 1440).slice(0, 10)} ${t}`;
+  const c = (court, slot, time, paid = true) => ({court, slot, time, is_paid: paid, reserve_url: url});
+  const hannam = [
+    c('1번', '평일 주간', '06:00-15:00'), c('1번', '일', '20:00-22:00'), c('2번', '평일 주간', '06:00-17:00'), c('2번', '금 야간 · 일', '17:00-22:00'),
+    c('3번', '평일 새벽·주간', '06:00-17:00'), c('3번', '평일 야간 · 주말·공휴일', '06:00-22:00'), c('4번', '평일 새벽·주간', '06:00-17:00'), c('4번', '평일 야간 · 일', '12:00-22:00'),
+    c('5번', '평일 새벽·주간', '06:00-17:00'), c('5번', '월 야간 · 주말·공휴일', '16:00-22:00'), c('6번', '평일 새벽·주간', '06:00-17:00'), c('6번', '평일 야간 · 주말·공휴일', '06:00-22:00'),
+    c('8번', '평일 주간', '12:00-14:00'), c('9번', '평일 주간', '12:00-14:00'), c('10번', '평일 새벽·주간', '06:00-15:00'), c('10번', '월 야간 · 주말·공휴일', '12:00-22:00'),
+    c('11번', '평일 새벽·주간', '06:00-17:00'), c('11번', '평일 야간 · 주말·공휴일', '17:00-19:00'), c('12번', '평일 새벽·주간', '06:00-17:00'), c('12번', '평일 야간 · 주말·공휴일', '12:00-19:00'),
+  ];
+  const jang = [2, 3, 4, 7, 8, 9].flatMap((n) => [c(`${n}번`, '평일 주간', '06:00-18:00'), c(`${n}번`, '평일 야간', '18:00-22:00'), c(`${n}번`, '주말·공휴일', '06:00-22:00')]);
+  const forest = {area: '서울숲', place: '서울숲 테니스장', region: '성동구', open_at: day(19, '09:01'), opened: false, period: '2027년 이용분', courts: [c('코트', '주말·공휴일', '06:00-19:00')]};
+  const available = kind === 'empty' ? [] : [
+    {area: '장충', place: '장충테니스장', region: '중구', until_label: '11/30까지 이용', until_kind: 'use', period: '11/16~11/30', full_count: 16, courts: [c('8번', '평일 주간', '06:00-18:00'), c('9번', '평일 주간', '06:00-18:00')]},
+    {area: '마루공원', place: '마루공원', region: '강남구', until_label: '상시 예약', until_kind: '', full_count: 0, courts: [c('1면', '매일', '06:00-22:00', false), c('1면 조명', '매일', '06:00-22:00'), c('2면', '매일', '06:00-22:00', false), c('2면 조명', '매일', '06:00-22:00'), c('3면', '매일', '06:00-22:00', false), c('3면 조명', '매일', '06:00-22:00')]},
+    {area: '선우공원', place: '선우공원', region: '관악구', until_label: '11/30까지 접수', until_kind: 'rcpt', full_count: 2, courts: [c('B', '평일 주간', '06:00-18:00')]},
+    {area: '서울숲', place: '서울숲 테니스장', region: '성동구', until_label: '상시 예약', until_kind: '', full_count: 0, courts: [c('코트', '평일', '06:00-19:00')]},
+  ];
+  let openings = [];
+  if (kind === 'opened') openings = [
+    {area: '한남', place: '한남테니스장', region: '용산구', open_at: at(-40), opened: true, period: '11/16~11/30', courts: hannam},
+    {area: '장충', place: '장충테니스장', region: '중구', open_at: day(1, '10:00'), opened: false, period: '12/1~12/15', courts: jang}, forest];
+  if (kind === 'late') openings = [
+    {area: '한남', place: '한남테니스장', region: '용산구', open_at: at(-200), opened: true, period: '11/16~11/30', courts: hannam},
+    {area: '장충', place: '장충테니스장', region: '중구', open_at: day(1, '10:00'), opened: false, period: '12/1~12/15', courts: jang}, forest];
+  if (kind === 'next') openings = [{area: '장충', place: '장충테니스장', region: '중구', open_at: day(1, '10:00'), opened: false, period: '12/1~12/15', courts: jang}, forest];
+  if (kind === 'soon') openings = [{area: '한남', place: '한남테니스장', region: '용산구', open_at: at(42), opened: false, period: '11/16~11/30', courts: hannam}, forest];
+  const busy = new Set(openings.map((x) => x.area));
+  const past = {'한남': [day(-12, '09:00')], '장충': [day(-2, '10:00'), day(-18, '10:00')], '선우공원': [day(-16, '09:30'), day(-50, '09:30')]};
+  const places = AREAS.map((a) => ({area: a, place: NAMES[a], next_open: (openings.find((x) => x.area === a && !x.opened) || {}).open_at || '',
+    available: (available.find((p) => p.area === a) || {courts: []}).courts.length, past_opens: busy.has(a) ? [] : (past[a] || [])}));
+  return {now: mockStamp().slice(0, 16), updated_at: mockStamp(), badge: 0, areas: AREAS, places, openings, available};
+}
+
+/* ── 시작 ─────────────────────────────────────────────── */
+async function init() {
+  renderAreas();
+  paintPush();
+  onScroll();
+  const slow = setTimeout(() => { const s = $('slow'); if (s) s.hidden = false; }, 6000);
+  if (!MOCK) { worker().catch(() => {}); syncPush('auto'); }
+  const ok = await loadBoard();
+  clearTimeout(slow);
+  if (!MOCK && ok === true && isStale()) refreshData();
+}
+setInterval(() => { if (!MOCK && document.visibilityState === 'visible') refreshData(); }, 180000);
+setInterval(tick, 15000);
+init();
+</script>
+</body>
+</html>

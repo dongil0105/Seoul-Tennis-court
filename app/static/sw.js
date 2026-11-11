@@ -21,9 +21,19 @@ self.addEventListener('push', (event) => {
   event.waitUntil(Promise.all(jobs).catch(() => {}));
 });
 
+// 알림이 여는 주소는 이 앱이거나 서울시 예약 사이트(https)일 때만 그대로 쓴다. 아니면 앱 첫 화면.
+function safeTarget(url) {
+  try {
+    const u = new URL(url || '/', self.location.origin);
+    if (u.origin === self.location.origin) return u.href;
+    if (u.protocol === 'https:' && /(^|\.)seoul\.go\.kr$/.test(u.hostname)) return u.href;
+  } catch (_) { /* 잘못된 주소 */ }
+  return self.location.origin + '/';
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || '/';
+  const url = safeTarget(event.notification.data && event.notification.data.url);
   event.waitUntil((async () => {
     const external = /^https?:\/\//.test(url) && !url.startsWith(self.location.origin);
     if (!external) {
@@ -39,6 +49,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
   event.waitUntil((async () => {
     try {
       const r = await fetch('/push/key');
+      if (!r.ok) throw new Error('key');
       const { publicKey } = await r.json();
       const pad = '='.repeat((4 - publicKey.length % 4) % 4);
       const raw = atob((publicKey + pad).replace(/-/g, '+').replace(/_/g, '/'));
@@ -52,8 +63,15 @@ self.addEventListener('pushsubscriptionchange', (event) => {
         if (r) { const v = await r.json(); prefs = { areas: v.areas, d1: v.d1, h1: v.h1 }; }
       } catch (_) { /* 설정 없음 */ }
       const old = event.oldSubscription ? event.oldSubscription.endpoint : '';
-      await fetch('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription: sub.toJSON(), old_endpoint: old, ...prefs }) });
+      // 서버가 받았는지 확인하고, 실패하면 잠깐 쉬었다가 두 번 더 시도한다.
+      for (let i = 0; i < 3; i++) {
+        try {
+          const res = await fetch('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription: sub.toJSON(), old_endpoint: old, ...prefs }) });
+          if (res.ok) break;
+        } catch (_) { /* 연결 문제 — 다시 시도 */ }
+        await new Promise((done) => setTimeout(done, 2000 * (i + 1)));
+      }
     } catch (_) { /* 다음에 앱을 열 때 화면이 복구 */ }
   })());
 });
