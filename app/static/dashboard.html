@@ -151,6 +151,22 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .venue-meta{margin-top:4px;font-size:13px;color:var(--ink-3)}
 .batch+.batch{margin-top:20px}
 .venue .picker{margin-top:12px}
+.venue.has-more{padding-bottom:8px}
+.more{margin-top:8px}
+.more>summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;
+  font-size:14px;font-weight:600;color:var(--ink-2)}
+.more .batch+.batch{margin-top:4px}
+.more .venue-meta{margin:0}
+.more .picker{margin-top:8px;padding-bottom:16px}
+
+/* 접수 중인 코트가 없는 곳: 이름 · 상태 한 줄 — 누르면 코트별 예약 화면 링크가 펼쳐진다 */
+.vrow>summary,.vrow.flat{grid-template-columns:minmax(0,1fr) auto;min-height:64px}
+.vrow.flat{display:grid;align-items:center;gap:12px;padding:12px 0}
+.vrow.flat .tail{padding-right:28px}   /* 펼침 표시가 없는 줄도 상태 표시의 오른쪽 끝을 맞춘다 */
+.vrow .batch+.batch{margin-top:4px}
+.vrow .venue-meta{margin:0 0 8px}
+/* 접수하지 않는 코트 버튼: 누를 수는 있지만 한 톤 낮춘다 */
+.shut .court b,.shut .court b small,.shut .mno,.shut .mno small,.shut .chip span{color:var(--ink-3)}
 
 /* 코트 고르기: 코트마다 예약이 하나면 번호 타일, 여럿이면 '코트 번호 | 시간대 버튼' 줄 */
 .group+.group{margin-top:16px}
@@ -406,6 +422,7 @@ const isSoon = (ms) => Math.ceil(ms / 60000) < 60;
 const ddayText = (n) => (n <= 0 ? '오늘' : n === 1 ? '내일' : `D-${n}`);
 
 /* ── 코트 고르기 ──────────────────────────────────────── */
+const STATE_TEXT = {full: '마감', ended: '접수 끝남', paused: '일시중지', unknown: '접수 상태 확인 필요'};   // 접수하지 않는 코트
 const isLit = (c) => /조명/.test(c.court || '');
 const courtNo = (c) => { const m = /^(\d+)/.exec(c.court || ''); return m ? +m[1] : 999; };
 const isNumbered = (c) => /^(\d+|[A-Za-z])/.test(String(c.court || ''));
@@ -451,8 +468,9 @@ function courtLines(c, ctx) {
   if (isLit(c)) tags.push('조명');
   if (!c.is_paid) tags.push('<em>무료</em>'); else if (ctx.mixedFee) tags.push('유료');
   if (ctx.mixedConfirm && c.confirmed) tags.push('<em>접수 중</em>');
+  if (ctx.mixedState && STATE_TEXT[c.state]) tags.push(STATE_TEXT[c.state]);
   return {slot, tags, hours: ctx.hideHours ? '' : hours,
-    label: [c.court, c.slot, hours, c.is_paid ? '' : '무료', '예약 화면 열기'].filter(Boolean).join(', ')};
+    label: [c.court, c.slot, hours, c.is_paid ? '' : '무료', STATE_TEXT[c.state] || '', '예약 화면 열기'].filter(Boolean).join(', ')};
 }
 function linkHTML(cls, c, inner, label) {
   const u = safeURL(c.reserve_url);
@@ -482,6 +500,7 @@ function pickerHTML(courts, keepHours) {
     mixedFee: list.some((c) => c.is_paid) && list.some((c) => !c.is_paid),
     mixedConfirm: list.some((c) => c.confirmed) && list.some((c) => !c.confirmed),
     hideHours: !keepHours && Boolean(commonHours(list)),
+    mixedState: new Set(list.map((c) => c.state || '')).size > 1,
   };
   if (list.length && list.every(isNumbered)) {
     const byCourt = new Map();
@@ -569,12 +588,54 @@ function pendHTML(p) {
   const past = (p.past_opens || []).slice(0, 2).map((s) => `${shortDate(s)}(${weekday(s)}) ${hm(s)}`).join(', ');
   return `<div class="pend what"><strong>${esc(placeOf(p))}</strong><span class="num">지난번 ${esc(past)}에 열림</span></div>`;
 }
-function venueHTML(g) {                          // 한 곳 — 회차(이용 기간)가 여럿이면 제목은 한 번, 회차별로 나눠서
+/* 접수하지 않는 코트(마감 · 접수 끝남 · 일시중지 · 열렸지만 상태 미확인) — 눌러서 예약 화면은 볼 수 있다 */
+function shutChip(groups) {                      // 한 곳의 상태를 한마디로
+  const st = new Set(groups.flatMap((g) => g.courts.map((c) => c.state || g.state)));
+  if (st.has('unknown')) return '확인 필요';
+  if (st.size === 1 && st.has('ended')) return '접수 끝남';
+  if (st.size === 1 && st.has('paused')) return '일시중지';
+  return '모두 마감';
+}
+const batchName = (g) => (g.until_kind === 'use' && g.period ? periodText(g.period) : dots(g.until_label || ''));
+function batchNames(groups) {                    // '11.1~11.15, 11.16~11.30 이용분'
+  const names = [...new Set(groups.map(batchName).filter(Boolean))];
+  const same = names.every((n) => / 이용분$/.test(n));
+  return names.map((n, i) => (same && i < names.length - 1 ? n.replace(/ 이용분$/, '') : n)).join(', ');
+}
+function shutNote(groups) {
+  const chip = shutChip(groups);
+  return chip === '확인 필요' ? '예약은 열렸지만 서울시 화면에 접수 상태가 아직 안 올라왔어요. 코트를 눌러 직접 확인해 주세요.'
+    : chip === '모두 마감' ? '코트를 누르면 서울시 예약 화면이 열려요. 취소로 빈자리가 났는지 직접 확인할 수 있어요.'
+    : '코트를 누르면 서울시 예약 화면이 열려요.';
+}
+function shutBody(groups) {                      // 회차별 코트 버튼
+  const many = groups.length > 1;
+  return groups.map((g) => {
+    const n = courtCount(g.courts);
+    const meta = [many ? batchName(g) : '', many || g.state === 'mixed' ? STATE_TEXT[g.state] || '' : '',
+      n ? `코트 ${n}면` : '', commonHours(g.courts)].filter(Boolean).join(' · ');
+    return `<div class="batch shut">${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}${pickerHTML(g.courts)}</div>`;
+  }).join('') + `<p class="row-note">${shutNote(groups)}</p>`;
+}
+function idleHTML(p, groups) {                   // 접수 중인 코트가 없는 곳 한 줄
+  const name = `<strong>${esc(placeOf(p))}</strong>`;
+  if (!groups.length) {
+    return `<div class="row vrow flat"><span class="what">${name}<span>서울시에 올라온 예약이 없어요</span></span>
+      <span class="tail"><span class="dday">정보 없음</span></span></div>`;
+  }
+  return `<details class="row vrow" data-key="idle|${esc(p.area)}"><summary>
+      <span class="what">${name}<span class="num">${esc(batchNames(groups))}</span></span>
+      <span class="tail"><span class="dday">${shutChip(groups)}</span>${ICON.chev}</span>
+    </summary>${shutBody(groups)}</details>`;
+}
+function venueHTML(g, shut, legacy) {            // 접수 중인 곳 — 회차(이용 기간)가 여럿이면 제목은 한 번, 회차별로 나눠서
   const first = g[0];
-  return `<article class="venue">
+  const n = shut.reduce((t, x) => t + x.courts.length, 0);
+  const allFull = shut.every((x) => x.courts.every((c) => (c.state || x.state) === 'full'));
+  return `<article class="venue${n ? ' has-more' : ''}">
     <h3>${esc(placeOf(first))}${first.region ? `<span>${esc(first.region)}</span>` : ''}</h3>
     ${g.map((p) => {
-      const full = Number(p.full_count) || 0;
+      const full = legacy ? Number(p.full_count) || 0 : 0;
       const meta = [
         p.until_kind === 'use' && p.period ? periodText(p.period) : dots(p.until_label),
         full ? `다른 코트·시간대 ${full}건 마감` : '',
@@ -582,6 +643,7 @@ function venueHTML(g) {                          // 한 곳 — 회차(이용 �
       ].filter(Boolean).join(' · ');
       return `<div class="batch">${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}${pickerHTML(p.courts)}</div>`;
     }).join('')}
+    ${n ? `<details class="more" data-key="more|${esc(first.area)}"><summary><span>${allFull ? '마감된' : '접수 중이 아닌'} 코트·시간대 ${n}건 보기</span>${ICON.chev}</summary>${shutBody(shut)}</details>` : ''}
   </article>`;
 }
 
@@ -605,6 +667,13 @@ function renderBoard(d) {
     .filter((p) => p.courts.length);
   const venues = new Map();                                               // 곳별로 묶기(회차가 여럿이어도 제목은 한 번)
   avail.forEach((p) => venues.set(p.area, [...(venues.get(p.area) || []), p]));
+  const shut = arr(d.closed).map((p) => ({...p, courts: arr(p.courts).filter((c) => !shown.has(c.reserve_url))}))
+    .filter((p) => p.courts.length);
+  const shutBy = new Map();                                               // 곳별 접수하지 않는 코트
+  shut.forEach((p) => shutBy.set(p.area, [...(shutBy.get(p.area) || []), p]));
+  // 접수 중인 코트가 없는 곳 — 5곳이 빠짐없이 보이게(방금 열려 맨 위에 펼쳐진 곳은 빼고)
+  const hotAreas = new Set(hot.map((x) => x.area));
+  const idle = avail.length || shut.length ? arr(d.places).filter((p) => p.area && !venues.has(p.area) && !hotAreas.has(p.area)) : [];
 
   const openKeys = new Set([...document.querySelectorAll('details[data-key][open]')].map((el) => el.dataset.key));
   $('app').classList.remove('is-error');
@@ -629,10 +698,16 @@ function renderBoard(d) {
       : '<h2>오픈 날짜 미정</h2><p class="sec-sub">지난번에 열린 날짜를 참고해 주세요.</p>')
     + (pending.length ? `<div class="rows">${pending.map(pendHTML).join('')}</div>` : '');
 
+  const idleRows = idle.map((p) => idleHTML(p, shutBy.get(p.area) || [])).join('');
+  const noneText = shown.size ? '위에 보이는 코트 말고는 접수 중인 코트가 없어요' : '지금 접수 중인 코트가 없어요';
   $('available').innerHTML = '<h2>지금 접수 중인 코트</h2>'
     + (venues.size
-      ? `<p class="sec-sub">코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈 시간은 그 화면에서 확인해 주세요.</p>${[...venues.values()].map(venueHTML).join('')}`
-      : `<div class="empty"><strong>${shown.size ? '위에 보이는 코트 말고는 접수 중인 코트가 없어요' : '지금 접수 중인 코트가 없어요'}</strong><p>예약이 열리면 여기에 코트 번호가 나타나요.</p></div>`);
+      ? '<p class="sec-sub">코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈 시간은 그 화면에서 확인해 주세요.</p>'
+        + [...venues.entries()].map(([a, g]) => venueHTML(g, shutBy.get(a) || [], !Array.isArray(d.closed))).join('')
+        + (idleRows ? `<p class="sub-label">접수 중인 코트가 없는 곳</p><div class="rows">${idleRows}</div>` : '')
+      : idleRows
+        ? `<p class="sec-sub">${noneText}. 마감된 코트도 눌러서 서울시 예약 화면을 볼 수 있어요.</p><div class="rows">${idleRows}</div>`
+        : `<div class="empty"><strong>${noneText}</strong><p>예약이 열리면 여기에 코트 번호가 나타나요.</p></div>`);
 
   document.querySelectorAll('details[data-key]').forEach((el) => { if (openKeys.has(el.dataset.key)) el.open = true; });   // 펼쳐 둔 목록 유지
   board = d;
@@ -715,7 +790,7 @@ async function loadBoard() {
   if (id !== boardReq) return 'ignored';                                         // 더 새 요청이 있음
   if (updatedAt && d.updated_at && d.updated_at < updatedAt) return 'ignored';   // 더 오래된 응답
   if (Number.isFinite(d.now_ms)) { const s = d.now_ms - Date.now(); skew = Math.abs(s) < 1500 ? 0 : s; }
-  const sig = JSON.stringify([d.openings, d.available, d.places]);
+  const sig = JSON.stringify([d.openings, d.available, d.places, d.closed]);
   if (board && sig === lastSig && renderedDay === todayKST()) {                  // 내용이 같으면 다시 그리지 않는다
     board = d;
     if (d.updated_at) updatedAt = d.updated_at;
@@ -1090,7 +1165,26 @@ function mockBoard(kind) {
   const past = {'한남': [day(-12, '09:00')], '장충': [day(-2, '10:00'), day(-18, '10:00')], '선우공원': [day(-16, '09:30'), day(-50, '09:30')]};
   const places = AREAS.map((a) => ({area: a, place: NAMES[a], next_open: (openings.find((x) => x.area === a && !x.opened) || {}).open_at || '',
     past_opens: busy.has(a) ? [] : (past[a] || [])}));
-  return {now: mockStamp().slice(0, 16), updated_at: mockStamp(), badge: 0, areas: AREAS, places, openings, available};
+  // 접수하지 않는 코트(마감 · 접수 끝남 · 열렸지만 상태 미확인)
+  const off = (list, state) => list.map((x) => ({...x, confirmed: false, state, reserve_url: `${url}?mock=${++seq}`}));
+  const jangRest = (keep) => off(jang.filter((x) => !keep.includes(`${x.court} ${x.slot}`)), 'full');
+  const g = (area, place, region, kindOf, period, label, state, courts, past = false) =>
+    ({area, place, region, until_kind: kindOf, period, until_label: label, state, past, courts});
+  const closed = kind === 'empty' ? [
+    g('한남', '한남테니스장', '용산구', 'use', '10/16~10/31', '10/31까지 이용', 'ended', off(hannam.slice(0, 12), 'ended'), true),
+    g('장충', '장충테니스장', '중구', 'use', '11/1~11/15', '11/15까지 이용', 'full', jangRest([])),
+    g('장충', '장충테니스장', '중구', 'use', '11/16~11/30', '11/30까지 이용', 'full', jangRest([])),
+    g('선우공원', '선우공원', '관악구', 'rcpt', '', '11/30까지 접수', 'full', off([c('A', '평일 주간', '06:00-18:00'), c('B', '평일 주간', '06:00-18:00'), c('B', '주말·공휴일', '06:00-18:00')], 'full')),
+    g('서울숲', '서울숲 테니스장', '성동구', '', '', '상시 예약', 'full', off([c('코트', '평일', '06:00-19:00'), c('코트', '주말·공휴일', '06:00-19:00')], 'full')),
+  ] : [
+    ...(kind === 'opened' || kind === 'late' ? [g('한남', '한남테니스장', '용산구', 'use', '11/16~11/30', '11/30까지 이용', 'unknown', hannam.map((x) => ({...x, state: x.confirmed ? '' : 'unknown'})).filter((x) => x.state))] : []),
+    ...(kind === 'soon' ? [] : [g('한남', '한남테니스장', '용산구', 'use', '10/31~11/15', '11/15까지 이용', 'ended', off(hannam.slice(0, 12), 'ended'))]),
+    ...(kind === 'late' ? [g('장충', '장충테니스장', '중구', 'use', '11/1~11/15', '11/15까지 이용', 'full', jangRest(['3번 평일 야간']))] : []),
+    g('장충', '장충테니스장', '중구', 'use', '11/16~11/30', '11/30까지 이용', 'full', jangRest(['8번 평일 주간', '9번 평일 주간'])),
+    g('선우공원', '선우공원', '관악구', 'rcpt', '', '11/30까지 접수', 'full', off([c('A', '평일 주간', '06:00-18:00'), c('B', '주말·공휴일', '06:00-18:00')], 'full')),
+    g('서울숲', '서울숲 테니스장', '성동구', '', '', '상시 예약', 'full', off([c('코트', '주말·공휴일', '06:00-19:00')], 'full')),
+  ];
+  return {now: mockStamp().slice(0, 16), updated_at: mockStamp(), badge: 0, areas: AREAS, places, openings, available, closed};
 }
 
 /* ── 시작 ─────────────────────────────────────────────── */
