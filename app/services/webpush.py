@@ -245,7 +245,8 @@ def send_opening_alerts(session: Session | None, groups: list[dict], badge: int 
         is_today = (top.get("open_at") or "")[:10] == _now().strftime("%Y-%m-%d")
         when = f"{'오늘' if is_today else '내일'} {hhmm}"
         title = f"{top['place']} 예약 {when} 오픈"
-        lines = [f"{g['place']} · {_fmt(g['open_at'])}" for g in mine[:4]]
+        lines = [f"{g['place']} · {_fmt(g['open_at'])}" + (" · 공지 일정" if g.get("expected") else "")
+                 for g in mine[:4]]
         if len(mine) > 4:
             lines.append(f"외 {len(mine) - 4}곳")
         payload = {"title": title, "body": "\n".join(lines),

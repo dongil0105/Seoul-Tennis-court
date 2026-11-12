@@ -325,7 +325,8 @@ async def send_opening_alerts(session: Session, groups: list[dict]) -> bool:
         tag = "1시간 내" if g["kind"] == "h1" else "내일"
         region = f"[{g['region']}] " if g.get("region") else ""
         cnt = f" {g['count']}개 코트" if g["count"] > 1 else ""
-        lines.append(f"· {region}{g['place']}{cnt} — {tag} {_fmt_open_dt(g['open_at'])} 오픈")
+        src = " (공지 일정)" if g.get("expected") else ""
+        lines.append(f"· {region}{g['place']}{cnt} — {tag} {_fmt_open_dt(g['open_at'])} 오픈{src}")
     more = len(groups) - len((h1 + d1)[:4])
     if more > 0:
         lines.append(f"· 외 {more}건")

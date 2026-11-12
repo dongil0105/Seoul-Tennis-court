@@ -19,6 +19,7 @@ from sqlmodel import Session, select
 from app.clock import now as _now
 from app.config import settings
 from app.models import OpeningAlert, Slot
+from app.services import notice as NOTICE
 from app.services.holidays import holiday_name, is_holiday
 
 UPCOMING_DAYS = 90       # '오픈 예정'으로 보여줄 최대 D-n
@@ -27,6 +28,10 @@ FRESH_HOURS = 26         # 이 시간 안에 관측된 슬롯만(죽은 행 제�
 EXACT_MAX_DAYS = 62      # 이용 기간이 이보다 짧으면 '날짜용 회차', 길면 '상시'
 PARTS = ("새벽", "주간", "야간")
 WD_LABEL = ["월", "화", "수", "목", "금", "토", "일"]
+
+NOTICE_SOURCE = "notice"                 # 공지 일정으로 만든 알림(서울시 자료에 그 회차가 아직 없음)
+NOTICE_HOT = timedelta(hours=2)          # 공지된 오픈 시각이 지난 뒤 이 시간 동안은 맨 위에서 안내
+NOTICE_SLACK = timedelta(days=3)         # 실제 회차가 공지 날짜에서 이만큼 안에 올라와 있으면 그쪽이 정본
 
 REGION_AREA = {"서초구": "서초", "강남구": "강남", "성동구": "성동", "용산구": "용산"}
 
@@ -808,13 +813,43 @@ def board(session: Session) -> dict:
         states = {c["state"] for c in g["courts"]}
         g["state"] = states.pop() if len(states) == 1 else "mixed"
         g["until_label"] = _until_label(g)
+    # 시설 공지의 정기 오픈 일정 — 서울시 자료에 다음 회차가 아직 안 올라온 곳만 채운다
+    rules = NOTICE.rules(session)
+    extra = []
+    for a in order:
+        rule = rules.get(a)
+        if not rule:
+            continue
+        real = [(e["opened"], _parse_dt(e["open_at"]).date()) for e in openings if e["area"] == a]
+
+        def covered(day: date_cls) -> bool:
+            # 그날 이미 열렸거나, 그 무렵(사흘 안) 오픈이 서울시 자료에 올라와 있으면 공지 일정은 내지 않는다
+            return any(d == day if opened else d <= day + NOTICE_SLACK for opened, d in real)
+
+        base = {"area": a, "place": meta.get(a, {}).get("place", a),
+                "region": meta.get(a, {}).get("region") or "", "period": "", "reserve_url": "",
+                "courts": [], "court_count": 0, "expected": True, "rule": NOTICE.label(rule)}
+        prev = NOTICE.prev_at(rule, now)
+        if prev and now - prev < NOTICE_HOT and not covered(prev.date()):
+            # 공지된 시각은 지났는데 서울시 자료에 새 회차가 아직 없음 — '열렸다'고 단정하지 않고 알려만 준다
+            extra.append({**base, "open_at": prev.strftime("%Y-%m-%d %H:%M"), "d_day": 0, "opened": True})
+        t = NOTICE.next_at(rule, now)
+        if t and not covered(t.date()):
+            extra.append({**base, "open_at": t.strftime("%Y-%m-%d %H:%M"),
+                          "d_day": (t.date() - today).days, "opened": False})
+    if extra:
+        openings = sorted(openings + extra, key=lambda x: (x["open_at"], order.index(x["area"])
+                                                           if x["area"] in order else 99))
     nxt = {}
     for e in openings:
         if not e["opened"]:
-            nxt.setdefault(e["area"], e["open_at"])
+            nxt.setdefault(e["area"], e)
     places = [{"area": a, "place": meta.get(a, {}).get("place", a),
                "region": meta.get(a, {}).get("region") or "",
-               "next_open": nxt.get(a, ""),
+               "next_open": nxt[a]["open_at"] if a in nxt else "",
+               # 다음 오픈이 서울시 자료의 접수 시작 일시가 아니라 시설 공지의 정기 일정에서 나온 것
+               "next_expected": bool(a in nxt and nxt[a].get("expected")),
+               "open_rule": NOTICE.label(rules[a]) if a in rules else "",
                "available": sum(x["court_count"] for x in available if x["area"] == a),
                "closed": sum(x["court_count"] for x in closed_list if x["area"] == a),
                # 지난 오픈 일시(최근 것부터 3개) — 다음 회차가 아직 등록 안 됐을 때 참고용
@@ -850,17 +885,42 @@ def pending_alerts(session: Session, prefix: str = "") -> list[tuple[str, Slot]]
     sent = {(a.slot_hash, a.open_date, a.kind)
             for a in session.exec(select(OpeningAlert))}
     due: list[tuple[str, Slot]] = []
+    real_days: dict[str, set[date_cls]] = {}   # 곳 → 서울시 자료에 올라와 있는 오픈 예정 날짜
+    sample: dict[str, Slot] = {}               # 곳 → 이름·지역을 빌려 올 행
     for s in _fresh(session, watched_only=True):
+        a = (areas_of(s.region, s.facility_name, s.court_name) or [place_label(s)])[0]
+        sample.setdefault(a, s)
         dt = _parse_dt(s.open_at)
         if not dt or effective_status(s, now) != "안내중" or _ends_before(s, dt):
             continue   # 중지·마감·종료, 이용기간이 오픈 전에 끝나는 모순 데이터는 '열린다'고 알리지 않음
+        real_days.setdefault(a, set()).add(dt.date())
         od = dt.date().isoformat()
         d = (dt.date() - today).days
-        if d == 1 and (s.slot_hash, od, prefix + "d1") not in sent:
+        ghost = f"rule:{a}"                    # 같은 오픈을 공지 일정으로 이미 알렸으면 다시 알리지 않는다
+        if d == 1 and (s.slot_hash, od, prefix + "d1") not in sent and (ghost, od, prefix + "d1") not in sent:
             due.append(("d1", s))
         delta = (dt - now).total_seconds()
-        if 0 < delta <= 3600 and (s.slot_hash, od, prefix + "h1") not in sent:
+        if (0 < delta <= 3600 and (s.slot_hash, od, prefix + "h1") not in sent
+                and (ghost, od, prefix + "h1") not in sent):
             due.append(("h1", s))
+    # 시설 공지의 정기 오픈 일정 — 서울시 자료에 그 회차가 아직 안 올라온 곳(한남은 오픈 직전에야 올라온다)
+    for a, rule in NOTICE.rules(session).items():
+        t = NOTICE.next_at(rule, now)
+        base = sample.get(a)
+        if not t or base is None:
+            continue
+        if any(d <= t.date() + NOTICE_SLACK for d in real_days.get(a, ())):
+            continue   # 실제 회차가 올라와 있으면 그쪽으로 알린다
+        od = t.date().isoformat()
+        g = Slot(slot_hash=f"rule:{a}", source_id=NOTICE_SOURCE, tier=1,
+                 facility_name=base.facility_name, court_name=base.court_name, region=base.region,
+                 date=od, time_start="", time_end="", is_open=False, status="안내중",
+                 open_at=t.strftime("%Y-%m-%d %H:%M"), reserve_url=None)
+        if (t.date() - today).days == 1 and (g.slot_hash, od, prefix + "d1") not in sent:
+            due.append(("d1", g))
+        delta = (t - now).total_seconds()
+        if 0 < delta <= 3600 and (g.slot_hash, od, prefix + "h1") not in sent:
+            due.append(("h1", g))
     return due
 
 
@@ -880,11 +940,21 @@ def group_for_message(pairs: list[tuple[str, Slot]]) -> list[dict]:
     g: dict[tuple, dict] = {}
     for kind, s in pairs:
         place = place_label(s)
-        key = (kind, place, s.open_at)
+        dt = _parse_dt(s.open_at)
+        # 09:00 / 09:03 처럼 몇 분 차이로 등록된 같은 회차는 한 묶음(화면과 같은 15분 기준)
+        key = (kind, place, dt.date(), (dt.hour * 60 + dt.minute) // 15) if dt else (kind, place, s.open_at)
         if key not in g:
             g[key] = {"kind": kind, "place": place, "region": s.region,
                       "areas": areas_of(s.region, s.facility_name, s.court_name),
                       "open_at": s.open_at, "count": 0,
-                      "reserve_url": s.reserve_url}
-        g[key]["count"] += 1
+                      "reserve_url": s.reserve_url,
+                      # 서울시 자료가 아니라 시설 공지의 정기 일정으로 알리는 것
+                      "expected": s.source_id == NOTICE_SOURCE}
+        e = g[key]
+        e["count"] += 1
+        if s.open_at < e["open_at"]:
+            e["open_at"] = s.open_at
+        if s.source_id != NOTICE_SOURCE:
+            e["expected"] = False
+            e["reserve_url"] = e["reserve_url"] or s.reserve_url
     return sorted(g.values(), key=lambda x: (x["kind"], x["open_at"], x["place"]))

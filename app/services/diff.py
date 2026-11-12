@@ -107,6 +107,14 @@ def upsert_and_extract_new(
     for src in current_sources:
         SYNC.BATCH[src] = now
 
+    # 시설 공지에 적힌 정기 오픈 일정(매월 며칠 몇 시)을 다시 읽는다 — 실패해도 수집은 계속
+    try:
+        from app.services import notice as NOTICE
+        NOTICE.update(session, slots)
+    except Exception:  # noqa: BLE001
+        import logging
+        logging.getLogger("tennis.notice").exception("공지 일정 읽기 실패 — 건너뜀")
+
     # flush로 신규 row의 PK를 채워 후속 처리 가능하게
     session.flush()
     return candidates

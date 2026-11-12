@@ -109,6 +109,14 @@ class OpeningAlert(SQLModel, table=True):
     sent_at: datetime = Field(default_factory=_now)
 
 
+class OpenRule(SQLModel, table=True):
+    """시설 공지에 적힌 정기 예약 오픈 일정 — 곳마다 한 줄. rule = [[날, 'HH:MM'], …] (날 99 = 말일)."""
+    __tablename__ = "open_rule"
+    area: str = Field(primary_key=True)
+    rule: str = "[]"
+    updated_at: datetime = Field(default_factory=_now)
+
+
 class PushSub(SQLModel, table=True):
     """앱 알림(웹 푸시) 구독 — 기기 1대 = 1행. areas 는 JSON 배열(빈 배열 = 전체)."""
     __tablename__ = "push_sub"

@@ -140,6 +140,9 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .dday.near{background:var(--brand-weak);color:var(--brand)}
 .row .picker{padding-bottom:16px}
 .row-note{padding-bottom:16px;font-size:13px;color:var(--ink-3)}
+.frow{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;min-height:72px;padding:12px 0}
+.frow .tail{padding-right:28px}   /* 펼침 표시가 없는 줄도 날짜 표시의 오른쪽 끝을 맞춘다 */
+.what .nx{color:var(--ink-2)}     /* 다음 오픈 — 회차 이름보다 한 톤 진하게 */
 .pend{padding:12px 0;border-bottom:1px solid var(--line)}
 .pend:last-child{border-bottom:0}
 
@@ -149,6 +152,8 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .venue h3{display:flex;align-items:baseline;gap:8px;font-size:16px;line-height:1.4;font-weight:700;letter-spacing:-.03em}
 .venue h3 span{font-size:13px;font-weight:400;letter-spacing:-.01em;color:var(--ink-3)}
 .venue-meta{margin-top:4px;font-size:13px;color:var(--ink-3)}
+.venue-next{margin-top:2px;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.venue-next+.batch{margin-top:8px}
 .batch+.batch{margin-top:20px}
 .venue .picker{margin-top:12px}
 .venue.has-more{padding-bottom:8px}
@@ -326,7 +331,7 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
         <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
       </button>
     </div>
-    <footer class="foot">서울시 공공서비스예약에 올라온 정보를 그대로 보여 드려요.</footer>
+    <footer class="foot">서울시 공공서비스예약에 올라온 정보를 그대로 보여 드려요. ‘공지 일정’은 시설 안내문에 적힌 정기 오픈 날짜라 실제와 다를 수 있어요.</footer>
   </main>
 </div>
 
@@ -365,7 +370,7 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
    서버(/board, /refresh, /push/*)만 호출한다. 서울시 예약 사이트 주소는 사람이 누르는 링크로만 쓴다. */
 const $ = (id) => document.getElementById(id);
 const sheet = $('sheet');
-const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty
+const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed
 const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
 const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장'};
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
@@ -540,6 +545,18 @@ function metaOf(x) {
   return [periodText(x.period), n ? `코트 ${n}면` : '', commonHours(x.courts)].filter(Boolean).join(' · ');
 }
 function openedHTML(x, i) {
+  if (x.expected) {
+    // 시설 공지의 오픈 시각은 지났는데 서울시 자료에 새 회차가 아직 없다 — '열렸다'고 하지 않는다
+    return `<article class="opened">
+    <p class="eyebrow">공지된 오픈 시각이 지났어요</p>
+    <${i ? 'h2' : 'h1'} class="venue-title">${esc(placeOf(x))}</${i ? 'h2' : 'h1'}>
+    <p class="next-meta">오늘 ${esc(hm(x.open_at))} · 공지 일정</p>
+    ${x.courts.length ? pickerHTML(x.courts) : ''}
+    <p class="note">${x.courts.length
+      ? '서울시 자료에는 새 회차가 아직 안 올라왔어요. 지난 회차 코트를 눌러 예약 화면에서 직접 확인해 주세요.'
+      : '서울시 자료에 새 회차가 올라오면 코트 번호가 여기에 나와요.'}</p>
+  </article>`;
+  }
   const allOk = x.courts.length > 0 && x.courts.every((c) => c.confirmed);
   const meta = metaOf(x);
   return `<article class="opened">
@@ -552,7 +569,8 @@ function openedHTML(x, i) {
   </article>`;
 }
 function nextHTML(x) {
-  const diff = dayDiff(x.open_at), ms = kstMs(x.open_at) - nowMs(), meta = metaOf(x);
+  const diff = dayDiff(x.open_at), ms = kstMs(x.open_at) - nowMs();
+  const meta = x.expected ? ['공지 일정', x.rule].filter(Boolean).join(' · ') : metaOf(x);   // 시설 공지의 정기 오픈 일정
   const rel = diff === 0 ? '오늘 · ' : diff === 1 ? '내일 · ' : '';
   return `<p class="eyebrow">다음 예약 오픈</p>
     <p class="next-date">${rel}${longDate(x.open_at)}</p>
@@ -562,7 +580,7 @@ function nextHTML(x) {
     </div>
     ${meta ? `<p class="next-meta">${esc(meta)}</p>` : ''}
     ${alarmHTML(x.area)}
-    <details class="peek" data-key="${esc(keyOf(x))}"><summary><span>열리는 코트 보기</span>${ICON.chev}</summary>${pickerHTML(x.courts)}</details>`;
+    ${x.courts.length ? `<details class="peek" data-key="${esc(keyOf(x))}"><summary><span>열리는 코트 보기</span>${ICON.chev}</summary>${pickerHTML(x.courts)}</details>` : ''}`;
 }
 function noneHTML(noData) {
   return noData
@@ -578,6 +596,12 @@ function rowHTML(x) {
   const diff = dayDiff(x.open_at);
   const sub = [`${hm(x.open_at)} 오픈`, periodText(x.period)].filter(Boolean).join(' · ');
   const chip = x.opened ? '<span class="dday near">열림</span>' : `<span class="dday${diff <= 1 ? ' near' : ''}">${ddayText(diff)}</span>`;
+  if (x.expected) {                               // 공지 일정 — 코트 목록이 아직 없어 펼치지 않는 줄
+    return `<div class="row frow">
+      <span class="when"><b>${shortDate(x.open_at)}</b><span>${weekday(x.open_at)}요일</span></span>
+      <span class="what"><strong>${esc(placeOf(x))}</strong><span>${esc(`${hm(x.open_at)} 오픈 · 공지 일정`)}</span></span>
+      <span class="tail">${chip}</span></div>`;
+  }
   return `<details class="row" data-key="${esc(keyOf(x))}"><summary>
       <span class="when"><b>${shortDate(x.open_at)}</b><span>${weekday(x.open_at)}요일</span></span>
       <span class="what"><strong>${esc(placeOf(x))}</strong><span>${esc(sub)}</span></span>
@@ -617,23 +641,29 @@ function shutBody(groups) {                      // 회차별 코트 버튼
     return `<div class="batch shut">${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}${pickerHTML(g.courts)}</div>`;
   }).join('') + `<p class="row-note">${shutNote(groups)}</p>`;
 }
+function nextOpenText(p) {                       // '다음 오픈 11.15(일) 09:00 · 공지 일정'
+  if (!p || !p.next_open || !(kstMs(p.next_open) > nowMs())) return '';
+  return `다음 오픈 ${shortDate(p.next_open)}(${weekday(p.next_open)}) ${hm(p.next_open)}${p.next_expected ? ' · 공지 일정' : ''}`;
+}
 function idleHTML(p, groups) {                   // 접수 중인 코트가 없는 곳 한 줄
   const name = `<strong>${esc(placeOf(p))}</strong>`;
+  const nx = nextOpenText(p), nxLine = nx ? `<span class="num nx">${esc(nx)}</span>` : '';
   if (!groups.length) {
-    return `<div class="row vrow flat"><span class="what">${name}<span>서울시에 올라온 예약이 없어요</span></span>
+    return `<div class="row vrow flat"><span class="what">${name}<span>서울시에 올라온 예약이 없어요</span>${nxLine}</span>
       <span class="tail"><span class="dday">정보 없음</span></span></div>`;
   }
   return `<details class="row vrow" data-key="idle|${esc(p.area)}"><summary>
-      <span class="what">${name}<span class="num">${esc(batchNames(groups))}</span></span>
+      <span class="what">${name}<span class="num">${esc(batchNames(groups))}</span>${nxLine}</span>
       <span class="tail"><span class="dday">${shutChip(groups)}</span>${ICON.chev}</span>
     </summary>${shutBody(groups)}</details>`;
 }
-function venueHTML(g, shut, legacy) {            // 접수 중인 곳 — 회차(이용 기간)가 여럿이면 제목은 한 번, 회차별로 나눠서
-  const first = g[0];
+function venueHTML(g, shut, legacy, place) {     // 접수 중인 곳 — 회차(이용 기간)가 여럿이면 제목은 한 번, 회차별로 나눠서
+  const first = g[0], nx = nextOpenText(place);
   const n = shut.reduce((t, x) => t + x.courts.length, 0);
   const allFull = shut.every((x) => x.courts.every((c) => (c.state || x.state) === 'full'));
   return `<article class="venue${n ? ' has-more' : ''}">
     <h3>${esc(placeOf(first))}${first.region ? `<span>${esc(first.region)}</span>` : ''}</h3>
+    ${nx ? `<p class="venue-next num">${esc(nx)}</p>` : ''}
     ${g.map((p) => {
       const full = legacy ? Number(p.full_count) || 0 : 0;
       const meta = [
@@ -653,9 +683,14 @@ function renderBoard(d) {
   const now = nowMs();
   const arr = (v) => (Array.isArray(v) ? v.filter(Boolean) : []);
   // 잘못된 항목은 빼고 그린다. 열린 예약은 오늘 것만(서버 기준과 같게).
+  // 공지된 오픈 시각이 지난 곳은 지난 회차(접수 끝남) 코트로 예약 화면에 들어가 볼 수 있게 한다
+  const lastCourts = (area) => arr(d.closed).filter((g) => g && g.area === area)
+    .flatMap((g) => arr(g.courts).filter((c) => (c.state || g.state) === 'ended'));
   const openings = arr(d.openings).filter((x) => Number.isFinite(kstMs(x.open_at)))
     .map((x) => ({...x, courts: arr(x.courts), opened: Boolean(x.opened) || kstMs(x.open_at) <= now}))
     .filter((x) => !x.opened || dayDiff(x.open_at) === 0)
+    .filter((x) => !(x.expected && x.opened && now - kstMs(x.open_at) >= HOT_MS))   // 공지 일정은 '열림'으로 남기지 않는다
+    .map((x) => (x.expected && x.opened ? {...x, courts: lastCourts(x.area)} : x))
     .sort((a, b) => String(a.open_at).localeCompare(String(b.open_at)));
   const opened = openings.filter((x) => x.opened);
   const hot = opened.filter((x) => now - kstMs(x.open_at) < HOT_MS);      // 방금 열림 → 맨 위에 펼침
@@ -678,8 +713,8 @@ function renderBoard(d) {
   const openKeys = new Set([...document.querySelectorAll('details[data-key][open]')].map((el) => el.dataset.key));
   $('app').classList.remove('is-error');
   const next = $('next');
-  next.className = 'next' + (hot.length ? ' is-open' : upcoming.length ? ' has-peek' : '');
-  next.setAttribute('aria-label', hot.length ? '오늘 열린 예약' : '다음 예약 오픈');
+  next.className = 'next' + (hot.some((x) => !x.expected) ? ' is-open' : !hot.length && upcoming.length && upcoming[0].courts.length ? ' has-peek' : '');
+  next.setAttribute('aria-label', !hot.length ? '다음 예약 오픈' : hot.some((x) => !x.expected) ? '오늘 열린 예약' : '공지된 오픈 시각이 지난 예약');
   next.innerHTML = hot.length ? hot.map(openedHTML).join('')
     : upcoming.length ? nextHTML(upcoming[0])
     : noneHTML(!MOCK && !d.updated_at && !avail.length);
@@ -698,12 +733,13 @@ function renderBoard(d) {
       : '<h2>오픈 날짜 미정</h2><p class="sec-sub">지난번에 열린 날짜를 참고해 주세요.</p>')
     + (pending.length ? `<div class="rows">${pending.map(pendHTML).join('')}</div>` : '');
 
+  const placeBy = new Map(arr(d.places).map((p) => [p.area, p]));
   const idleRows = idle.map((p) => idleHTML(p, shutBy.get(p.area) || [])).join('');
   const noneText = shown.size ? '위에 보이는 코트 말고는 접수 중인 코트가 없어요' : '지금 접수 중인 코트가 없어요';
   $('available').innerHTML = '<h2>지금 접수 중인 코트</h2>'
     + (venues.size
       ? '<p class="sec-sub">코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈 시간은 그 화면에서 확인해 주세요.</p>'
-        + [...venues.entries()].map(([a, g]) => venueHTML(g, shutBy.get(a) || [], !Array.isArray(d.closed))).join('')
+        + [...venues.entries()].map(([a, g]) => venueHTML(g, shutBy.get(a) || [], !Array.isArray(d.closed), placeBy.get(a))).join('')
         + (idleRows ? `<p class="sub-label">접수 중인 코트가 없는 곳</p><div class="rows">${idleRows}</div>` : '')
       : idleRows
         ? `<p class="sec-sub">${noneText}. 마감된 코트도 눌러서 서울시 예약 화면을 볼 수 있어요.</p><div class="rows">${idleRows}</div>`
@@ -1123,7 +1159,7 @@ document.addEventListener('visibilitychange', () => {
   if (!MOCK && isStale()) refreshData();
 });
 
-/* ── 미리보기 데이터(?mock=opened|late|next|soon|none|empty) ── */
+/* ── 미리보기 데이터(?mock=opened|late|next|soon|none|empty|notice|passed) ── */
 function mockStamp() {
   return `${todayKST()} ${new Intl.DateTimeFormat('en-GB', {timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit'}).format(new Date())}`;
 }
@@ -1161,10 +1197,18 @@ function mockBoard(kind) {
     {area: '장충', place: '장충테니스장', region: '중구', open_at: day(1, '10:00'), opened: false, period: '12/1~12/15', courts: jang}, forest];
   if (kind === 'next') openings = [{area: '장충', place: '장충테니스장', region: '중구', open_at: day(1, '10:00'), opened: false, period: '12/1~12/15', courts: jang}, forest];
   if (kind === 'soon') openings = [{area: '한남', place: '한남테니스장', region: '용산구', open_at: at(42), opened: false, period: '11/16~11/30', courts: hannam}, forest];
+  // 시설 공지의 정기 오픈 일정(서울시 자료에 회차가 아직 없음)
+  const ex = (area, region, open_at, rule, opened = false) => ({area, place: NAMES[area], region, open_at, opened, period: '', courts: [], expected: true, rule});
+  if (kind === 'notice') openings = [ex('한남', '용산구', day(3, '09:00'), '매월 15일·말일 09:00'), ex('장충', '중구', day(13, '10:00'), '매월 10일·25일 10:00'), forest];
+  if (kind === 'passed') openings = [ex('한남', '용산구', at(-20), '매월 15일·말일 09:00', true), ex('한남', '용산구', day(15, '09:00'), '매월 15일·말일 09:00'),
+    ex('장충', '중구', day(10, '10:00'), '매월 10일·25일 10:00'), forest];
   const busy = new Set(openings.map((x) => x.area));
   const past = {'한남': [day(-12, '09:00')], '장충': [day(-2, '10:00'), day(-18, '10:00')], '선우공원': [day(-16, '09:30'), day(-50, '09:30')]};
-  const places = AREAS.map((a) => ({area: a, place: NAMES[a], next_open: (openings.find((x) => x.area === a && !x.opened) || {}).open_at || '',
-    past_opens: busy.has(a) ? [] : (past[a] || [])}));
+  const places = AREAS.map((a) => {
+    const nx = openings.find((x) => x.area === a && !x.opened) || {};
+    return {area: a, place: NAMES[a], next_open: nx.open_at || '', next_expected: Boolean(nx.expected), open_rule: nx.rule || '',
+      past_opens: busy.has(a) ? [] : (past[a] || [])};
+  });
   // 접수하지 않는 코트(마감 · 접수 끝남 · 열렸지만 상태 미확인)
   const off = (list, state) => list.map((x) => ({...x, confirmed: false, state, reserve_url: `${url}?mock=${++seq}`}));
   const jangRest = (keep) => off(jang.filter((x) => !keep.includes(`${x.court} ${x.slot}`)), 'full');
