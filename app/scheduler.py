@@ -19,6 +19,7 @@ from app.collectors.registry import collect
 from app.config import settings
 from app.db import get_session
 from app.models import Slot, UserFilter
+from app.services import feed as FEED
 from app.services import openings as OP
 from app.services import sync as SYNC
 from app.services import tennisplay as PLAY
@@ -54,6 +55,7 @@ async def _check_opening_alerts(session) -> None:
             groups = OP.group_for_message(due)
             if await send_opening_alerts(session, groups):
                 OP.mark_alerted(session, due)
+                FEED.record(session, FEED.open_items(groups))   # 앱을 열면 '새 알림'으로 보이게 적어 둔다
                 logger.info("오픈 알람(카톡) %d건 (%s)", len(due), sorted({k for k, _ in due}))
     # 앱 알림(웹 푸시) — 구독한 친구들에게, 각자 고른 지역·시점만. 채널별로 따로 1회.
     if WP.ready() and WP.count(session):
@@ -63,9 +65,11 @@ async def _check_opening_alerts(session) -> None:
         if due:
             badge = OP.board(session)["badge"]   # 화면 배지와 같은 기준
             # 기기별 전송은 동기(최대 10초씩)라 이벤트 루프를 막지 않게 스레드에서.
+            delivered: list[dict] = []
             n = await asyncio.to_thread(WP.send_opening_alerts, None,
-                                        OP.group_for_message(due), badge, PLAY.open_badge())
+                                        OP.group_for_message(due), badge, PLAY.open_badge(), delivered)
             if n:
+                FEED.record(session, FEED.open_items(delivered))
                 logger.info("오픈 알람(앱) 후보 %d건 → 기기 %d대", len(due), n)
 
 
@@ -159,12 +163,16 @@ async def _notify_play_free() -> None:
         return
     title, body = PLAY.free_message(items)
     with get_session() as session:
+        sent = False
         if kakao_ready():
-            await send_play_free(session, title, body)
+            sent = bool(await send_play_free(session, title, body))
         if WP.ready() and WP.count(session):
             badge = OP.board(session)["badge"]
             n = await asyncio.to_thread(WP.send_play_free, None, title, body, badge, PLAY.open_badge())
+            sent = sent or n > 0
             logger.info("반포 빈 시간 알림 %d칸 → 기기 %d대", len(items), n)
+        if sent:
+            FEED.record(session, FEED.free_items(body))          # 앱을 열면 '새 알림'으로 보이게 적어 둔다
 
 
 async def poll_play() -> None:

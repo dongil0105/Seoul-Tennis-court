@@ -143,6 +143,22 @@ class PushSent(SQLModel, table=True):
     sent_at: datetime = Field(default_factory=_now)
 
 
+class AlertFeed(SQLModel, table=True):
+    """보낸 알림 기록(카카오톡 · 앱 알림 공통) — 한 줄 = 어느 곳의 무슨 알림.
+
+    화면 자료(/board 의 feed)에 최근 것을 실어, 카카오톡으로만 받은 알림도 앱을 열면 '새 알림'으로 보이게 한다.
+    area·place·kind·key·text 는 앱 알림의 items 와 같은 모양이다(app/services/feed.py)."""
+    __tablename__ = "alert_feed"
+    id: int | None = Field(default=None, primary_key=True)
+    area: str = Field(default="", index=True)   # 대표 이름(한남 · 반포 …)
+    areas: str = "[]"                           # 그 알림이 해당하는 이름 전부(JSON 배열)
+    place: str = ""
+    kind: str = ""                              # d1 | h1 | free
+    key: str = ""                               # open|YYYY-MM-DD HH:MM · free|…
+    text: str = ""
+    at: datetime = Field(default_factory=_now, index=True)
+
+
 class LinkCourt(SQLModel, table=True):
     """link-only 예약처(Tier 4~5, 자동 빈자리 감지 안 함). 대시보드 '바로가기'에만 노출."""
     __tablename__ = "link_court"

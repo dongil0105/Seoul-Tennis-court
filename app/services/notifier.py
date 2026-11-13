@@ -292,9 +292,18 @@ async def send_startup_digest(session: Session, slots: list[Slot]) -> int:
     return len(slots)
 
 
+def alert_url(fragment: str = "") -> str:
+    """알림 메시지에 넣는 앱 주소 — 끝에 k=1 표시가 붙는다.
+
+    이 링크로 연 화면은 '카카오톡 알림을 받는 사람'으로 보고, 서버가 보낸 알림을 모두 앱 안의
+    '새 알림'으로 보여 준다(친구에게 공유하는 주소에는 붙지 않는다). fragment: 열자마자 갈 자리(#play)."""
+    url = settings.dashboard_url
+    return f"{url}{'&' if '?' in url else '?'}k=1" + (f"#{fragment}" if fragment else "")
+
+
 async def send_play_free(session: Session, title: str, body: str) -> bool:
     """반포종합운동장에 빈 시간이 새로 생겼을 때 — 한 메시지(200자 안)."""
-    dash = settings.dashboard_url
+    dash = alert_url("play")
     label = "\n\n확인하러 가기 ▶\n"
     head = f"🎾 {title}"
     budget = 195 - len(head) - len(label) - len(dash) - 1
@@ -326,7 +335,7 @@ async def send_opening_alerts(session: Session, groups: list[dict]) -> bool:
     """
     if not groups:
         return False
-    dash = settings.dashboard_url
+    dash = alert_url()
     h1 = [g for g in groups if g["kind"] == "h1"]
     d1 = [g for g in groups if g["kind"] == "d1"]
     head = "⏰ 곧 예약 시작!" if h1 else "🎾 내일 예약 오픈!"
