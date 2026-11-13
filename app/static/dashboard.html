@@ -225,6 +225,22 @@ details[open]>summary .chev{transform:rotate(180deg)}
 #play .alarm{margin:0 0 16px}
 .sheet-hint{margin-top:8px;font-size:13px;line-height:1.5;color:var(--ink-3)}
 
+/* ── 새 알림: 받은 알림을 앱 안에서도 ─────────────────── */
+.fresh{margin:4px 20px 0;border:1px solid var(--line-2);border-radius:12px;overflow:hidden}
+.fresh-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-left:16px}
+.fresh-head h2{display:flex;align-items:center;gap:8px;font-size:14px;line-height:1.4;font-weight:700}
+.fresh-head h2::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:var(--alert)}
+.fresh-x{flex:none;height:44px;padding:0 16px;font-size:13px;font-weight:500;color:var(--ink-3)}
+.fresh-item{display:block;width:100%;padding:10px 16px 12px;border-top:1px solid var(--line);text-align:left}
+.fresh-item b{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-size:15px;font-weight:600}
+.fresh-item b small{flex:none;font-size:13px;font-weight:400;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.fresh-item span{display:block;margin-top:2px;font-size:14px;line-height:1.5;color:var(--ink-2);white-space:pre-line}
+.fresh-item:active,.fresh-x:active{background:var(--press)}
+.fresh-more{padding:8px 16px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+.newtag{display:inline-block;flex:none;margin-left:8px;padding:0 6px;border-radius:8px;background:var(--alert);color:var(--on-alert);
+  font-size:13px;line-height:1.5;font-weight:700;font-style:normal;letter-spacing:0;vertical-align:middle;white-space:nowrap}
+.venue h3 .newtag{margin-left:0;align-self:center}
+
 .empty{margin-top:12px;padding:20px 0 24px}
 .empty strong{display:block;font-weight:600}
 .empty p{margin-top:4px;font-size:14px;color:var(--ink-3)}
@@ -324,6 +340,7 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
   </header>
 
   <main>
+    <section class="fresh" id="fresh" aria-label="새 알림" hidden></section>
     <section class="next" id="next" aria-label="다음 예약 오픈">
       <div class="sk" style="width:96px;height:16px"></div>
       <div class="sk" style="width:160px;height:20px;margin-top:16px"></div>
@@ -400,7 +417,7 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
    서버(/board, /refresh, /push/*)만 호출한다. 서울시 예약 사이트 주소는 사람이 누르는 링크로만 쓴다. */
 const $ = (id) => document.getElementById(id);
 const sheet = $('sheet');
-const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr
+const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr | new | playnew
 const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
 const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장', '반포': '반포종합운동장'};
 // 반포(테니스플레이) 알림 — 고른 기기에만 간다. PLAY_AREA = 예약 오픈 예고, PLAY_FREE = 빈 시간이 새로 생기면
@@ -562,6 +579,90 @@ function pickerHTML(courts, keepHours) {
 const dots = (t) => String(t || '').replace(/(\d{1,2})\/(\d{1,2})/g, '$1.$2');
 const periodText = (p) => (!p ? '' : /이용분$/.test(p) ? dots(p) : `${dots(p)} 이용분`);
 
+/* ── 새 알림: 받은 알림을 앱 안에서도 보여 준다 ─────────
+   서비스워커(sw.js)가 알림을 받을 때마다 보관함(Cache 'tn-inbox')에 적어 둔다. 앱을 열면 그것을 읽어 맨 위와
+   그 테니스장 이름 옆에 '새 알림'으로 보여 주고 보관함을 비운다 → 앱 아이콘 숫자(아직 안 본 알림 수)도 지운다.
+   한 번 본 알림은 10분이 지난 뒤 앱을 다시 열면 사라진다. */
+const FRESH_KEEP = 10 * 60000, FRESH_AGE = 24 * 36e5, FRESH_ROWS = 5;
+let fresh = [];
+function freshItem(x) {
+  if (!x || typeof x !== 'object' || typeof x.text !== 'string' || !x.text.trim() || !Number.isFinite(x.at)) return null;
+  const s = (v, n) => String(v ?? '').slice(0, n);
+  return {area: s(x.area, 20), place: s(x.place, 40), kind: s(x.kind, 10), key: s(x.key || x.text, 120),
+    text: s(x.text, 300), at: x.at, seen: Number.isFinite(x.seen) ? x.seen : 0};
+}
+if (!MOCK) {
+  try {
+    const v = JSON.parse(localStorage.getItem('tn_fresh')), t = Date.now();
+    if (Array.isArray(v)) fresh = v.map(freshItem).filter((x) => x && t - x.seen < FRESH_KEEP && t - x.at < FRESH_AGE);
+  } catch {}
+} else if (/new$/.test(MOCK)) {                       // 미리보기 ?mock=new · ?mock=playnew
+  const t = Date.now();
+  fresh = [{area: '한남', place: '한남테니스장', kind: 'd1', key: 'open|a', text: '11.14(토) 09:00 예약 오픈', at: t - 5 * 60000, seen: t},
+    ...(MOCK === 'playnew' ? [
+      {area: '반포', place: '반포종합운동장 테니스장', kind: 'd1', key: 'open|b', text: '11.14(토) 09:00 예약 오픈 · 11.21(토) 이용분', at: t - 5 * 60000, seen: t},
+      {area: '반포', place: '반포종합운동장 테니스장', kind: 'free', key: 'free|c', text: '11.16(월) 14~15시 · 3번 코트\n11.17(화) 14~15시 · 2번, 6번 코트', at: t - 60000, seen: t}] : [])];
+}
+const saveFresh = () => { if (!MOCK) { try { localStorage.setItem('tn_fresh', JSON.stringify(fresh)); } catch {} } };
+// 그 테니스장 이름 옆에 붙이는 표시
+const newTag = (area) => (area && fresh.some((x) => x.area === area) ? `<em class="newtag" data-area="${esc(area)}">새 알림</em>` : '');
+const freshName = (x) => (NAMES[x.area] || x.place || '코트 오픈') + (x.kind === 'free' ? ' 빈 시간' : '');
+const clockFmt = new Intl.DateTimeFormat('en-GB', {timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'});
+function freshWhen(at) {                              // 알림을 받은 때: '오늘 20:00' · '어제 20:00' · '11.12 20:00'
+  const d = new Date(at), day = dayFmt.format(d), diff = dayDiff(day);
+  return `${diff === 0 ? '오늘' : diff === -1 ? '어제' : shortDate(day)} ${clockFmt.format(d)}`;
+}
+function paintFresh() {
+  const el = $('fresh'), list = [...fresh].sort((a, b) => b.at - a.at);
+  el.hidden = !list.length;
+  el.innerHTML = !list.length ? ''
+    : `<div class="fresh-head"><h2>새 알림 ${list.length}건</h2><button class="fresh-x" data-act="fresh-x">닫기</button></div>`
+      + list.slice(0, FRESH_ROWS).map((x) => `<button class="fresh-item" data-act="fresh-go" data-area="${esc(x.area)}">
+        <b>${esc(freshName(x))}<small>${esc(freshWhen(x.at))} 알림</small></b><span class="num">${esc(x.text)}</span></button>`).join('')
+      + (list.length > FRESH_ROWS ? `<p class="fresh-more">외 ${list.length - FRESH_ROWS}건</p>` : '');
+  if (board) { try { renderBoard(board); } catch (e) { console.error(e); } }   // 테니스장 옆 '새 알림' 표시도 다시 그린다
+}
+function clearBadge() {                               // 앱을 열면 아이콘 숫자를 지운다
+  try { if (navigator.clearAppBadge) Promise.resolve(navigator.clearAppBadge()).catch(() => {}); } catch {}
+}
+async function clearTray() {                          // 알림 목록에 남은 이 앱의 알림도 치운다(안드로이드는 이것이 아이콘의 숫자·점)
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg && reg.getNotifications) (await reg.getNotifications()).forEach((n) => n.close());
+  } catch {}
+}
+let inboxBusy = null;
+/* opened: 앱을 열었거나 다른 앱에서 돌아옴(true) · 앱을 보고 있는 중에 알림이 옴(false) */
+function checkInbox(opened) {
+  if (MOCK) return Promise.resolve();
+  if (inboxBusy) return inboxBusy;
+  inboxBusy = (async () => {
+    clearBadge();
+    if (opened) clearTray();
+    let got = [];
+    try {
+      const c = await caches.open('tn-inbox'), r = await c.match('/__tn_inbox');
+      if (r) { const v = await r.json(); await c.delete('/__tn_inbox'); if (Array.isArray(v)) got = v; }
+    } catch {}
+    const now = Date.now(), before = JSON.stringify(fresh);
+    if (opened) fresh = fresh.filter((x) => now - x.seen < FRESH_KEEP);      // 본 지 10분 넘은 것은 다시 열 때 치운다
+    fresh = fresh.filter((x) => now - x.at < FRESH_AGE);
+    got.map(freshItem).filter(Boolean).forEach((x) => {
+      fresh = fresh.filter((y) => !(y.area === x.area && y.key === x.key));
+      fresh.push({...x, seen: now});
+    });
+    if (JSON.stringify(fresh) !== before) { saveFresh(); paintFresh(); }
+  })().finally(() => { inboxBusy = null; });
+  return inboxBusy;
+}
+function goFresh(area) {                              // 새 알림 줄을 누르면 그 테니스장 자리로
+  const tag = [...document.querySelectorAll('.newtag')].find((t) => t.dataset.area === area);
+  const to = area === PLAY_AREA ? $('play') : tag && (tag.closest('.row, .venue, .opened, .pend') || tag);
+  if (!to || to.hidden) return;
+  const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  try { to.scrollIntoView({block: to.id === 'play' ? 'start' : 'center', behavior: calm ? 'auto' : 'smooth'}); } catch {}
+}
+
 /* ── 그리기 ───────────────────────────────────────────── */
 const HOT_MS = 2 * 36e5;   // 예약이 열리고 2시간까지는 맨 위에 코트 버튼을 펼쳐 둔다
 let board = null, updatedAt = '', nextOpenMs = null, nextOpenAt = '', coolAtMs = null, renderedDay = '';
@@ -580,7 +681,7 @@ function openedHTML(x, i) {
   if (x.expected) {
     // 시설 공지의 오픈 시각은 지났는데 서울시 자료에 새 회차가 아직 없다 — '열렸다'고 하지 않는다
     return `<article class="opened">
-    <p class="eyebrow">공지된 오픈 시각이 지났어요</p>
+    <p class="eyebrow">공지된 오픈 시각이 지났어요${newTag(x.area)}</p>
     <${i ? 'h2' : 'h1'} class="venue-title">${esc(placeOf(x))}</${i ? 'h2' : 'h1'}>
     <p class="next-meta">오늘 ${esc(hm(x.open_at))} · 공지 일정</p>
     ${x.courts.length ? pickerHTML(x.courts) : ''}
@@ -592,7 +693,7 @@ function openedHTML(x, i) {
   const allOk = x.courts.length > 0 && x.courts.every((c) => c.confirmed);
   const meta = metaOf(x);
   return `<article class="opened">
-    <p class="eyebrow live">오늘 ${esc(hm(x.open_at))}에 예약이 열렸어요</p>
+    <p class="eyebrow live">오늘 ${esc(hm(x.open_at))}에 예약이 열렸어요${newTag(x.area)}</p>
     <${i ? 'h2' : 'h1'} class="venue-title">${esc(placeOf(x))}</${i ? 'h2' : 'h1'}>
     ${meta ? `<p class="next-meta">${esc(meta)}</p>` : ''}
     ${pickerHTML(x.courts)}
@@ -604,7 +705,7 @@ function nextHTML(x) {
   const diff = dayDiff(x.open_at), ms = kstMs(x.open_at) - nowMs();
   const meta = x.expected ? ['공지 일정', x.rule].filter(Boolean).join(' · ') : metaOf(x);   // 시설 공지의 정기 오픈 일정
   const rel = diff === 0 ? '오늘 · ' : diff === 1 ? '내일 · ' : '';
-  return `<p class="eyebrow">다음 예약 오픈</p>
+  return `<p class="eyebrow">다음 예약 오픈${newTag(x.area)}</p>
     <p class="next-date">${rel}${longDate(x.open_at)}</p>
     <div class="next-row">
       <h1 class="next-h"><span class="next-time">${esc(hm(x.open_at))}</span> <span class="next-venue">${esc(placeOf(x))}</span></h1>
@@ -631,18 +732,18 @@ function rowHTML(x) {
   if (x.expected) {                               // 공지 일정 — 코트 목록이 아직 없어 펼치지 않는 줄
     return `<div class="row frow">
       <span class="when"><b>${shortDate(x.open_at)}</b><span>${weekday(x.open_at)}요일</span></span>
-      <span class="what"><strong>${esc(placeOf(x))}</strong><span>${esc(`${hm(x.open_at)} 오픈 · 공지 일정`)}</span></span>
+      <span class="what"><strong>${esc(placeOf(x))}${newTag(x.area)}</strong><span>${esc(`${hm(x.open_at)} 오픈 · 공지 일정`)}</span></span>
       <span class="tail">${chip}</span></div>`;
   }
   return `<details class="row" data-key="${esc(keyOf(x))}"><summary>
       <span class="when"><b>${shortDate(x.open_at)}</b><span>${weekday(x.open_at)}요일</span></span>
-      <span class="what"><strong>${esc(placeOf(x))}</strong><span>${esc(sub)}</span></span>
+      <span class="what"><strong>${esc(placeOf(x))}${newTag(x.area)}</strong><span>${esc(sub)}</span></span>
       <span class="tail">${chip}${ICON.chev}</span>
     </summary>${pickerHTML(x.courts, true)}${x.opened ? '<p class="row-note">이미 찬 코트도 있을 수 있어요. 예약 화면에서 확인해 주세요.</p>' : ''}</details>`;
 }
 function pendHTML(p) {
   const past = (p.past_opens || []).slice(0, 2).map((s) => `${shortDate(s)}(${weekday(s)}) ${hm(s)}`).join(', ');
-  return `<div class="pend what"><strong>${esc(placeOf(p))}</strong><span class="num">지난번 ${esc(past)}에 열림</span></div>`;
+  return `<div class="pend what"><strong>${esc(placeOf(p))}${newTag(p.area)}</strong><span class="num">지난번 ${esc(past)}에 열림</span></div>`;
 }
 /* 접수하지 않는 코트(마감 · 접수 끝남 · 일시중지 · 열렸지만 상태 미확인) — 눌러서 예약 화면은 볼 수 있다 */
 function shutChip(groups) {                      // 한 곳의 상태를 한마디로
@@ -678,7 +779,7 @@ function nextOpenText(p) {                       // '다음 오픈 11.15(일) 09
   return `다음 오픈 ${shortDate(p.next_open)}(${weekday(p.next_open)}) ${hm(p.next_open)}${p.next_expected ? ' · 공지 일정' : ''}`;
 }
 function idleHTML(p, groups) {                   // 접수 중인 코트가 없는 곳 한 줄
-  const name = `<strong>${esc(placeOf(p))}</strong>`;
+  const name = `<strong>${esc(placeOf(p))}${newTag(p.area)}</strong>`;
   const nx = nextOpenText(p), nxLine = nx ? `<span class="num nx">${esc(nx)}</span>` : '';
   if (!groups.length) {
     return `<div class="row vrow flat"><span class="what">${name}<span>서울시에 올라온 예약이 없어요</span>${nxLine}</span>
@@ -694,7 +795,7 @@ function venueHTML(g, shut, legacy, place) {     // 접수 중인 곳 — 회차
   const n = shut.reduce((t, x) => t + x.courts.length, 0);
   const allFull = shut.every((x) => x.courts.every((c) => (c.state || x.state) === 'full'));
   return `<article class="venue${n ? ' has-more' : ''}">
-    <h3>${esc(placeOf(first))}${first.region ? `<span>${esc(first.region)}</span>` : ''}</h3>
+    <h3>${esc(placeOf(first))}${first.region ? `<span>${esc(first.region)}</span>` : ''}${newTag(first.area)}</h3>
     ${nx ? `<p class="venue-next num">${esc(nx)}</p>` : ''}
     ${g.map((p) => {
       const full = legacy ? Number(p.full_count) || 0 : 0;
@@ -777,7 +878,7 @@ function renderPlay(p) {
   const bookBtn = (cls) => (link ? `<a class="pbook${cls}" href="${esc(link)}" target="_blank" rel="noopener noreferrer">테니스플레이에서 예약하기${EXT}</a>` : '');
   const days = (Array.isArray(p.days) ? p.days : []).filter((d) => d && /^\d{4}-\d{2}-\d{2}$/.test(d.date || '') && dayDiff(d.date) >= 0);
   if (!p.ok || !days.length) {
-    sec.innerHTML = `<h2>${name} 빈 시간</h2><div class="empty"><strong>${p.state === 'loading' ? '빈 시간을 불러오는 중이에요' : '지금은 빈 시간을 불러오지 못했어요'}</strong>
+    sec.innerHTML = `<h2>${name} 빈 시간${newTag(PLAY_AREA)}</h2><div class="empty"><strong>${p.state === 'loading' ? '빈 시간을 불러오는 중이에요' : '지금은 빈 시간을 불러오지 못했어요'}</strong>
       <p>${p.state === 'loading' ? '잠시 뒤 다시 열어 주세요.' : '테니스플레이에서 직접 확인해 주세요.'}</p></div>${bookBtn(' solo')}`;
     return;
   }
@@ -796,7 +897,7 @@ function renderPlay(p) {
   const anyFree = days.some((d) => Array.isArray(d.slots) && d.slots.length);
   const al = p.alerts && typeof p.alerts === 'object' ? p.alerts : {};
   const alarm = al.open || al.free ? alarmHTML(PLAY_AREA) : '';     // 반포 알림(오픈 예고 · 빈 시간)
-  sec.innerHTML = `<h2>${name} 빈 시간</h2><p class="sec-sub num">${esc(stamp)}</p>${seg}
+  sec.innerHTML = `<h2>${name} 빈 시간${newTag(PLAY_AREA)}</h2><p class="sec-sub num">${esc(stamp)}</p>${seg}
     <div class="rows">${days.map((d) => playDayHTML(d, p, bookBtn(''))).join('')}${openRow}</div>
     <p class="play-note">날짜를 누르면 시간별 빈 코트 번호가 나와요. 그 사이 예약이 찼을 수 있으니 테니스플레이에서 확인해 주세요.</p>${anyFree ? '' : bookBtn('')}${alarm}`;
   sec.querySelectorAll('details[data-key]').forEach((el) => { if (openKeys.has(el.dataset.key)) el.open = true; });
@@ -879,12 +980,6 @@ function renderBoard(d) {
   coolAtMs = hot.length ? Math.min(...hot.map((x) => kstMs(x.open_at) + HOT_MS)) : null;
   paintStamp();
   paintPush();
-  if (!MOCK) {
-    // 앱 아이콘 숫자 = 오늘·내일 열리는 곳 수 + (반포 오픈 알림을 고른 기기만) 반포 몫
-    const badge = Math.max(0, Number(d.badge) || 0)
-      + (d.play && settings.areas.includes(PLAY_AREA) ? Math.max(0, Number(d.play.badge) || 0) : 0);
-    try { if (navigator.setAppBadge) Promise.resolve(badge ? navigator.setAppBadge(badge) : navigator.clearAppBadge()).catch(() => {}); } catch {}
-  }
 }
 function renderError() {
   $('app').classList.add('is-error');
@@ -1291,6 +1386,8 @@ document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-act]');
   if (!el) return;
   if (el.dataset.act === 'sheet') openSheet(el);
+  if (el.dataset.act === 'fresh-x') { fresh = []; saveFresh(); paintFresh(); return; }
+  if (el.dataset.act === 'fresh-go') { goFresh(el.dataset.area); return; }
   if (el.dataset.act === 'play-part') {
     playPart = el.dataset.part;
     try { localStorage.setItem('tn_play_part', playPart); } catch {}
@@ -1315,8 +1412,11 @@ $('share').onclick = async () => {
 const onScroll = () => $('bar').classList.toggle('scrolled', window.scrollY > 4);
 window.addEventListener('scroll', onScroll, {passive: true});
 window.addEventListener('online', reconnectPush);
+window.addEventListener('focus', () => checkInbox(true));
+window.addEventListener('pageshow', (e) => { if (e.persisted) checkInbox(true); });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
+  checkInbox(true);                                  // 새 알림 보여 주기 + 아이콘 숫자 지우기
   tick();
   checkPush();
   reconnectPush();
@@ -1329,7 +1429,7 @@ function mockStamp() {
 }
 function mockBoard(kind) {
   const playKind = kind;
-  if (/^play/.test(kind || '')) kind = 'next';   // 반포 미리보기는 나머지 화면을 '다음 오픈' 상태로
+  if (/^play/.test(kind || '') || kind === 'new') kind = 'next';   // 반포 · 새 알림 미리보기는 나머지 화면을 '다음 오픈' 상태로
   const url = 'https://yeyak.seoul.go.kr/web/main.do';
   const at = (mins) => {                       // 지금부터 mins 분 뒤의 한국 시간 문자열
     const d = new Date(Date.now() + mins * 60000 + 9 * 36e5);
@@ -1425,12 +1525,15 @@ function goPlay() {                                   // '반포 빈 시간' 알
 if (!MOCK && 'serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (e) => {
     if (e.data && typeof e.data.target === 'string' && /#play$/.test(e.data.target)) { refreshData(); goPlay(); }
+    if (e.data && e.data.type === 'inbox' && document.visibilityState === 'visible') checkInbox(false);
   });
 }
 async function init() {
   renderAreas();
   renderInstall();
   paintPush();
+  paintFresh();
+  checkInbox(true);                                  // 받은 알림을 읽어 보여 주고 아이콘 숫자를 지운다
   onScroll();
   const slow = setTimeout(() => { const s = $('slow'); if (s) s.hidden = false; }, 6000);
   if (!MOCK) { worker().catch(() => {}); syncPush('auto'); }

@@ -231,6 +231,40 @@ def _areas_of(row: PushSub) -> set:
         return set()
 
 
+# ── 앱 안의 '새 알림' 표시 ─────────────────────────────────────────
+# 알림마다 '어느 곳의 무슨 알림인지'(items)를 같이 보낸다. 서비스워커가 받아 적어 두었다가, 앱을 열면
+# 화면이 그 곳 옆에 '새 알림'으로 보여 준다. 앱 아이콘 숫자도 이 목록(아직 안 본 알림 수)으로 센다.
+
+MAX_PAYLOAD = 2800      # 푸시 한 건은 4KB 를 넘지 못한다 — 넉넉히 남긴다
+MAX_ITEMS = 8
+
+
+def _open_item(g: dict, areas: set) -> dict:
+    """오픈 알림 한 곳. 며칠 뒤에 봐도 맞도록 '내일'이 아니라 날짜로 적는다."""
+    mine = list(g.get("areas") or [])
+    area = next((a for a in mine if a in areas), mine[0] if mine else "")
+    text = (f"{_fmt(g['open_at'])} 예약 오픈" + (" · 공지 일정" if g.get("expected") else "")
+            + (f" · {g['note']}" if g.get("note") else ""))
+    # key: 같은 오픈의 '전날 알림'과 '1시간 전 알림'은 앱에서 한 줄로 합쳐진다
+    return {"area": area, "place": g["place"], "kind": g["kind"],
+            "key": f"open|{str(g['open_at'])[:16]}", "text": text}
+
+
+def _fit(payload: dict) -> dict:
+    """items 때문에 알림이 너무 길어지면 뒤에서부터 덜어 낸다(알림 문구는 그대로)."""
+    items = list(payload.get("items") or [])[:MAX_ITEMS]
+    out = {k: v for k, v in payload.items() if k != "items"}
+
+    def size(xs: list) -> int:
+        return len(json.dumps({**out, "items": xs}, ensure_ascii=False).encode("utf-8"))
+
+    while items and size(items) > MAX_PAYLOAD:
+        items.pop()
+    if items:
+        out["items"] = items
+    return out
+
+
 def send_play_free(session: Session | None, title: str, body: str, badge: int = 0,
                    play_badge: int = 0) -> int:
     """반포 '빈 시간이 생겼어요' — 그 알림을 켠 기기에만. 급한 알림이라 실패해도 다시 보내지 않는다."""
@@ -247,8 +281,10 @@ def send_play_free(session: Session | None, title: str, body: str, badge: int = 
         if PLAY.AREA_FREE not in areas:
             continue
         payload = {"title": title, "body": body, "url": "/#play", "tag": "play-free",
-                   "badge": badge + (play_badge if PLAY.AREA in areas else 0)}
-        if _send(session, row, payload, ttl=1800):
+                   "badge": badge + (play_badge if PLAY.AREA in areas else 0),
+                   "items": [{"area": PLAY.AREA, "place": settings.ttp_place, "kind": "free",
+                              "key": f"free|{body[:80]}", "text": body[:300]}]}
+        if _send(session, row, _fit(payload), ttl=1800):
             sent += 1
     return sent
 
@@ -291,10 +327,12 @@ def send_opening_alerts(session: Session | None, groups: list[dict], badge: int 
         payload = {"title": title, "body": "\n".join(lines),
                    "url": "/",
                    "tag": f"open-{top['kind']}-{top['open_at']}",
-                   # 앱 아이콘 숫자: 5곳 기준 + (반포 오픈 알림을 고른 기기만) 반포 몫
-                   "badge": badge + (play_badge if PLAY.AREA in areas else 0)}
+                   # 옛 서비스워커용 숫자(5곳 기준 + 반포 오픈 알림을 고른 기기만 반포 몫).
+                   # 새 서비스워커는 이 값 대신 아직 안 본 알림 수(items)를 아이콘 숫자로 쓴다.
+                   "badge": badge + (play_badge if PLAY.AREA in areas else 0),
+                   "items": [_open_item(g, areas) for g in mine]}
         endpoint = row.endpoint
-        if _send(session, row, payload, ttl=3600 if h1 else 6 * 3600):
+        if _send(session, row, _fit(payload), ttl=3600 if h1 else 6 * 3600):
             for g in mine:
                 session.add(PushSent(endpoint=endpoint, event=_event_key(g)))
             session.commit()
