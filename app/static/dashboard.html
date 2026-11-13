@@ -123,7 +123,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .sec h2{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
 .sec-sub{margin-top:4px;font-size:13px;color:var(--ink-3)}
 .sub-label{margin-top:24px;font-size:13px;font-weight:600;color:var(--ink-3)}
-.app.is-error .band,.app.is-error #schedule,.app.is-error #available{display:none}
+.app.is-error .band,.app.is-error #schedule,.app.is-error #available,.app.is-error #play{display:none}
 
 .rows{margin-top:8px}
 .row{border-bottom:1px solid var(--line)}
@@ -199,6 +199,28 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .court:active,.chip:active{background:var(--press)}
 @media (hover:hover){.court:hover,.chip:hover{border-color:var(--ink-4)}}
 .off{opacity:.5}
+
+/* ── 반포종합운동장(테니스플레이) 빈 시간 ─────────────── */
+.seg{display:flex;gap:8px;margin-top:16px}
+.seg button{flex:1;min-width:0;height:44px;border:1px solid var(--line-2);border-radius:12px;
+  font-size:14px;font-weight:600;color:var(--ink-2);transition:background .12s,border-color .12s,color .12s}
+.seg button[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.seg button:not([aria-pressed=true]):active{background:var(--press)}
+.prow>summary,.prow.frow{grid-template-columns:60px minmax(0,1fr) auto}
+.prow .when span{white-space:nowrap}
+.prow .what strong.dim{font-weight:500;color:var(--ink-3)}
+.phours{display:grid;gap:8px;padding:4px 0 12px}
+.phour{display:grid;grid-template-columns:84px minmax(0,1fr);align-items:start;gap:8px}
+.ph{padding-top:5px;font-size:14px;font-weight:600;color:var(--ink-2)}
+.ptags{display:flex;flex-wrap:wrap;gap:6px}
+.ptag{display:inline-flex;align-items:center;height:30px;padding:0 10px;border-radius:8px;
+  background:var(--brand-weak);color:var(--brand);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.pbook{display:flex;align-items:center;justify-content:center;gap:6px;height:48px;margin-bottom:16px;
+  border:1px solid var(--line-2);border-radius:12px;font-size:16px;font-weight:600}
+.pbook svg{width:18px;height:18px;color:var(--ink-3)}
+.pbook:active{background:var(--press)}
+.pbook.solo{margin-top:20px}
+.play-note{padding:12px 0 16px;font-size:13px;line-height:1.5;color:var(--ink-3)}
 
 .empty{margin-top:12px;padding:20px 0 24px}
 .empty strong{display:block;font-weight:600}
@@ -318,6 +340,9 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
       <div class="sk" style="height:64px;margin:8px 0 16px;border-radius:12px"></div>
     </section>
 
+    <div class="band" id="band-play" hidden></div>
+    <section class="sec" id="play" aria-label="반포종합운동장 빈 시간" hidden></section>
+
     <div class="band"></div>
     <div class="cells">
       <button class="cell" data-act="sheet">
@@ -370,7 +395,7 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
    서버(/board, /refresh, /push/*)만 호출한다. 서울시 예약 사이트 주소는 사람이 누르는 링크로만 쓴다. */
 const $ = (id) => document.getElementById(id);
 const sheet = $('sheet');
-const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed
+const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr
 const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
 const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장'};
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
@@ -677,6 +702,97 @@ function venueHTML(g, shut, legacy, place) {     // 접수 중인 곳 — 회차
   </article>`;
 }
 
+/* ── 반포종합운동장(테니스플레이) 빈 시간 ─────────────────
+   서버가 테니스플레이의 예약 현황으로 계산해 준 날짜별 빈 시간(코트 번호)을 보여 준다. 예약은 링크로만. */
+const playURL = (s) => {
+  try { const u = new URL(s); return u.protocol === 'https:' && u.hostname === 'www.thetennisplay.com' ? u.href : ''; }
+  catch { return ''; }
+};
+const PARTS = [['all', '전체', 0, 99], ['am', '오전', 0, 12], ['pm', '오후', 12, 18], ['eve', '저녁', 18, 99]];
+let playPart = 'all', playData = null;
+try { const v = localStorage.getItem('tn_play_part'); if (PARTS.some((p) => p[0] === v)) playPart = v; } catch {}
+const EXT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"/><path d="M19 5 10 14"/><path d="M19 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4"/></svg>';
+function spanText(s, e) {                         // 20~22시 · 9:30~10:00
+  const f = (t) => { const h = Math.floor(t + 1e-6), m = Math.round((t - h) * 60); return [h % 24, m]; };
+  const [h1, m1] = f(s), [h2, m2] = f(e);
+  const p = (m) => String(m).padStart(2, '0');
+  return m1 || m2 ? `${h1}:${p(m1)}~${h2}:${p(m2)}` : `${h1}~${h2}시`;
+}
+function playRanges(slots) {                      // 이어진 칸은 한 구간으로
+  const out = [];
+  slots.forEach((x) => {
+    const last = out[out.length - 1];
+    if (last && Math.abs(last[1] - x.s) < 1e-6) last[1] = x.e; else out.push([x.s, x.e]);
+  });
+  return out;
+}
+function playCourtsText(names, all) {             // '2번 코트' · '1·3·5번 코트' · '코트 6면'(그날 빈 시간이 있는 코트)
+  const uniq = all.filter((n) => names.has(n)).concat([...names].filter((n) => !all.includes(n)));
+  if (uniq.length > 4) return `코트 ${uniq.length}면`;
+  if (uniq.every((n) => /^\d+번$/.test(n))) return `${uniq.map((n) => n.slice(0, -1)).join('·')}번 코트`;
+  return uniq.join(' · ');
+}
+function playWhen(date) {
+  const diff = dayDiff(date);
+  return diff === 0 || diff === 1
+    ? `<span class="when"><b>${diff ? '내일' : '오늘'}</b><span class="num">${shortDate(date)} ${weekday(date)}</span></span>`
+    : `<span class="when"><b class="num">${shortDate(date)}</b><span>${weekday(date)}요일</span></span>`;
+}
+function playDayHTML(day, p, book) {
+  const part = PARTS.find((x) => x[0] === playPart) || PARTS[0];
+  const every = (Array.isArray(day.slots) ? day.slots : []).filter((x) => x && Number.isFinite(x.s) && Number.isFinite(x.e) && Array.isArray(x.courts) && x.courts.length);
+  const slots = every.filter((x) => x.s >= part[2] && x.s < part[3]);
+  const all = (Array.isArray(p.courts) ? p.courts : []).map(String);
+  if (!slots.length) {
+    const text = every.length ? `${part[1]}에는 빈 시간이 없어요` : '빈 시간이 없어요';
+    return `<div class="row frow prow">${playWhen(day.date)}<span class="what"><strong class="dim">${text}</strong></span>
+      <span class="tail">${every.length ? '' : '<span class="dday">마감</span>'}</span></div>`;
+  }
+  const ranges = playRanges(slots).map(([a, b]) => spanText(a, b));
+  const head = ranges.length > 3 ? `${ranges.slice(0, 3).join(' · ')} 외` : ranges.join(' · ');
+  const names = new Set(slots.flatMap((x) => x.courts.map(String)));
+  const rows = slots.map((x) => `<div class="phour"><span class="ph num">${spanText(x.s, x.e)}</span><span class="ptags">${
+    all.length >= 5 && x.courts.length === all.length ? `<span class="ptag">모든 코트 ${all.length}면</span>`
+      : x.courts.map((n) => `<span class="ptag">${esc(n)}</span>`).join('')}</span></div>`).join('');
+  return `<details class="row prow" data-key="play|${esc(day.date)}"><summary>${playWhen(day.date)}
+      <span class="what"><strong class="num">${esc(head)}</strong><span class="num">${esc(playCourtsText(names, all))}</span></span>
+      <span class="tail">${ICON.chev}</span></summary>
+    <div class="phours">${rows}</div>${book}</details>`;
+}
+function renderPlay(p) {
+  const sec = $('play'), band = $('band-play');
+  playData = p && typeof p === 'object' ? p : null;
+  sec.hidden = band.hidden = !playData;
+  if (!playData) { sec.innerHTML = ''; return; }
+  const openKeys = new Set([...sec.querySelectorAll('details[data-key][open]')].map((el) => el.dataset.key));
+  const name = esc(String(p.place || '반포종합운동장').replace(/\s*테니스장$/, ''));
+  const link = playURL(p.url);
+  const bookBtn = (cls) => (link ? `<a class="pbook${cls}" href="${esc(link)}" target="_blank" rel="noopener noreferrer">테니스플레이에서 예약하기${EXT}</a>` : '');
+  const days = (Array.isArray(p.days) ? p.days : []).filter((d) => d && /^\d{4}-\d{2}-\d{2}$/.test(d.date || '') && dayDiff(d.date) >= 0);
+  if (!p.ok || !days.length) {
+    sec.innerHTML = `<h2>${name} 빈 시간</h2><div class="empty"><strong>${p.state === 'loading' ? '빈 시간을 불러오는 중이에요' : '지금은 빈 시간을 불러오지 못했어요'}</strong>
+      <p>${p.state === 'loading' ? '잠시 뒤 다시 열어 주세요.' : '테니스플레이에서 직접 확인해 주세요.'}</p></div>${bookBtn(' solo')}`;
+    return;
+  }
+  const at = String(p.updated_at || '');
+  const stamp = at ? `테니스플레이 ${at.slice(0, 10) === todayKST() ? '' : `${shortDate(at)} `}${hm(at)} 기준${p.stale ? ' · 오래됨' : ''}` : '테니스플레이 기준';
+  const seg = `<div class="seg" role="group" aria-label="시간대 고르기">${PARTS.map(([k, t]) =>
+    `<button type="button" data-act="play-part" data-part="${k}" aria-pressed="${k === playPart}">${t}</button>`).join('')}</div>`;
+  const no = p.next_open;
+  let openRow = '';
+  if (no && /^\d{4}-\d{2}-\d{2}$/.test(no.date || '') && Number.isFinite(kstMs(no.at)) && !days.some((d) => d.date === no.date)) {
+    const diff = dayDiff(no.at);
+    openRow = `<div class="row frow prow">${playWhen(no.date)}
+      <span class="what"><strong class="dim num">${diff <= 0 ? '오늘' : diff === 1 ? '내일' : shortDate(no.at)} ${hm(no.at)}에 예약이 열려요</strong></span>
+      <span class="tail"><span class="dday${diff <= 0 ? ' near' : ''}">오픈 전</span></span></div>`;
+  }
+  const anyFree = days.some((d) => Array.isArray(d.slots) && d.slots.length);
+  sec.innerHTML = `<h2>${name} 빈 시간</h2><p class="sec-sub num">${esc(stamp)}</p>${seg}
+    <div class="rows">${days.map((d) => playDayHTML(d, p, bookBtn(''))).join('')}${openRow}</div>
+    <p class="play-note">날짜를 누르면 시간별 빈 코트 번호가 나와요. 그 사이 예약이 찼을 수 있으니 테니스플레이에서 확인해 주세요.</p>${anyFree ? '' : bookBtn('')}`;
+  sec.querySelectorAll('details[data-key]').forEach((el) => { if (openKeys.has(el.dataset.key)) el.open = true; });
+}
+
 function renderBoard(d) {
   if (d.updated_at) updatedAt = d.updated_at;
   renderedDay = todayKST();
@@ -745,6 +861,7 @@ function renderBoard(d) {
         ? `<p class="sec-sub">${noneText}. 마감된 코트도 눌러서 서울시 예약 화면을 볼 수 있어요.</p><div class="rows">${idleRows}</div>`
         : `<div class="empty"><strong>${noneText}</strong><p>예약이 열리면 여기에 코트 번호가 나타나요.</p></div>`);
 
+  renderPlay(d.play);
   document.querySelectorAll('details[data-key]').forEach((el) => { if (openKeys.has(el.dataset.key)) el.open = true; });   // 펼쳐 둔 목록 유지
   board = d;
   nextOpenAt = upcoming.length ? upcoming[0].open_at : '';
@@ -826,7 +943,7 @@ async function loadBoard() {
   if (id !== boardReq) return 'ignored';                                         // 더 새 요청이 있음
   if (updatedAt && d.updated_at && d.updated_at < updatedAt) return 'ignored';   // 더 오래된 응답
   if (Number.isFinite(d.now_ms)) { const s = d.now_ms - Date.now(); skew = Math.abs(s) < 1500 ? 0 : s; }
-  const sig = JSON.stringify([d.openings, d.available, d.places, d.closed]);
+  const sig = JSON.stringify([d.openings, d.available, d.places, d.closed, d.play]);
   if (board && sig === lastSig && renderedDay === todayKST()) {                  // 내용이 같으면 다시 그리지 않는다
     board = d;
     if (d.updated_at) updatedAt = d.updated_at;
@@ -1135,6 +1252,14 @@ document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-act]');
   if (!el) return;
   if (el.dataset.act === 'sheet') openSheet(el);
+  if (el.dataset.act === 'play-part') {
+    playPart = el.dataset.part;
+    try { localStorage.setItem('tn_play_part', playPart); } catch {}
+    renderPlay(playData);
+    const again = document.querySelector(`#play [data-part="${playPart}"]`);
+    if (again) { try { again.focus({preventScroll: true}); } catch {} }
+    return;
+  }
   if (el.dataset.act === 'retry') { $('next').innerHTML = '<div class="sk" style="width:180px;height:56px"></div>'; loadBoard(); }
   if (el.dataset.act === 'copy') {
     try { await navigator.clipboard.writeText(appURL()); toast('주소를 복사했어요.'); }
@@ -1164,6 +1289,8 @@ function mockStamp() {
   return `${todayKST()} ${new Intl.DateTimeFormat('en-GB', {timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit'}).format(new Date())}`;
 }
 function mockBoard(kind) {
+  const playKind = kind;
+  if (/^play/.test(kind || '')) kind = 'next';   // 반포 미리보기는 나머지 화면을 '다음 오픈' 상태로
   const url = 'https://yeyak.seoul.go.kr/web/main.do';
   const at = (mins) => {                       // 지금부터 mins 분 뒤의 한국 시간 문자열
     const d = new Date(Date.now() + mins * 60000 + 9 * 36e5);
@@ -1228,7 +1355,27 @@ function mockBoard(kind) {
     g('선우공원', '선우공원', '관악구', 'rcpt', '', '11/30까지 접수', 'full', off([c('A', '평일 주간', '06:00-18:00'), c('B', '주말·공휴일', '06:00-18:00')], 'full')),
     g('서울숲', '서울숲 테니스장', '성동구', '', '', '상시 예약', 'full', off([c('코트', '주말·공휴일', '06:00-19:00')], 'full')),
   ];
-  return {now: mockStamp().slice(0, 16), updated_at: mockStamp(), badge: 0, areas: AREAS, places, openings, available, closed};
+  return {now: mockStamp().slice(0, 16), updated_at: mockStamp(), badge: 0, areas: AREAS, places, openings, available, closed,
+    play: mockPlay(playKind, day)};
+}
+function mockPlay(kind, day) {                 // 반포종합운동장(테니스플레이) 빈 시간
+  if (!/^play/.test(kind || '')) return null;
+  const base = {place: '반포종합운동장 테니스장', url: 'https://www.thetennisplay.com/schedule-booking',
+    next_open: {date: day(8, '').trim(), at: day(1, '09:00')}};
+  if (kind === 'playerr') return {...base, ok: false, state: 'error', days: []};
+  const courts = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `${n}번`);
+  const hourNow = new Date(Date.now() + 9 * 36e5).getUTCHours();
+  const pick = (i, h) => courts.filter((_, c) => {
+    if (kind === 'playfull') return false;
+    if (i >= 6) return true;                                             // 먼 날짜는 대부분 비어 있음
+    if (i === 2) return false;                                           // 하루는 마감
+    const v = (i * 7 + h * 13 + c * 5) % 11;
+    return i === 0 ? (h >= 20 && v < 3) : i === 1 ? ((h < 9 || h >= 20) && v < 5) : v < (h < 9 || h >= 21 ? 6 : 2);
+  });
+  const days = Array.from({length: 8}, (_, i) => ({date: day(i, '').trim(),
+    slots: Array.from({length: 16}, (_, k) => 6 + k).filter((h) => i > 0 || h >= hourNow)
+      .map((h) => ({s: h, e: h + 1, courts: pick(i, h)})).filter((x) => x.courts.length)}));
+  return {...base, ok: true, updated_at: mockStamp(), stale: false, courts, days};
 }
 
 /* ── 시작 ─────────────────────────────────────────────── */

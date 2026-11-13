@@ -21,6 +21,7 @@ from app.db import get_session
 from app.models import Slot, UserFilter
 from app.services import openings as OP
 from app.services import sync as SYNC
+from app.services import tennisplay as PLAY
 from app.services import webpush as WP
 from app.services.diff import upsert_and_extract_new
 from app.services.filters import match_filters
@@ -142,6 +143,11 @@ async def poll_tier23() -> None:
     await _run_pipeline({2, 3})
 
 
+async def poll_play() -> None:
+    """테니스플레이(반포종합운동장) 빈 시간 — 계정이 설정된 서버에서만. 실패는 안에서 처리한다."""
+    await PLAY.refresh()
+
+
 async def self_ping() -> None:
     """Render 무료 플랜은 15분 동안 들어오는 접속이 없으면 잠든다. 깨어 있는 동안 10분마다
     공개 주소로 자기 /health 를 불러 잠들지 않게 한다(GitHub Actions 핑의 보조)."""
@@ -166,6 +172,15 @@ def start_scheduler() -> AsyncIOScheduler:
         poll_tier23, trigger="interval", minutes=settings.tier2_interval_minutes,
         id="poll_tier23", max_instances=1, coalesce=True,
     )
+    if PLAY.ready():
+        from datetime import datetime, timedelta
+        # 시작 직후 한 번(서버 기동을 막지 않게 예약으로), 그 뒤 주기마다
+        scheduler.add_job(poll_play, trigger="interval", minutes=max(settings.ttp_interval_minutes, 5),
+                          id="poll_play", max_instances=1, coalesce=True,
+                          next_run_time=datetime.now(KST) + timedelta(seconds=5))
+        # 매일 09:00 에 7일 뒤 날짜가 새로 열린다 — 그 직후 한 번 더
+        scheduler.add_job(poll_play, trigger="cron", hour=PLAY.OPEN_HOUR, minute=0, second=20,
+                          id="poll_play_open", max_instances=1, coalesce=True)
     if os.environ.get("RENDER_EXTERNAL_URL"):
         scheduler.add_job(self_ping, trigger="interval", minutes=10, id="self_ping",
                           max_instances=1, coalesce=True)

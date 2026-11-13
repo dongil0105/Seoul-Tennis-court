@@ -56,6 +56,15 @@ class Settings(BaseSettings):
     crawl_user_agent: str = "SeoulTennisAlert/1.0 (personal use; contact: dongil0105@gmail.com)"
     crawl_cache_minutes: int = 10
 
+    # 테니스플레이(반포종합운동장) 빈 시간 — 계정을 넣은 서버에서만 읽는다(비우면 꺼짐). 조회 전용.
+    ttp_email: str = ""
+    ttp_password: str = ""
+    ttp_facility_keyword: str = "반포"
+    ttp_place: str = "반포종합운동장 테니스장"
+    ttp_interval_minutes: int = 10
+    ttp_api_base: str = "https://play-tennis-production.herokuapp.com/api/v1"
+    ttp_booking_url: str = "https://www.thetennisplay.com/schedule-booking"
+
     # 저장소
     db_url: str = "sqlite:///./data/app.db"
 

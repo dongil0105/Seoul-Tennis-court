@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 from app.db import get_session
 from app.services import openings as OP
 from app.services import sync as SYNC
+from app.services import tennisplay as PLAY
 
 router = APIRouter()
 
@@ -23,7 +24,15 @@ def get_openings() -> dict:
 def get_board() -> dict:
     """5곳 전용 화면: 다음 예약 오픈 + 지금 예약 가능한 코트 번호."""
     with get_session() as session:
-        return OP.board(session)
+        b = OP.board(session)
+    b["play"] = PLAY.public()      # 반포종합운동장(테니스플레이) 빈 시간 — 계정을 넣은 서버에서만
+    return b
+
+
+@router.get("/play/status")
+def get_play_status() -> dict:
+    """테니스플레이 조회 점검용 — 설정 여부·마지막 성공 시각·실패 종류(비밀·개인정보 없음)."""
+    return PLAY.status()
 
 
 @router.post("/refresh")

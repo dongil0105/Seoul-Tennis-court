@@ -18,3 +18,7 @@ services:
         value: "false"
       - key: ENABLED_SOURCES    # 공식 오픈API만
         value: ""
+      - key: TTP_EMAIL          # ← (선택) 테니스플레이 이메일 로그인 계정. Render 대시보드에서 직접 입력.
+        sync: false
+      - key: TTP_PASSWORD       # ← (선택) 위 계정의 비밀번호(비밀). 저장소에 넣지 말 것.
+        sync: false
