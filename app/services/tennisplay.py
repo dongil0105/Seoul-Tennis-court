@@ -37,6 +37,14 @@ MAX_BACKOFF = timedelta(hours=2)
 UA = "CourtOpen/1.0 (read-only availability viewer)"
 TRANSPORT: httpx.AsyncBaseTransport | None = None   # 테스트에서 가짜 서버를 끼운다
 
+# 알림 — 반포 알림은 그것을 고른 기기에만 보낸다(다른 곳과 달리 매일 열려서 알림이 잦다).
+AREA = "반포"                         # 알림 설정 이름: 예약 오픈 예고(전날 저녁 · 1시간 전)
+AREA_FREE = "반포 빈 시간"            # 알림 설정 이름: 빈 시간이 새로 생기면
+SOURCE = "tennisplay"
+EVE_HOUR = 20                         # 오픈 예고는 전날 이 시각부터(매일 09시에 열리므로 아침이 아니라 저녁에)
+FREE_COOLDOWN = timedelta(hours=3)    # 같은 칸이 비었다 찼다 해도 이 시간 안에는 다시 알리지 않는다
+WD = ["월", "화", "수", "목", "금", "토", "일"]
+
 Busy = dict[tuple[str, str], list[tuple[float, float]]]   # (코트 id, 날짜) → [(시작, 끝), …]
 
 
@@ -59,6 +67,9 @@ class _State:
         self.combined: bool | None = None        # 여러 날짜를 한 번에 물어도 되는지(None = 아직 확인 못 함)
         self.combined_checked: datetime | None = None
         self.diag: dict = {}                     # 항목 이름·건수만(값·개인정보 없음)
+        self.pending: dict = {}                  # 새로 생긴 빈 칸(아직 안 알린 것): (날짜, 시작, 코트 id) → 내용
+        self.alerted: dict = {}                  # 알린 칸 → 알린 시각(같은 칸 되풀이 방지)
+        self.free_day = ("", 0)                  # (날짜, 그날 보낸 빈 시간 알림 수)
 
 
 S = _State()
@@ -183,6 +194,137 @@ def build_days(courts: list[dict], busy: Busy, dates: list[date_cls], now: datet
         days.append({"date": key,
                      "slots": [{"s": s, "e": e, "courts": names} for (s, e), names in sorted(cells.items())]})
     return days
+
+
+# ── 알림: 새로 생긴 빈 시간 · 예약 오픈 예고 ───────────────────────
+
+def free_cells(courts: list[dict], busy: Busy, dates: list[date_cls]) -> dict[tuple, dict]:
+    """비어 있는 칸 전부: (날짜, 시작, 코트 id) → {date, s, e, court, n}. 지난 시간도 거르지 않는다."""
+    eps = 1e-9
+    out: dict[tuple, dict] = {}
+    for d in dates:
+        key = d.isoformat()
+        for n, c in enumerate(courts):
+            taken = busy.get((c["id"], key), [])
+            t = float(c["start"])
+            while t < c["end"] - eps:
+                e = t + c["step"]
+                if not any(s < e - eps and x > t + eps for s, x in taken):
+                    out[(key, round(t, 3), c["id"])] = {"date": key, "s": round(t, 3), "e": round(e, 3),
+                                                       "court": c["label"], "n": n}
+                t = e
+    return out
+
+
+def _note_new_free(prev: dict | None, courts: list[dict], busy: Busy, dates: list[date_cls],
+                   now: datetime) -> None:
+    """지난번에는 예약돼 있던 칸이 지금 비어 있으면 '새로 생긴 빈 시간'으로 적어 둔다.
+
+    처음 읽은 것(견줄 지난번이 없음), 오늘 09시에 새로 열린 날짜, 코트 구성이 바뀐 경우는 넣지 않는다.
+    """
+    if not prev or [c["id"] for c in prev["courts"]] != [c["id"] for c in courts]:
+        return
+    seen = set(prev["dates"])
+    old = free_cells(prev["courts"], prev["busy"], prev["dates"])
+    for key, item in free_cells(courts, busy, [d for d in dates if d in seen]).items():
+        if key in old or key in S.pending:
+            continue
+        last = S.alerted.get(key)
+        if last and now - last < FREE_COOLDOWN:
+            continue
+        S.pending[key] = item
+
+
+def take_new_free(now: datetime | None = None) -> list[dict]:
+    """알릴 '새로 생긴 빈 시간'을 꺼낸다 — 지금도 비어 있고 아직 시작 전인 칸만. 꺼내면 비운다."""
+    now = now or _now()
+    snap = S.snapshot
+    items: list[dict] = []
+    if snap and S.pending:
+        cur = free_cells(snap["courts"], snap["busy"], snap["dates"])
+        today, now_h = now.date().isoformat(), now.hour + now.minute / 60
+        for key, item in S.pending.items():
+            if key not in cur:
+                continue                                   # 그사이 다시 예약됨
+            if item["date"] < today or (item["date"] == today and item["s"] <= now_h):
+                continue                                   # 이미 시작했거나 지난 시간
+            items.append(item)
+            S.alerted[key] = now
+    S.pending = {}
+    for key in [k for k, t in S.alerted.items() if now - t >= FREE_COOLDOWN]:
+        del S.alerted[key]
+    return sorted(items, key=lambda x: (x["date"], x["s"], x["n"]))
+
+
+def free_budget(now: datetime | None = None) -> bool:
+    """하루에 보내는 빈 시간 알림 수를 제한한다. 보낼 수 있으면 한 번 센 뒤 True."""
+    day = (now or _now()).date().isoformat()
+    used = S.free_day[1] if S.free_day[0] == day else 0
+    if used >= max(settings.ttp_free_daily_max, 0):
+        return False
+    S.free_day = (day, used + 1)
+    return True
+
+
+def _span(s: float, e: float) -> str:
+    def hm(v: float) -> tuple[int, int]:
+        m = round(v * 60)
+        return m // 60, m % 60
+    (h1, m1), (h2, m2) = hm(s), hm(e)
+    return f"{h1}:{m1:02d}~{h2}:{m2:02d}" if m1 or m2 else f"{h1}~{h2}시"
+
+
+def _day_label(iso: str) -> str:
+    d = date_cls.fromisoformat(iso)
+    return f"{d.month}.{d.day}({WD[d.weekday()]})"
+
+
+def _court_names(names: list[str]) -> str:
+    if all(n.endswith("번") for n in names):
+        return "·".join(n[:-1] for n in names) + "번 코트"
+    return ", ".join(names)
+
+
+def free_message(items: list[dict], limit: int = 4) -> tuple[str, str]:
+    """알림 제목과 내용: '반포 빈 시간이 생겼어요' / '11.16(월) 14~15시 · 3번 코트' …"""
+    groups: dict[tuple, list[str]] = {}
+    for it in items:
+        groups.setdefault((it["date"], it["s"], it["e"]), []).append(it["court"])
+    lines = [f"{_day_label(d)} {_span(s, e)} · {_court_names(names)}"
+             for (d, s, e), names in sorted(groups.items())]
+    more = len(lines) - limit
+    body = "\n".join(lines[:limit] + ([f"외 {more}건"] if more > 0 else []))
+    return "반포 빈 시간이 생겼어요", body
+
+
+def open_alert_times(now: datetime) -> list[tuple[str, datetime]]:
+    """지금 보낼 반포 예약 오픈 예고: [('d1' | 'h1', 오픈 일시)].
+
+    매일 09시에 7일 뒤 날짜가 열린다. d1 = 전날 20시부터 그날이 끝나기 전까지, h1 = 오픈 1시간 전부터.
+    """
+    if not (ready() and settings.ttp_notify_open):
+        return []
+    _, at = next_open(now)
+    out: list[tuple[str, datetime]] = []
+    if 0 < (at - now).total_seconds() <= 3600:
+        out.append(("h1", at))
+    if now.date() == at.date() - timedelta(days=1) and now.hour >= EVE_HOUR:
+        out.append(("d1", at))
+    return out
+
+
+def open_note(at: datetime) -> str:
+    """그 오픈으로 열리는 이용 날짜 — '11.21(토) 이용분'."""
+    return f"{_day_label((at.date() + timedelta(days=AHEAD_DAYS)).isoformat())} 이용분"
+
+
+def open_badge(now: datetime | None = None) -> int:
+    """앱 아이콘 숫자에 더할 값: 오픈 전날 20시부터 열릴 때(09시)까지 1, 그 밖에는 0."""
+    if not (ready() and settings.ttp_notify_open):
+        return 0
+    now = now or _now()
+    _, at = next_open(now)
+    return 1 if at - timedelta(hours=24 - EVE_HOUR + OPEN_HOUR) <= now < at else 0
 
 
 # ── 테니스플레이 호출 ──────────────────────────────────────────────
@@ -315,6 +457,7 @@ async def refresh(force: bool = False) -> bool:
         except Exception as e:  # noqa: BLE001  수집 한 번의 실패가 서버를 멈추지 않게
             _failed("http", type(e).__name__, now)
             return False
+        _note_new_free(S.snapshot, courts, busy, dates, now)
         S.snapshot = {"at": now, "courts": courts, "busy": busy, "dates": dates}
         S.error, S.fails, S.retry_at = "", 0, None
         logger.info("테니스플레이 %s: 코트 %d면 · %d일치 (%s)", fac["name"], len(courts), len(dates),
@@ -342,7 +485,10 @@ def public() -> dict | None:
     odate, oat = next_open(now)
     base = {"place": (S.facility or {}).get("name") or settings.ttp_place,
             "url": settings.ttp_booking_url,
-            "next_open": {"date": odate.isoformat(), "at": oat.strftime("%Y-%m-%d %H:%M")}}
+            "next_open": {"date": odate.isoformat(), "at": oat.strftime("%Y-%m-%d %H:%M")},
+            # 알림: 이 서버가 보내는 반포 알림 종류와, 그 알림을 켠 기기의 앱 아이콘에 더할 숫자
+            "alerts": {"open": settings.ttp_notify_open, "free": settings.ttp_notify_free},
+            "badge": open_badge(now)}
     snap = S.snapshot
     if not snap:
         return {**base, "ok": False, "state": "error" if S.error else "loading", "days": []}
@@ -368,4 +514,6 @@ def status() -> dict:
             "courts": [c["label"] for c in snap["courts"]] if snap else [],
             "hours": sorted({(c["start"], c["end"], c["step"]) for c in snap["courts"]}) if snap else [],
             "busy_cells": sum(len(v) for v in snap["busy"].values()) if snap else 0,
+            "free_alerts_today": S.free_day[1] if S.free_day[0] == _now().date().isoformat() else 0,
+            "free_pending": len(S.pending),
             "diag": S.diag}

@@ -64,6 +64,10 @@ class Settings(BaseSettings):
     ttp_interval_minutes: int = 10
     ttp_api_base: str = "https://play-tennis-production.herokuapp.com/api/v1"
     ttp_booking_url: str = "https://www.thetennisplay.com/schedule-booking"
+    # 반포 알림: 예약 오픈 예고(전날 20시 · 1시간 전) / 빈 시간이 새로 생기면 / 하루 빈 시간 알림 상한
+    ttp_notify_open: bool = True
+    ttp_notify_free: bool = True
+    ttp_free_daily_max: int = 40
 
     # 저장소
     db_url: str = "sqlite:///./data/app.db"

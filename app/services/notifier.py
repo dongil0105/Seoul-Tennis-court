@@ -292,6 +292,16 @@ async def send_startup_digest(session: Session, slots: list[Slot]) -> int:
     return len(slots)
 
 
+async def send_play_free(session: Session, title: str, body: str) -> bool:
+    """반포종합운동장에 빈 시간이 새로 생겼을 때 — 한 메시지(200자 안)."""
+    dash = settings.dashboard_url
+    label = "\n\n확인하러 가기 ▶\n"
+    head = f"🎾 {title}"
+    budget = 195 - len(head) - len(label) - len(dash) - 1
+    text = f"{head}\n{body[: max(0, budget)]}{label}{dash}"
+    return await send_to_me(session, text, dash)
+
+
 def kakao_ready() -> bool:
     """카카오 발송 가능 환경인지(키가 설정된 서버에서만 알람 발송)."""
     return bool(settings.kakao_rest_key and
@@ -325,7 +335,7 @@ async def send_opening_alerts(session: Session, groups: list[dict]) -> bool:
         tag = "1시간 내" if g["kind"] == "h1" else "내일"
         region = f"[{g['region']}] " if g.get("region") else ""
         cnt = f" {g['count']}개 코트" if g["count"] > 1 else ""
-        src = " (공지 일정)" if g.get("expected") else ""
+        src = " (공지 일정)" if g.get("expected") else (f" ({g['note']})" if g.get("note") else "")
         lines.append(f"· {region}{g['place']}{cnt} — {tag} {_fmt_open_dt(g['open_at'])} 오픈{src}")
     more = len(groups) - len((h1 + d1)[:4])
     if more > 0:

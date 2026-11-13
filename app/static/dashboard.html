@@ -221,6 +221,9 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .pbook:active{background:var(--press)}
 .pbook.solo{margin-top:20px}
 .play-note{padding:12px 0 16px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+#play{scroll-margin-top:64px}
+#play .alarm{margin:0 0 16px}
+.sheet-hint{margin-top:8px;font-size:13px;line-height:1.5;color:var(--ink-3)}
 
 .empty{margin-top:12px;padding:20px 0 24px}
 .empty strong{display:block;font-weight:600}
@@ -377,10 +380,12 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
     <div id="prefs">
       <p class="sheet-label" id="areas-label">알림 받을 테니스장</p>
       <div id="areas" role="group" aria-labelledby="areas-label"></div>
+      <p class="sheet-hint" id="play-hint" hidden>반포는 매일 09:00에 7일 뒤 날짜가 열려요. 전날 20시와 1시간 전에 알려 드려요.</p>
       <p class="sheet-label" id="when-label">알림 시간</p>
       <div role="group" aria-labelledby="when-label">
         <label class="switch"><span>오픈 전날</span><input type="checkbox" role="switch" id="d1"></label>
         <label class="switch"><span>오픈 1시간 전</span><input type="checkbox" role="switch" id="h1"></label>
+        <label class="switch" id="free-row" hidden><span>반포에 빈 시간이 생기면</span><input type="checkbox" role="switch" id="free"></label>
       </div>
     </div>
     <div class="sheet-foot"><button class="text-btn" id="test" hidden>테스트 알림 보내기</button></div>
@@ -397,7 +402,9 @@ const $ = (id) => document.getElementById(id);
 const sheet = $('sheet');
 const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr
 const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
-const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장'};
+const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장', '반포': '반포종합운동장'};
+// 반포(테니스플레이) 알림 — 고른 기기에만 간다. PLAY_AREA = 예약 오픈 예고, PLAY_FREE = 빈 시간이 새로 생기면
+const PLAY_AREA = '반포', PLAY_FREE = '반포 빈 시간';
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 // 예약 링크는 서울시 사이트일 때만 걸고, 항상 https 로 연다.
 const safeURL = (s) => {
@@ -787,9 +794,11 @@ function renderPlay(p) {
       <span class="tail"><span class="dday${diff <= 0 ? ' near' : ''}">오픈 전</span></span></div>`;
   }
   const anyFree = days.some((d) => Array.isArray(d.slots) && d.slots.length);
+  const al = p.alerts && typeof p.alerts === 'object' ? p.alerts : {};
+  const alarm = al.open || al.free ? alarmHTML(PLAY_AREA) : '';     // 반포 알림(오픈 예고 · 빈 시간)
   sec.innerHTML = `<h2>${name} 빈 시간</h2><p class="sec-sub num">${esc(stamp)}</p>${seg}
     <div class="rows">${days.map((d) => playDayHTML(d, p, bookBtn(''))).join('')}${openRow}</div>
-    <p class="play-note">날짜를 누르면 시간별 빈 코트 번호가 나와요. 그 사이 예약이 찼을 수 있으니 테니스플레이에서 확인해 주세요.</p>${anyFree ? '' : bookBtn('')}`;
+    <p class="play-note">날짜를 누르면 시간별 빈 코트 번호가 나와요. 그 사이 예약이 찼을 수 있으니 테니스플레이에서 확인해 주세요.</p>${anyFree ? '' : bookBtn('')}${alarm}`;
   sec.querySelectorAll('details[data-key]').forEach((el) => { if (openKeys.has(el.dataset.key)) el.open = true; });
 }
 
@@ -864,13 +873,16 @@ function renderBoard(d) {
   renderPlay(d.play);
   document.querySelectorAll('details[data-key]').forEach((el) => { if (openKeys.has(el.dataset.key)) el.open = true; });   // 펼쳐 둔 목록 유지
   board = d;
+  syncPlayPrefs();
   nextOpenAt = upcoming.length ? upcoming[0].open_at : '';
   nextOpenMs = upcoming.length ? kstMs(nextOpenAt) : null;
   coolAtMs = hot.length ? Math.min(...hot.map((x) => kstMs(x.open_at) + HOT_MS)) : null;
   paintStamp();
   paintPush();
   if (!MOCK) {
-    const badge = Math.max(0, Number(d.badge) || 0);
+    // 앱 아이콘 숫자 = 오늘·내일 열리는 곳 수 + (반포 오픈 알림을 고른 기기만) 반포 몫
+    const badge = Math.max(0, Number(d.badge) || 0)
+      + (d.play && settings.areas.includes(PLAY_AREA) ? Math.max(0, Number(d.play.badge) || 0) : 0);
     try { if (navigator.setAppBadge) Promise.resolve(badge ? navigator.setAppBadge(badge) : navigator.clearAppBadge()).catch(() => {}); } catch {}
   }
 }
@@ -981,23 +993,26 @@ const isStale = () => { const t = kstMs(updatedAt); return !Number.isFinite(t) |
 /* ── 알림(웹 푸시) ────────────────────────────────────── */
 let sub = null, swReady = null, pushBusy = false, pushAgain = false, saveTimer = 0;
 let serverOk = false, retryTimer = 0, retryStep = 0;   // serverOk: 이번에 서버 등록까지 확인됨
-let settings = {areas: [...AREAS], d1: true, h1: true, enabled: false, off: false};
+let settings = {areas: [...AREAS], d1: true, h1: true, free: false, enabled: false, off: false};
 if (!MOCK) {
   try {
     const v = JSON.parse(localStorage.getItem('tn_push'));
     if (v) {
       settings = {...settings, ...v};
-      settings.areas = Array.isArray(v.areas) ? v.areas.filter((a) => AREAS.includes(a)) : [...AREAS];
+      settings.areas = Array.isArray(v.areas) ? v.areas.filter((a) => AREAS.includes(a) || a === PLAY_AREA) : [...AREAS];
+      settings.free = v.free === true;
       if (!settings.areas.length) settings.areas = [...AREAS];
     }
   } catch {}
 }
+// 서버에 보내는 알림 이름 목록: 고른 테니스장 + (켰으면) 반포 빈 시간
+const sentAreas = () => [...settings.areas, ...(settings.free ? [PLAY_FREE] : [])];
 let cacheWrite = Promise.resolve();
 function saveSettings() {
   if (MOCK) return;                                   // 미리보기는 기기에 아무것도 남기지 않는다
   try { localStorage.setItem('tn_push', JSON.stringify(settings)); } catch {}
   // 서비스워커가 구독을 다시 만들 때 읽는 사본
-  const value = JSON.stringify({areas: settings.areas, d1: settings.d1, h1: settings.h1});
+  const value = JSON.stringify({areas: sentAreas(), d1: settings.d1, h1: settings.h1});
   cacheWrite = cacheWrite.then(async () => {
     try { await (await caches.open('tn-settings')).put('/__tn_push_settings', new Response(value, {headers: {'Content-Type': 'application/json'}})); } catch {}
   });
@@ -1013,7 +1028,7 @@ const canPush = 'Notification' in window && 'PushManager' in window && 'serviceW
 const blocked = !MOCK && (needInstall || !canPush);   // 이 화면에서는 알림을 켤 수 없음
 let booting = !MOCK && !blocked && settings.enabled && !settings.off && Notification.permission === 'granted';
 const pushOn = () => Boolean(sub && settings.enabled);
-const subscribedTo = (area) => pushOn() && (!area || settings.areas.includes(area));
+const subscribedTo = (area) => pushOn() && (!area || settings.areas.includes(area) || (area === PLAY_AREA && settings.free));
 const say = (msg) => { $('push-status').textContent = msg; };
 const deniedText = () => (isiOS && standalone
   ? '알림이 꺼져 있어요. 아이폰 설정 > 알림 > 코트 오픈에서 허용해 주세요.'
@@ -1069,7 +1084,7 @@ async function syncPush(mode) {
     }
     // 켜 둔 기기인데 브라우저가 구독을 지웠으면 조용히 다시 만든다(권한은 이미 허용됨).
     if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: key});
-    await api('/push/subscribe', {subscription: sub.toJSON(), areas: settings.areas, d1: settings.d1, h1: settings.h1});
+    await api('/push/subscribe', {subscription: sub.toJSON(), areas: sentAreas(), d1: settings.d1, h1: settings.h1});
     settings.enabled = true;
     settings.off = false;
     serverOk = true;
@@ -1155,7 +1170,7 @@ function paintPush() {
   $('bell').classList.toggle('on', on);
   $('bell').setAttribute('aria-label', on ? '오픈 알림 설정, 켜져 있음' : '오픈 알림 설정, 꺼져 있음');
   const v = $('push-value');
-  v.textContent = on ? (serverOk ? `켜짐 · ${settings.areas.length}곳` : '연결 확인 중') : booting ? '확인 중' : '꺼짐';
+  v.textContent = on ? (serverOk ? `켜짐 · ${pickedAreas().length}곳` : '연결 확인 중') : booting ? '확인 중' : '꺼짐';
   v.classList.toggle('on', on);
   document.querySelectorAll('[data-alarm]').forEach((el) => {
     const mine = subscribedTo(el.dataset.alarm);
@@ -1175,8 +1190,30 @@ function sheetNote() {
   else if (!MOCK && Notification.permission === 'denied') say(deniedText());
   else say('');
 }
+// 반포 알림은 그 서버가 반포를 읽고 있을 때만 고를 수 있다.
+const playAlerts = () => (board && board.play && typeof board.play.alerts === 'object' && board.play.alerts) || {};
+const areaList = () => [...AREAS, ...(playAlerts().open ? [PLAY_AREA] : [])];
+const pickedAreas = () => settings.areas.filter((a) => areaList().includes(a));
+let playPrefsOn = null;
+function syncPlayPrefs() {                            // 화면 자료를 받을 때마다: 반포 고르기·스위치를 보이거나 숨긴다
+  const a = playAlerts(), on = Boolean(a.open);
+  if (on !== playPrefsOn) { playPrefsOn = on; renderAreas(); }
+  $('play-hint').hidden = !on;
+  $('free-row').hidden = !a.free;
+  $('free').checked = Boolean(settings.free);
+}
+function pickPlay() {                                 // 반포 구역의 [알림 받기]로 열었고 아직 고른 적이 없으면 두 가지를 골라 둔다
+  const a = playAlerts();
+  if (settings.areas.includes(PLAY_AREA) || settings.free || !(a.open || a.free)) return;
+  if (a.open) settings.areas = [...settings.areas, PLAY_AREA];
+  if (a.free) settings.free = true;
+  renderAreas();
+  $('free').checked = Boolean(settings.free);
+  settingsChanged();
+  say(pushOn() ? '반포 알림을 켰어요. 바꾼 내용은 바로 저장돼요.' : '반포 알림을 골랐어요. 위의 스위치를 켜면 받기 시작해요.');
+}
 function renderAreas() {
-  $('areas').innerHTML = AREAS.map((a) => `<label class="pick"><input type="checkbox" value="${esc(a)}"${settings.areas.includes(a) ? ' checked' : ''}><span>${esc(NAMES[a] || a)}</span>${ICON.check}</label>`).join('');
+  $('areas').innerHTML = areaList().map((a) => `<label class="pick"><input type="checkbox" value="${esc(a)}"${settings.areas.includes(a) ? ' checked' : ''}><span>${esc(NAMES[a] || a)}</span>${ICON.check}</label>`).join('');
 }
 function renderInstall() {                            // 이 화면에서 알림을 켤 수 없을 때의 안내
   if (!blocked) return;
@@ -1190,10 +1227,10 @@ function renderInstall() {                            // 이 화면에서 알림
 }
 $('areas').addEventListener('change', (e) => {
   const box = e.target;
-  if (!AREAS.includes(box.value)) return;
+  if (!areaList().includes(box.value)) return;
   const picked = box.checked ? [...new Set([...settings.areas, box.value])] : settings.areas.filter((a) => a !== box.value);
   if (!picked.length) { box.checked = true; toast('테니스장을 한 곳 이상 골라 주세요.'); return; }
-  settings.areas = AREAS.filter((a) => picked.includes(a));
+  settings.areas = [...AREAS, PLAY_AREA].filter((a) => picked.includes(a));
   settingsChanged();
 });
 ['d1', 'h1'].forEach((id) => {
@@ -1204,6 +1241,7 @@ $('areas').addEventListener('change', (e) => {
     settingsChanged();
   });
 });
+$('free').addEventListener('change', () => { settings.free = $('free').checked; settingsChanged(); });
 $('master').addEventListener('change', () => ($('master').checked ? syncPush('user') : turnOff()));
 $('test').onclick = async () => {
   if (MOCK) { say('미리보기에서는 알림을 보내지 않아요.'); return; }
@@ -1229,6 +1267,7 @@ function openSheet(from) {
   sheetShown = true;
   sheetOpener = from || document.activeElement;
   sheetNote();
+  if (from && from.dataset && from.dataset.alarm === PLAY_AREA) pickPlay();
   checkPush();
   sheet.showModal();
   document.documentElement.classList.add('lock');
@@ -1361,7 +1400,7 @@ function mockBoard(kind) {
 function mockPlay(kind, day) {                 // 반포종합운동장(테니스플레이) 빈 시간
   if (!/^play/.test(kind || '')) return null;
   const base = {place: '반포종합운동장 테니스장', url: 'https://www.thetennisplay.com/schedule-booking',
-    next_open: {date: day(8, '').trim(), at: day(1, '09:00')}};
+    next_open: {date: day(8, '').trim(), at: day(1, '09:00')}, alerts: {open: true, free: true}, badge: 0};
   if (kind === 'playerr') return {...base, ok: false, state: 'error', days: []};
   const courts = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `${n}번`);
   const hourNow = new Date(Date.now() + 9 * 36e5).getUTCHours();
@@ -1379,6 +1418,15 @@ function mockPlay(kind, day) {                 // 반포종합운동장(테니�
 }
 
 /* ── 시작 ─────────────────────────────────────────────── */
+function goPlay() {                                   // '반포 빈 시간' 알림을 눌러 들어온 경우 그 구역으로
+  const sec = $('play');
+  if (sec && !sec.hidden) { try { sec.scrollIntoView({block: 'start'}); } catch {} }
+}
+if (!MOCK && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (e) => {
+    if (e.data && typeof e.data.target === 'string' && /#play$/.test(e.data.target)) { refreshData(); goPlay(); }
+  });
+}
 async function init() {
   renderAreas();
   renderInstall();
@@ -1388,6 +1436,7 @@ async function init() {
   if (!MOCK) { worker().catch(() => {}); syncPush('auto'); }
   const ok = await loadBoard();
   clearTimeout(slow);
+  if (location.hash === '#play') goPlay();
   if (!MOCK && ok === true && isStale()) refreshData();
 }
 setInterval(() => { if (!MOCK && document.visibilityState === 'visible') refreshData(); }, 180000);

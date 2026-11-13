@@ -96,12 +96,15 @@ def endpoint_allowed(ep: str) -> bool:
 
 
 def _clean_areas(areas) -> list[str]:
+    """기기가 고른 알림 이름. 반포 알림 두 가지는 고른 기기에만 넣고, 아무 것도 없으면 5곳 전체."""
+    from app.services import tennisplay as PLAY
     from app.services.openings import all_areas
-    valid = all_areas()
+    base = all_areas()
     if not isinstance(areas, list):
-        return valid
+        return base
+    valid = base + ([PLAY.AREA, PLAY.AREA_FREE] if PLAY.ready() else [])
     out = [a for a in areas if isinstance(a, str) and a in valid]
-    return out or valid
+    return out or base
 
 
 def subscribe(session: Session, sub: dict, areas=None, d1: bool | None = True,
@@ -214,7 +217,44 @@ def _event_key(g: dict) -> str:
     return f"{g['kind']}|{g['place']}|{g['open_at']}"
 
 
-def send_opening_alerts(session: Session | None, groups: list[dict], badge: int = 0) -> int:
+def _wants(areas: set, g: dict) -> bool:
+    mine = set(g.get("areas") or [])
+    if g.get("opt_in"):                      # 반포처럼 그 알림을 고른 기기에만 보내는 것
+        return bool(areas & mine)
+    return not areas or bool(areas & mine)
+
+
+def _areas_of(row: PushSub) -> set:
+    try:
+        return set(json.loads(row.areas or "[]"))
+    except ValueError:
+        return set()
+
+
+def send_play_free(session: Session | None, title: str, body: str, badge: int = 0,
+                   play_badge: int = 0) -> int:
+    """반포 '빈 시간이 생겼어요' — 그 알림을 켠 기기에만. 급한 알림이라 실패해도 다시 보내지 않는다."""
+    from app.services import tennisplay as PLAY
+    if not body or not ready():
+        return 0
+    if session is None:
+        from app.db import get_session
+        with get_session() as own:
+            return send_play_free(own, title, body, badge, play_badge)
+    sent = 0
+    for row in list(session.exec(select(PushSub))):
+        areas = _areas_of(row)
+        if PLAY.AREA_FREE not in areas:
+            continue
+        payload = {"title": title, "body": body, "url": "/#play", "tag": "play-free",
+                   "badge": badge + (play_badge if PLAY.AREA in areas else 0)}
+        if _send(session, row, payload, ttl=1800):
+            sent += 1
+    return sent
+
+
+def send_opening_alerts(session: Session | None, groups: list[dict], badge: int = 0,
+                        play_badge: int = 0) -> int:
     """오픈 알람을 기기별(고른 지역·시점)로 보낸다. 보낸 기기 수 반환.
 
     기기마다 받은 알림을 PushSent 에 남겨, 같은 알림은 한 번만 가고 실패한 기기는 다음
@@ -225,17 +265,15 @@ def send_opening_alerts(session: Session | None, groups: list[dict], badge: int 
     if session is None:                      # 스레드에서 부를 때: 자기 세션을 열고 닫는다
         from app.db import get_session
         with get_session() as own:
-            return send_opening_alerts(own, groups, badge)
+            return send_opening_alerts(own, groups, badge, play_badge)
+    from app.services import tennisplay as PLAY
     sent = 0
     for row in list(session.exec(select(PushSub))):
-        try:
-            areas = set(json.loads(row.areas or "[]"))
-        except ValueError:
-            areas = set()
+        areas = _areas_of(row)
         done = set(session.exec(select(PushSent.event).where(PushSent.endpoint == row.endpoint)).all())
         mine = [g for g in groups
                 if ((g["kind"] == "d1" and row.d1) or (g["kind"] == "h1" and row.h1))
-                and (not areas or areas & set(g.get("areas") or []))
+                and _wants(areas, g)
                 and _event_key(g) not in done]
         if not mine:
             continue
@@ -246,12 +284,15 @@ def send_opening_alerts(session: Session | None, groups: list[dict], badge: int 
         when = f"{'오늘' if is_today else '내일'} {hhmm}"
         title = f"{top['place']} 예약 {when} 오픈"
         lines = [f"{g['place']} · {_fmt(g['open_at'])}" + (" · 공지 일정" if g.get("expected") else "")
+                 + (f" · {g['note']}" if g.get("note") else "")
                  for g in mine[:4]]
         if len(mine) > 4:
             lines.append(f"외 {len(mine) - 4}곳")
         payload = {"title": title, "body": "\n".join(lines),
                    "url": "/",
-                   "tag": f"open-{top['kind']}-{top['open_at']}", "badge": badge}
+                   "tag": f"open-{top['kind']}-{top['open_at']}",
+                   # 앱 아이콘 숫자: 5곳 기준 + (반포 오픈 알림을 고른 기기만) 반포 몫
+                   "badge": badge + (play_badge if PLAY.AREA in areas else 0)}
         endpoint = row.endpoint
         if _send(session, row, payload, ttl=3600 if h1 else 6 * 3600):
             for g in mine:

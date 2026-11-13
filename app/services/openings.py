@@ -20,6 +20,7 @@ from app.clock import now as _now
 from app.config import settings
 from app.models import OpeningAlert, Slot
 from app.services import notice as NOTICE
+from app.services import tennisplay as PLAY
 from app.services.holidays import holiday_name, is_holiday
 
 UPCOMING_DAYS = 90       # '오픈 예정'으로 보여줄 최대 D-n
@@ -921,6 +922,15 @@ def pending_alerts(session: Session, prefix: str = "") -> list[tuple[str, Slot]]
         delta = (t - now).total_seconds()
         if 0 < delta <= 3600 and (g.slot_hash, od, prefix + "h1") not in sent:
             due.append(("h1", g))
+    # 반포종합운동장(테니스플레이) — 매일 09시에 7일 뒤 날짜가 열린다. 전날 20시 · 1시간 전.
+    for kind, at in PLAY.open_alert_times(now):
+        od = at.date().isoformat()
+        g = Slot(slot_hash=f"play:{PLAY.AREA}", source_id=PLAY.SOURCE, tier=1,
+                 facility_name=settings.ttp_place, court_name=settings.ttp_place, region="서초구",
+                 date=od, time_start="", time_end="", is_open=False, status="안내중",
+                 open_at=at.strftime("%Y-%m-%d %H:%M"), reserve_url=None)
+        if (g.slot_hash, od, prefix + kind) not in sent:
+            due.append((kind, g))
     return due
 
 
@@ -944,12 +954,15 @@ def group_for_message(pairs: list[tuple[str, Slot]]) -> list[dict]:
         # 09:00 / 09:03 처럼 몇 분 차이로 등록된 같은 회차는 한 묶음(화면과 같은 15분 기준)
         key = (kind, place, dt.date(), (dt.hour * 60 + dt.minute) // 15) if dt else (kind, place, s.open_at)
         if key not in g:
+            play = s.source_id == PLAY.SOURCE
             g[key] = {"kind": kind, "place": place, "region": s.region,
-                      "areas": areas_of(s.region, s.facility_name, s.court_name),
+                      "areas": [PLAY.AREA] if play else areas_of(s.region, s.facility_name, s.court_name),
                       "open_at": s.open_at, "count": 0,
                       "reserve_url": s.reserve_url,
                       # 서울시 자료가 아니라 시설 공지의 정기 일정으로 알리는 것
-                      "expected": s.source_id == NOTICE_SOURCE}
+                      "expected": s.source_id == NOTICE_SOURCE,
+                      # 반포: 그 알림을 고른 기기에만 보내고, 어느 날짜 이용분이 열리는지 덧붙인다
+                      "opt_in": play, "note": PLAY.open_note(dt) if play and dt else ""}
         e = g[key]
         e["count"] += 1
         if s.open_at < e["open_at"]:

@@ -38,7 +38,12 @@ self.addEventListener('notificationclick', (event) => {
     const external = /^https?:\/\//.test(url) && !url.startsWith(self.location.origin);
     if (!external) {
       const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-      for (const w of wins) { if ('focus' in w) return w.focus(); }
+      for (const w of wins) {
+        if ('focus' in w) {
+          try { w.postMessage({ target: url }); } catch (_) { /* 화면이 못 받아도 앱은 연다 */ }
+          return w.focus();
+        }
+      }
     }
     return self.clients.openWindow(url);
   })());

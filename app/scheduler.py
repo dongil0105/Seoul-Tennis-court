@@ -30,6 +30,7 @@ from app.services.notifier import (
     kakao_ready,
     notify_slots,
     send_opening_alerts,
+    send_play_free,
     send_startup_digest,
 )
 
@@ -63,7 +64,7 @@ async def _check_opening_alerts(session) -> None:
             badge = OP.board(session)["badge"]   # 화면 배지와 같은 기준
             # 기기별 전송은 동기(최대 10초씩)라 이벤트 루프를 막지 않게 스레드에서.
             n = await asyncio.to_thread(WP.send_opening_alerts, None,
-                                        OP.group_for_message(due), badge)
+                                        OP.group_for_message(due), badge, PLAY.open_badge())
             if n:
                 logger.info("오픈 알람(앱) 후보 %d건 → 기기 %d대", len(due), n)
 
@@ -143,9 +144,36 @@ async def poll_tier23() -> None:
     await _run_pipeline({2, 3})
 
 
+async def _notify_play_free() -> None:
+    """반포에 빈 시간이 새로 생기면 알린다 — 카카오(서버 주인)와, 그 알림을 켠 기기의 앱 알림.
+
+    무음 시간에는 보내지 않고 모아 두었다가, 끝난 뒤에도 비어 있는 것만 알린다.
+    """
+    if not settings.ttp_notify_free:
+        PLAY.take_new_free()
+        return
+    if in_quiet_hours():
+        return
+    items = PLAY.take_new_free()
+    if not items or not PLAY.free_budget():
+        return
+    title, body = PLAY.free_message(items)
+    with get_session() as session:
+        if kakao_ready():
+            await send_play_free(session, title, body)
+        if WP.ready() and WP.count(session):
+            badge = OP.board(session)["badge"]
+            n = await asyncio.to_thread(WP.send_play_free, None, title, body, badge, PLAY.open_badge())
+            logger.info("반포 빈 시간 알림 %d칸 → 기기 %d대", len(items), n)
+
+
 async def poll_play() -> None:
     """테니스플레이(반포종합운동장) 빈 시간 — 계정이 설정된 서버에서만. 실패는 안에서 처리한다."""
     await PLAY.refresh()
+    try:
+        await _notify_play_free()
+    except Exception:  # noqa: BLE001  알림 실패가 다음 조회를 막지 않게
+        logger.exception("반포 빈 시간 알림 실패 — 이번 것은 건너뜀")
 
 
 async def self_ping() -> None:
