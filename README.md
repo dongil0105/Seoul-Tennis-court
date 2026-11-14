@@ -196,7 +196,7 @@ pytest
 서버 설정은 필요 없다(같은 서버의 `/coach`). 구조·기준 데이터 만드는 법·한계는 [docs/COACH.md](docs/COACH.md).
 
 - 화면: `app/static/coach/`, 경로: `app/routers/coach.py`
-- 테스트: `node --test tests/js/coach_engine.test.mjs tests/js/coach_physics.test.mjs`, `pytest tests/test_coach.py`
+- 테스트: `node --test tests/js/coach_engine.test.mjs tests/js/coach_tools.test.mjs tests/js/coach_physics.test.mjs`, `pytest tests/test_coach.py`
 
 ## 6. 한계 / 안전장치
 

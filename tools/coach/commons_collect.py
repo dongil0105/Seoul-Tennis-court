@@ -89,6 +89,7 @@ def main() -> None:
     ap.add_argument("--max", type=int, default=5000, help="받을 사진 수 상한")
     ap.add_argument("--width", type=int, default=960, choices=[500, 960, 1280])
     ap.add_argument("--gap", type=float, default=1.2)
+    ap.add_argument("--per-cat", type=int, default=0, dest="per_cat", help="분류 한 곳에서 받을 사진 수 상한(0 = 전부). 선수 분류처럼 사진이 많은 곳에 쓴다.")
     ap.add_argument("--img-gap", type=float, default=1.5, dest="img_gap",
                     help="사진 사이 쉬는 초. 썸네일 전용 주소(thumb.wikimedia.org)는 이 정도면 429 가 안 난다.")
     ap.add_argument("--skip", default="wheelchair|padel|table|beach|soft tennis|real tennis|pickleball|platform tennis")
@@ -124,9 +125,13 @@ def main() -> None:
             if depth < a.depth:
                 for sub, _n in subs:
                     queue.append((sub, stroke, depth + 1))
+            taken = 0
             for title, h1, h2, name in files:
                 if title in done or not title.lower().endswith(PHOTO_EXT) or skip.search(title):
                     continue
+                if a.per_cat and taken >= a.per_cat:
+                    break
+                taken += 1
                 done.add(title)
                 lists.setdefault(stroke, []).append((title, h1, h2, name, cat))
 
