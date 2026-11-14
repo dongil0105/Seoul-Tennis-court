@@ -76,8 +76,13 @@ export function openVideo(video, file) {
       clearTimeout(timer); clearInterval(poll);
       for (const ev of ['loadeddata', 'canplay', 'loadedmetadata']) video.removeEventListener(ev, check);
       video.removeEventListener('error', onErr);
-      if (err) { URL.revokeObjectURL(url); reject(err); }
-      else resolve({ url, duration: video.duration, width: video.videoWidth, height: video.videoHeight });
+      if (err) { URL.revokeObjectURL(url); reject(err); return; }
+      const info = { url, duration: video.duration, width: video.videoWidth, height: video.videoHeight };
+      // 아이폰 사파리는 한 번도 재생하지 않은 영상을 캔버스에 그리지 못할 때가 있다 → 소리 없이 잠깐 재생했다 멈춘다(실패해도 그대로 진행)
+      let done = false;
+      const go = () => { if (done) return; done = true; try { video.pause(); } catch (_) { /* 무시 */ } resolve(info); };
+      try { const pr = video.play(); if (pr && pr.then) pr.then(go, go); else go(); } catch (_) { go(); }
+      setTimeout(go, 800);
     };
     const check = () => {
       if (token !== openToken) { end(new DOMException('다른 영상을 골랐습니다', 'AbortError')); return; }
