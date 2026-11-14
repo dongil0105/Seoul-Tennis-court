@@ -49,6 +49,13 @@ class Settings(BaseSettings):
     # 공개 배포(클라우드) 시 true — 쓰기 엔드포인트(/filters 생성·삭제)를 차단해 읽기 전용화.
     public_readonly: bool = False
 
+    # ── 스윙 코치(/coach) 공개 범위 ──
+    # true 면 열쇠를 넣은 기기에서만 스윙 코치가 열린다(다른 사람에게는 화면도, 탭도 보이지 않는다).
+    # 완성해서 모두에게 공개할 때 false 로 바꾼다(환경변수 COACH_PRIVATE=false 로도 된다).
+    coach_private: bool = True
+    # 열쇠의 SHA-256(16진수). 열쇠 자체는 저장소에 두지 않는다. 열쇠를 바꾸려면 환경변수 COACH_KEY_SHA256 에 새 해시를 넣는다.
+    coach_key_sha256: str = "6dd67c526f1cc9e4af24d4c8331749df551e9bac45145fe37fa86ddf8de098e1"
+
     # 멀티소스 on/off (CSV, 비우면 전체 활성). 예: "seoul_open_api,gangnam"
     enabled_sources: str = ""
 

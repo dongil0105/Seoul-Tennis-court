@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
 from app.collectors.link_registry import seed_links
@@ -52,14 +51,17 @@ app.include_router(push.router)
 async def static_cache_headers(request, call_next):
     """스윙 코치의 큰 파일(자세 인식 엔진·모델)을 휴대폰이 다시 받지 않게 캐시 머리말을 붙인다."""
     response = await call_next(request)
-    if response.status_code == 200:
+    if response.status_code in (200, 206, 304):
         policy = coach.cache_header_for(request.url.path)
         if policy:
             response.headers["Cache-Control"] = policy
+            if policy.startswith("private"):                # 기기(쿠키)에 따라 달라지는 응답이라고 알린다
+                response.headers.add_vary_header("Cookie")
     return response
 
 
 _STATIC = Path(__file__).resolve().parent / "static"
 # 스윙 코치 파일은 압축해서 보낸다(자세 인식 엔진 wasm 이 15MB → 약 4MB). 기존 화면이 쓰는 /static 은 그대로 둔다.
-app.mount("/static/coach", GZipMiddleware(StaticFiles(directory=_STATIC / "coach"), minimum_size=2048, compresslevel=5), name="coach-static")
-app.mount("/static", StaticFiles(directory=_STATIC), name="static")
+# 스윙 코치가 비공개일 때(settings.coach_private) 이 파일들은 열쇠가 있는 기기에만 내준다 — coach.CoachStatic / coach.SiteStatic.
+app.mount("/static/coach", GZipMiddleware(coach.CoachStatic(directory=_STATIC / "coach"), minimum_size=2048, compresslevel=5), name="coach-static")
+app.mount("/static", coach.SiteStatic(directory=_STATIC), name="static")
