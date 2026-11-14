@@ -64,9 +64,9 @@ export function groupPeople(obs) {
   for (const o of obs) {
     if (!o.color) continue;
     const size = height(o.lm);
-    let best = null, bd = 0.2;
+    let best = null, bd = 0.27;
     for (const g of groups) {
-      const d = colorDist(o.color, g.color) + Math.abs(Math.log(size / g.size)) * 0.08;
+      const d = colorDist(o.color, g.color) + Math.abs(Math.log(size / g.size)) * 0.04;   // 같은 사람도 멀리·가까이 오간다
       if (d < bd) { bd = d; best = g; }
     }
     if (!best) { groups.push({ color: o.color.slice(), count: 1, size, sample: o, sizeBest: size }); continue; }

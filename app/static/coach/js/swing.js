@@ -65,10 +65,11 @@ export function detectSwings(frames, opts = {}) {
   if (!Number.isFinite(h)) return [];
   let v = wristSpeed(frames, hand);
   let vmax = Math.max(...v), p99 = G.percentile(v, 0.99);
-  if (!(vmax >= 1.2)) return [];                          // 가만히 서 있는 영상: 스윙 없음
   // 슬로모션(시간이 늘어난 영상)이면 속도가 낮게 나온다. 배수를 받았으면 그대로, 아니면 어림한다(느린 연습 스윙과 구분은 안 된다 → 화면에서 고칠 수 있게 표시).
-  let sf = Number(opts.sf) > 0 ? Number(opts.sf) : 1, sfAuto = false;
-  if (!(Number(opts.sf) > 0) && p99 < 3.0 && vmax < 4.0) { sf = G.clamp(8 / vmax, 2, 12); sfAuto = true; }
+  const sfGiven = Number(opts.sf) > 0 ? Number(opts.sf) : 0;
+  if (!(vmax >= (sfGiven ? 1.2 / sfGiven : 0.5))) return [];   // 가만히 서 있는 영상: 스윙 없음
+  let sf = sfGiven || 1, sfAuto = false;
+  if (!sfGiven && p99 < 3.0 && vmax < 4.0) { sf = G.clamp(8 / vmax, 2, 12); sfAuto = true; }
   if (sf > 1) { v = wristSpeed(frames, hand, 0.018 * sf); vmax = Math.max(...v); p99 = G.percentile(v, 0.99); }
   const med = G.median(v);
   const thr = Math.max(0.45 * p99, 3.5 / sf, 2.5 * med, 1.0 / sf);
@@ -82,6 +83,10 @@ export function detectSwings(frames, opts = {}) {
     for (let j = i; j >= 0 && frames[i].t - frames[j].t < 0.45 * sf; j--) lowB = Math.min(lowB, v[j]);
     for (let j = i; j < v.length && frames[j].t - frames[i].t < 0.45 * sf; j++) lowA = Math.min(lowA, v[j]);
     if (lowB > 0.5 * v[i] || lowA > 0.6 * v[i]) continue;
+    // 손이 실제로 멀리 갔어야 한다(자세 인식이 떨려서 생긴 속도 꼭대기 배제): 앞뒤 0.35초 사이 손목이 키의 0.3배 이상 이동
+    const wrI = G.sides(hand).hit.wr;
+    const pa = G.poseAt(frames, frames[i].t - 0.25 * sf), pb = G.poseAt(frames, frames[i].t + 0.1 * sf);
+    if (G.dist(pa.w[wrI], pb.w[wrI]) < 0.3 * h) continue;
     const last = peaks[peaks.length - 1];
     if (last != null && frames[i].t - frames[last].t < minGap) { if (v[i] > v[last]) peaks[peaks.length - 1] = i; continue; }
     peaks.push(i);

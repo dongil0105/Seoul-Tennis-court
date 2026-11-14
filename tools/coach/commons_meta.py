@@ -29,12 +29,13 @@ def parse(page: str) -> dict:
     m = re.search(r'id="fileinfotpl_aut"[^>]*>.*?</td>\s*<td[^>]*>(.*?)</td>', page, re.S)
     if m:
         out["author"] = clean(m.group(1)) or None
-    m = re.search(r'class="licensetpl_short"[^>]*>(.*?)</span>', page, re.S)
-    if m:
-        out["license"] = clean(m.group(1)) or None
-    m = re.search(r'class="licensetpl_link"[^>]*>(.*?)</span>', page, re.S)
-    if m:
-        out["licenseUrl"] = clean(m.group(1)) or None
+    # 라이선스가 여러 개 붙은 사진(GFDL + CC 등)은 CC·퍼블릭 도메인을 먼저 고른다
+    shorts = [clean(x) for x in re.findall(r'class="licensetpl_short"[^>]*>(.*?)</span>', page, re.S)]
+    links = [clean(x) for x in re.findall(r'class="licensetpl_link"[^>]*>(.*?)</span>', page, re.S)]
+    pick = next((i for i, x in enumerate(shorts) if re.search(r"CC|Public domain|PD", x)), 0)
+    if shorts:
+        out["license"] = shorts[pick] or None
+        out["licenseUrl"] = links[pick] if pick < len(links) and links[pick].startswith("http") else None
     return out
 
 
@@ -63,7 +64,7 @@ def main() -> None:
                 time.sleep(wait)
         if not page:
             continue
-        info = parse(page)
+        info = parse(page.replace("&#95;", "_"))
         if info["license"]:                 # 라이선스를 읽은 것만 적는다
             meta[title] = info
         if n % 25 == 0:
