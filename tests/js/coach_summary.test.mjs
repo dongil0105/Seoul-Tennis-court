@@ -206,8 +206,8 @@ test('화면 모듈이 모두 문법 오류 없이 읽힌다', async () => {
   }
 });
 
-// ── 공 속도 어림 ────────────────────────────────────────────────
-test('공 속도 어림: 손목이 빠를수록 빠르고, 범위와 함께 돌려준다', async () => {
+// ── 공 속도 예측 ────────────────────────────────────────────────
+test('공 속도 예측: 손목이 빠를수록 빠르고, 범위와 함께 돌려준다', async () => {
   const { estimateSpeed, frameGain, speedSummary, benchmarks, shotSpeed } = await import('../../app/static/coach/js/speed.js');
   const base = { stroke: 'serve', serveType: 'flat', peak: 10, bodyH: 1.7, heightCm: 170, sf: 1, sfAuto: false, step: 1 / 60, vis: 0.9, view: 'side' };
   const e = estimateSpeed(base);
@@ -242,10 +242,10 @@ test('공 속도 어림: 손목이 빠를수록 빠르고, 범위와 함께 돌�
   assert.equal(s.kmh, e.kmh);
 });
 
-test('공 속도 어림: 믿을 수 없을 때는 숫자를 내지 않는다', async () => {
+test('공 속도 예측: 믿을 수 없을 때는 숫자를 내지 않는다', async () => {
   const { estimateSpeed } = await import('../../app/static/coach/js/speed.js');
   const base = { stroke: 'serve', serveType: 'flat', peak: 10, bodyH: 1.7, heightCm: 170, sf: 1, sfAuto: false, step: 1 / 60, vis: 0.9, view: 'side' };
-  assert.equal(estimateSpeed({ ...base, sf: 6, sfAuto: true, peak: 1.3 }).ok, false);     // 슬로모션 배수를 영상에서 어림한 경우
+  assert.equal(estimateSpeed({ ...base, sf: 6, sfAuto: true, peak: 1.3 }).ok, false);     // 슬로모션 배수를 영상에서 예측한 경우
   assert.match(estimateSpeed({ ...base, sf: 6, sfAuto: true, peak: 1.3 }).why, /슬로모션/);
   assert.equal(estimateSpeed({ ...base, vis: 0.4 }).ok, false);                           // 팔이 흐릿함
   assert.equal(estimateSpeed({ ...base, suspect: true }).ok, false);                      // 준비 동작
@@ -293,7 +293,7 @@ test('공 속도 보정: 실제 속도를 알려 주면 그 비율로 맞추고 
   assert.equal(calibration(c, 120), f);
   // 터무니없는 값은 받지 않는다
   assert.equal(calibration(e, 400), null); assert.equal(calibration(e, 10), null); assert.equal(calibration(e, 235), null);
-  assert.equal(calibration(estimateSpeed({ ...base, peak: 6 }), 140), null);            // 어림값의 2배가 넘는다
+  assert.equal(calibration(estimateSpeed({ ...base, peak: 6 }), 140), null);            // 예측값의 2배가 넘는다
   // 맞춘 결과가 범위를 벗어나면 잘라서 보여 주지 않고 숫자를 내지 않는다. 맞춘 값 탓이라고 알려 준다(지울 수 있게)
   assert.equal(estimateSpeed({ ...base, peak: 18, cal: 1.4 }).ok, false);
   assert.equal(estimateSpeed({ ...base, peak: 18, cal: 1.4 }).calOut, true);

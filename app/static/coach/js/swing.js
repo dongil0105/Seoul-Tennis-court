@@ -1,8 +1,8 @@
 // 스윙 코치 — 자세 프레임 줄에서 스윙을 찾고(서브·포핸드·백핸드), 준비·임팩트 같은 핵심 순간을 고른다.
 // DOM 을 쓰지 않는다(브라우저·Node 공용).
 //
-// 공·라켓은 보지 못한다. 치는 손목이 타점을 대신한다. 그래서 임팩트 시각은 '어림'이고,
-// 그 어림이 얼마나 틀릴 수 있는지(tcErr 초, posErr 미터)를 같이 돌려준다. 화면에서 사용자가 한 프레임씩 고칠 수 있다(withContact).
+// 공·라켓은 보지 못한다. 치는 손목이 타점을 대신한다. 그래서 임팩트 시각은 '예측'이고,
+// 그 예측이 얼마나 틀릴 수 있는지(tcErr 초, posErr 미터)를 같이 돌려준다. 화면에서 사용자가 한 프레임씩 고칠 수 있다(withContact).
 import * as G from './geom.js';
 
 const { J } = G;
@@ -55,7 +55,7 @@ export function bodyScale(frames) {
 
 /**
  * 스윙 찾기. frames = [{t, lm, w}] (사람이 안 잡힌 프레임은 빼고, clean.js 로 다듬어서 넘긴다).
- * opts: hand 'R'|'L'(꼭 알려 준다), stroke(사용자가 고른 종류로 고정), sf(슬로모션 배수. 안 주면 어림하고 sfAuto 로 표시)
+ * opts: hand 'R'|'L'(꼭 알려 준다), stroke(사용자가 고른 종류로 고정), sf(슬로모션 배수. 안 주면 예측하고 sfAuto 로 표시)
  * 돌려주는 것: 스윙 배열. 못 찾으면 [].
  */
 export function detectSwings(frames, opts = {}) {
@@ -65,7 +65,7 @@ export function detectSwings(frames, opts = {}) {
   if (!Number.isFinite(h)) return [];
   let v = wristSpeed(frames, hand);
   let vmax = Math.max(...v), p99 = G.percentile(v, 0.99);
-  // 슬로모션(시간이 늘어난 영상)이면 속도가 낮게 나온다. 배수를 받았으면 그대로, 아니면 어림한다(느린 연습 스윙과 구분은 안 된다 → 화면에서 고칠 수 있게 표시).
+  // 슬로모션(시간이 늘어난 영상)이면 속도가 낮게 나온다. 배수를 받았으면 그대로, 아니면 예측한다(느린 연습 스윙과 구분은 안 된다 → 화면에서 고칠 수 있게 표시).
   const sfGiven = Number(opts.sf) > 0 ? Number(opts.sf) : 0;
   if (!(vmax >= (sfGiven ? 1.2 / sfGiven : 0.5))) return [];   // 가만히 서 있는 영상: 스윙 없음
   let sf = sfGiven || 1, sfAuto = false;
@@ -137,7 +137,7 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   const twoHanded = kind !== 'serve' && together >= 0.6;      // 임팩트 전 0.25초 동안 두 손이 계속 붙어 있었나
   const uncertain = !stroke && auto !== 'serve' && Math.abs(side) < 0.02;
 
-  // ② 임팩트 시각(어림): 서브는 손목이 골반 기준 가장 높은 순간, 스트로크는 손목이 가장 빠른 순간 바로 뒤
+  // ② 임팩트 시각(예측): 서브는 손목이 골반 기준 가장 높은 순간, 스트로크는 손목이 가장 빠른 순간 바로 뒤
   const wrUp = (i) => -W(i, S.hit.wr)[1];                     // 골반 중심 기준 손목 높이(머리를 숙여도 안 변한다)
   let tc, ic = ip;
   if (tcOverride != null) {

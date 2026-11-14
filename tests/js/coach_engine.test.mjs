@@ -112,7 +112,7 @@ test('프레임이 촘촘할수록 임팩트 위치 오차가 작다', () => {
   assert.ok(e120 < e30 * 0.45, `${e30} → ${e120}`);
 });
 
-test('슬로모션: 배수를 알려 주면 그대로, 안 알려 주면 어림하고 표시한다', () => {
+test('슬로모션: 배수를 알려 주면 그대로, 안 알려 주면 예측하고 표시한다', () => {
   const fr = forehand({ fps: 30, slow: 8 });
   const given = detectSwings(fr, { hand: 'R', sf: 8 });
   assert.equal(given.length, 1);
@@ -196,7 +196,7 @@ test('빈 구간을 가로질러 자세를 지어내지 않는다', () => {
   assert.ok(!G.validPose({ t: 0, lm: [], w: [] }));
 });
 
-test('사진 한 장의 순간 어림: 서브 임팩트·트로피', () => {
+test('사진 한 장의 순간 예측: 서브 임팩트·트로피', () => {
   const contact = poseMetrics(figure({ wrist: [0.55, -1.25, -0.2], yaw: 0 }), 'R');
   assert.equal(guessPhase('serve', contact), 'contact');
   // 토스하는 팔(반대 손이 머리 위)이나 귀에 붙은 수직 팔은 임팩트가 아니다

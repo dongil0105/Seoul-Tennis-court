@@ -200,7 +200,7 @@ pytest
   (두 manifest 모두 범위 `/`, 앱 아이콘을 길게 누르면 서로의 바로가기). 스윙 코치에서는 처음 화면에서만 탭이 보인다(분석 중에 화면을 떠나지 않게).
 - 영상은 한 개든 여러 개든 한 번에 올린다. 한 사람 영상이면 서브·포핸드·백핸드를 알아서 찾고, 여러 사람이 나오면 한 명을 고르게 한 뒤 모든 스윙을 모아 종합 판단한다.
 - 높이는 '키 → 리치 → 타점 높이'와 '네트 위 몇 cm(공 몇 개)'로 말한다(각도는 쓰지 않는다).
-- 공 속도(서브·포핸드·백핸드)를 손목 속도로 어림해 참고 범위와 함께 보여 준다. 공을 직접 잰 값이 아니고 환산 계수도 검증하지 않았다. 실제 속도를 알면 한 번 넣어 맞출 수 있다.
+- 공 속도(서브·포핸드·백핸드)를 손목 속도로 예측해 참고 범위와 함께 보여 준다. 공을 직접 잰 값이 아니고 환산 계수도 검증하지 않았다. 실제 속도를 알면 한 번 넣어 맞출 수 있다.
 - 화면: `app/static/coach/`, 경로: `app/routers/coach.py`
 - 테스트: `node --test tests/js/coach_engine.test.mjs tests/js/coach_summary.test.mjs tests/js/coach_tools.test.mjs tests/js/coach_physics.test.mjs`, `pytest tests/test_coach.py`
 
