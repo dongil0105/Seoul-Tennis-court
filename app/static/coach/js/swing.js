@@ -55,11 +55,13 @@ export function bodyScale(frames) {
 
 /**
  * 스윙 찾기. frames = [{t, lm, w}] (사람이 안 잡힌 프레임은 빼고, clean.js 로 다듬어서 넘긴다).
- * opts: hand 'R'|'L'(꼭 알려 준다), stroke(사용자가 고른 종류로 고정), sf(슬로모션 배수. 안 주면 예측하고 sfAuto 로 표시)
+ * opts: hand 'R'|'L'(꼭 알려 준다), stroke(사용자가 고른 종류로 고정), sf(슬로모션 배수. 안 주면 예측하고 sfAuto 로 표시),
+ *       backhand '1h'|'2h'(사용자가 알려 준 백핸드 종류. 주면 포핸드/백핸드를 가르는 데 쓰고, 양손 여부를 추측하지 않는다)
  * 돌려주는 것: 스윙 배열. 못 찾으면 [].
  */
 export function detectSwings(frames, opts = {}) {
   const hand = opts.hand === 'L' ? 'L' : 'R';
+  const bh = opts.backhand === '1h' || opts.backhand === '2h' ? opts.backhand : null;
   if (frames.length < 8) return [];
   const h = bodyScale(frames);
   if (!Number.isFinite(h)) return [];
@@ -102,14 +104,14 @@ export function detectSwings(frames, opts = {}) {
       if (frames[i].t - frames[i - 1].t > GAP * Math.max(1, sf / 2)) { broken = true; break; }
     }
     if (broken) continue;
-    const sw = analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke: opts.stroke });
+    const sw = analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke: opts.stroke, bh });
     if (sw) out.push(sw);
   }
   // 서브 바로 앞(1.4초 안)에 잡힌 다른 스윙은 서브의 준비 동작(팔을 뒤로 돌려 올리는 것)이다 → 뺀다
   return out.filter((a) => a.stroke === 'serve' || !out.some((b) => b.stroke === 'serve' && b.tc > a.tc && b.tc - a.tc < 1.4 * sf));
 }
 
-function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverride }) {
+function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverride, bh = null }) {
   const S = G.sides(hand), sign = hand === 'L' ? -1 : 1;
   const tp = frames[ip].t;
   const win = (t0, t1) => { const r = []; for (let i = i0; i <= i1; i++) if (frames[i].t >= t0 && frames[i].t <= t1) r.push(i); return r; };
@@ -132,10 +134,17 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   const pPre = G.poseAt(frames, tp - 0.15 * sf);
   const preAboveShoulder = pPre.w[S.hit.sh][1] - pPre.w[S.hit.wr][1] > 0.02 * h;
   const tossUp = Math.max(-9, ...win(tp - 1.5 * sf, tp - 0.15 * sf).map((i) => W(i, J.nose)[1] - W(i, S.off.wr)[1])) > 0.03 * h;
-  const auto = upMax > 0.11 * h && (preAboveShoulder || tossUp) ? 'serve' : side >= 0 ? 'forehand' : 'backhand';
+  let auto = upMax > 0.11 * h && (preAboveShoulder || tossUp) ? 'serve' : side >= 0 ? 'forehand' : 'backhand';
+  // 양손 백핸드라고 알려 줬으면 '두 손이 붙어 있었나'로 가른다: 붙어 있으면 백핸드, 떨어져 있으면 포핸드.
+  // 손목 사이 거리만 보므로 자세 인식이 좌우를 뒤바꿔도, 뒤에서 찍어도 통한다(몸의 어느 쪽인지 보는 side 는 그럴 때 틀린다).
+  let by = 'side';
+  if (auto !== 'serve' && bh === '2h') {
+    if (together >= 0.6) { auto = 'backhand'; by = 'hands'; } else if (together <= 0.2) { auto = 'forehand'; by = 'hands'; }
+  }
   const kind = stroke || auto;
-  const twoHanded = kind !== 'serve' && together >= 0.6;      // 임팩트 전 0.25초 동안 두 손이 계속 붙어 있었나
-  const uncertain = !stroke && auto !== 'serve' && Math.abs(side) < 0.02;
+  // 양손 여부: 알려 줬으면 그대로(백핸드일 때만), 아니면 임팩트 전 0.25초 동안 두 손이 계속 붙어 있었나로 추측
+  const twoHanded = bh ? kind === 'backhand' && bh === '2h' : kind !== 'serve' && together >= 0.6;
+  const uncertain = !stroke && auto !== 'serve' && by === 'side' && Math.abs(side) < 0.02;
 
   // ② 임팩트 시각(예측): 서브는 손목이 골반 기준 가장 높은 순간, 스트로크는 손목이 가장 빠른 순간 바로 뒤
   const wrUp = (i) => -W(i, S.hit.wr)[1];                     // 골반 중심 기준 손목 높이(머리를 숙여도 안 변한다)
@@ -220,18 +229,18 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   const vis = around.length
     ? around.reduce((s, i) => s + G.vis(frames[i], S.hit.wr, S.hit.el, S.hit.sh, J.lHip, J.rHip, J.lKnee, J.rKnee), 0) / around.length : 0;
 
-  return { i0, i1, ip, ic, tc, tcErr, posErr, sf, sfAuto, h, peak: v[ip], stroke: kind, auto, uncertain, suspect, twoHanded, hand,
+  return { i0, i1, ip, ic, tc, tcErr, posErr, sf, sfAuto, h, peak: v[ip], stroke: kind, auto, uncertain, suspect, twoHanded, hand, bh, by, together,
     dir: d, dirKnown, dirX, view, keys, vis, conf: vis, _v: v };
 }
 
 /** 사용자가 임팩트 순간을 직접 고쳤을 때: 그 시각으로 핵심 순간·방향을 다시 잡는다 */
 export function withContact(frames, swing, tc) {
-  return analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke: swing.stroke, tcOverride: tc });
+  return analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke: swing.stroke, tcOverride: tc, bh: swing.bh });
 }
 
 /** 사용자가 종류(서브·포핸드·백핸드)를 바로잡았을 때: 그 종류로 임팩트·핵심 순간을 다시 잡는다 */
 export function withStroke(frames, swing, stroke) {
-  return analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke });
+  return analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke, bh: swing.bh });
 }
 
 /** 스윙 하나만 담긴 짧은 영상: 가장 빠른 스윙 하나를 고른다 */
