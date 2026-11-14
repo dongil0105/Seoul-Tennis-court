@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { makeFinder, excluded, norm } from '../../tools/coach/names.mjs';
+import { makeFinder, excluded, norm, baseTitle } from '../../tools/coach/names.mjs';
 
 const players = JSON.parse(fs.readFileSync(new URL('../../tools/coach/players.json', import.meta.url), 'utf8'));
 const find = makeFinder(players);
@@ -40,4 +40,16 @@ test('옛 사진과 어린이 사진은 기준에서 뺀다', () => {
 
 test('norm 은 콜론·괄호·악센트를 지운다', () => {
   assert.equal(norm('File:Gaël_Monfils_(2012).jpg'), 'gael monfils 2012 jpg');
+});
+
+test('경기 장면이 아닌 사진(세리머니·시상식)은 뺀다', () => {
+  assert.equal(excluded('File:Jannik_Sinner_after_winning_NextGen_ATP_Finals_in_2019.jpg'), 'event');
+  assert.equal(excluded('File:Trophy_ceremony_US_Open_2019.jpg'), 'event');
+  assert.equal(excluded('File:Alexander_Zverev_(43135093774).jpg'), null);
+  assert.equal(excluded('File:Kristina_Barrois_-_serve.jpg'), null);
+});
+
+test('잘라낸 판은 같은 사진으로 본다', () => {
+  assert.equal(baseTitle('File:Alexander_Zverev_(43135093774)_(cropped).jpg'), baseTitle('File:Alexander_Zverev_(43135093774).jpg'));
+  assert.notEqual(baseTitle('File:Ana_Ivanovic_03.jpg'), baseTitle('File:Ana_Ivanovic_06.jpg'));
 });

@@ -11,7 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as G from '../../app/static/coach/js/geom.js';
 import { poseMetrics, guessPhase } from '../../app/static/coach/js/metrics.js';
-import { makeFinder, excluded } from './names.mjs';
+import { makeFinder, excluded, baseTitle } from './names.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const a = { perCell: '70', minVis: '0.55', minSize: '0.3' };
@@ -93,7 +93,7 @@ for (const [stroke, st] of Object.entries(stats)) {
       r.extreme = zs.reduce((s, z) => s + Math.min(z, 4), 0) / (zs.length || 1);
     }
     const usable = cell._rows.filter((r) => !a.meta || meta[r.title]);
-    const kept = [];                                              // 거의 같은 자세(원본과 잘라낸 판 등 중복)는 하나만
+    const kept = [], bases = new Set();                           // 거의 같은 자세·같은 사진의 잘라낸 판(중복)은 하나만
     // 먼저 넣을 선수(players.json 의 priority — 사용자가 꼽은 선수와 대표 선수)를 앞에, 그다음은 분포 한가운데에 가깝고 잘 보이는 순
     const rank = (r) => (PRIORITY.has(r.player) ? -10 : 0) + r.extreme - 0.6 * r.m.vis - (r.legs ? 0.3 : 0);
     usable.sort((p, q) => rank(p) - rank(q));
@@ -102,9 +102,11 @@ for (const [stroke, st] of Object.entries(stats)) {
       if (samples.filter((s) => s.stroke === stroke && s.phase === phase).length >= Number(a.perCell)) break;
       const feat = G.poseFeature(r.pose);
       if (kept.some((f) => G.featureDistance(f, feat, r.legs) < 0.012)) continue;
+      const base = baseTitle(r.title);
+      if (bases.has(base)) continue;
       const key = r.player || r.title;
       if ((perPlayer[key] = (perPlayer[key] || 0) + 1) > 3) continue;       // 한 선수가 대조군을 독차지하지 않게
-      kept.push(feat);
+      kept.push(feat); bases.add(base);
       const mt = meta[r.title] || {};
       pickedTitles.push(r.title);
       const mm = {};
