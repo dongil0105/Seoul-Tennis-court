@@ -1,0 +1,2429 @@
+{
+ "note": "2026 US 오픈 경기 영상 63개(위키미디어 공용, Oleg Yunakov 촬영 — 관중석 뒤 높은 곳). seq = commons_videos.py 가 받은 파일 이름, track_player.py 로 가까운 선수를 따라가며 자른 영상에서 0.2초 간격 프레임을 보고 표시했다. hits = [초, 종류, 세부(volley|smash|null), 백핸드 손 수, 슬라이스인지, 확신(3=임팩트가 보임, 2=동작은 분명하나 임팩트가 잘림)]. maybe = 쳤는지 확실하지 않은 순간(세지 않는다). visible = 선수가 잘린 영상 안에 온전히 보이는 구간. 표시는 보조 에이전트 5개가 나눠 했고 사람이 하나하나 다시 보지는 않았다.",
+ "clips": [
+  {
+   "seq": "440bd028f4f60ddd",
+   "n": "07",
+   "title": "07 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 02",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "white/pale-pink shirt, white shorts, white cap",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     9.6
+    ]
+   ],
+   "hits": [
+    [
+     3.7,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     6.0,
+     "forehand",
+     null,
+     null,
+     true,
+     2
+    ]
+   ],
+   "maybe": [
+    8.6
+   ],
+   "note": "Starts in return-ready crouch 0.0-1.4, no swing until the backhand at 3.7 (racket back on picture-left 3.4-3.6, ball visible near head at 3.6, follow-through high on right at 3.8). 6.0 is a full-stretch running forehand, racket high at 5.8 then low/extended at 6.0 (looks like a defensive chop). 8.6: lunging backhand stab to the left, ball is right at racket/head at 8.6 but at 8.8 the ball is flying away to picture-left, so it is either a miss or a frame deflection - contact uncertain (conf 1). After 9.0 player walks off; 9.8-10.4 feet hidden by spectators / leaving tile, 10.6-11.0 empty court."
+  },
+  {
+   "seq": "d69c56656f047978",
+   "n": "08",
+   "title": "08 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 03",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "white/pale-pink shirt, white shorts, white cap",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     0.8
+    ],
+    [
+     1.6,
+     9.8
+    ]
+   ],
+   "hits": [
+    [
+     1.1,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     3.3,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     5.7,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     7.9,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Serve: toss 0.2-0.4, trophy 0.6-0.8, racket drop 1.0, racket already coming down at 1.2; head/upper body and racket are cut off by the top edge of the tile 1.0-1.4 so contact itself is not seen (conf 2). Forehand 1: racket high prep 2.8-3.0, racket back 3.2, arm forward/up 3.4, wrap over left shoulder 3.6-3.8. Forehand 2 on the run to the right: prep 5.4, racket low by right hip 5.6, follow-through across to the left 5.8-6.0. Backhand: two-handed take-back 7.2-7.6 (ball visible top-right at 7.6), follow-through high at 8.0. 9.6-10.0 he runs/walks off to the left without swinging; 10.2 mostly cut off, 10.4-12.2 empty court / ball kid only."
+  },
+  {
+   "seq": "8ec0c67377155158",
+   "n": "09",
+   "title": "09 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 04",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "white/pale-pink shirt, white shorts, white cap",
+   "match": "AW",
+   "visible": [
+    [
+     2.0,
+     2.0
+    ],
+    [
+     3.4,
+     4.4
+    ],
+    [
+     6.0,
+     8.8
+    ]
+   ],
+   "hits": [
+    [
+     7.3,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [
+    5.1
+   ],
+   "note": "0.0-1.8 no player (empty court near net, a ball kid runs through 1.0-1.4). 2.2-3.2 player cut off at right tile edge. Serve: stance 3.6-4.0, toss arm rising 4.2, straight up 4.4, trophy at 4.6 already cut off at right edge, then tracker lost him 4.8-5.6 (empty court) so the serve contact is NOT visible; time 5.1 is extrapolated from the toss timing (conf 1, +-0.2 s). 5.8 player partly cut off after landing. Backhand: two-handed take-back 6.8-7.0, racket back and ball visible beside him at 7.2, follow-through high on the right at 7.4, then long wrap/recovery 7.6-8.2 (no second hit). 8.4-8.8 walking."
+  },
+  {
+   "seq": "4c21aea1f01572a7",
+   "n": "10",
+   "title": "10 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 05",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "white/pale-pink shirt, white shorts, white cap",
+   "match": "AW",
+   "visible": [
+    [
+     0.2,
+     5.2
+    ]
+   ],
+   "hits": [
+    [
+     1.9,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Clip opens on the end of a serve: at 0.0 he is airborne with the racket already coming down on the right and head cut off by the top edge, 0.2 landing - the serve contact happened just BEFORE the clip start (about -0.1 s), so it is not recorded. Forehand: moves right 1.2-1.4 with racket prep on the right, racket high 1.6, racket dropped low with ball visible approaching at 1.8, follow-through across to upper-left 2.0-2.2. After that only recovery steps; from 4.0 he walks off (ball seen bouncing away 4.4-4.6), 5.4-5.6 empty court."
+  },
+  {
+   "seq": "a762c9fb9629fcf1",
+   "n": "11",
+   "title": "11 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 06",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "white/pale-pink shirt, white shorts, white cap",
+   "match": "AW",
+   "visible": [
+    [
+     3.4,
+     5.6
+    ]
+   ],
+   "hits": [
+    [
+     5.4,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-2.8 empty court / courtside bags, no player. 3.0-3.2 player only partly in at the left tile edge. 3.4-4.6 standing/ready and split step. Forehand: prep on the right 4.8, racket high 5.0, racket back/low with left arm out 5.2, arm and racket extended to picture-right with the ball right next to the racket at 5.4 (contact), follow-through over the left shoulder 5.6. 5.8 player half cut off at left edge, 6.0-7.0 empty court (tracker lost him)."
+  },
+  {
+   "seq": "c9fa0e365beb3779",
+   "n": "12",
+   "title": "12 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 07",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "grey-brown sleeveless top, dark brown shorts, white compression sleeve on right arm, dark hair (no cap)",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     0.2
+    ],
+    [
+     1.2,
+     10.0
+    ]
+   ],
+   "hits": [
+    [
+     5.3,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     7.5,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.4-1.0 player mostly out of the tile at the top-left (head/body cut off). 1.6-4.0 return-ready crouch, split step 4.2-4.6. Backhand return: racket taken back on picture-left 5.0, racket low-left with ball visible approaching at 5.2, follow-through high on the right 5.4-5.6 (looks two-handed, not fully certain). Forehand: prep on the right 7.0-7.2, racket back with left arm pointing right at 7.4, arm/racket extended to upper-right at 7.6, finish across to the left 7.8-8.0. From 8.4 he stands/walks (point over); 9.6-10.0 walking toward the camera, racket hanging in right (sleeved) hand."
+  },
+  {
+   "seq": "9d1f0369c70c0b0e",
+   "n": "13",
+   "title": "13 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 08",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "grey-brown sleeveless top, dark brown shorts, white compression sleeve on right arm, dark hair (no cap)",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     2.8
+    ],
+    [
+     3.8,
+     4.0
+    ],
+    [
+     5.6,
+     6.4
+    ],
+    [
+     8.0,
+     8.8
+    ],
+    [
+     9.8,
+     9.8
+    ],
+    [
+     11.0,
+     11.4
+    ],
+    [
+     14.2,
+     15.4
+    ]
+   ],
+   "hits": [
+    [
+     11.1,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [
+    9.0,
+    14.2
+   ],
+   "note": "Tracker loses the player repeatedly in this clip. 0.0-2.8 between points: picking balls, at about 2.2-2.4 he taps a spare ball away with the racket toward a ball kid (not a stroke, NOT recorded). 3.0-3.6, 4.2-5.4, 6.6-7.8 empty court or player cut off; 3.8-4.0 and 5.6-6.4 he is bouncing the ball. Serve: stance 8.0, toss arm up 8.2-8.6, trophy/knee bend 8.8, then tiles 9.0-9.4 show empty court so the contact is NOT visible - 9.0 is extrapolated from this player's fully visible serve rhythm in clip 16 (conf 1, +-0.2 s); 9.6 landing at left edge (cut off), 9.8 split step. 10.0-10.8 empty. 11.0 racket prepared high on the right, 11.2 right (sleeved) arm wrapped across to the left with a ball in the air up-right -> forehand at about 11.1 (conf 2). 11.4-11.8 he sprints to picture-right and leaves the tile; 12.0-13.8 empty court (camera on far side / net, ball visible on court 13.4-13.6) - at least one of his shots in this gap is probably missing. 14.0 player half cut off at left edge with racket up, 14.2-14.6 sliding into a full split with racket low on his right side and a ball in the air at 14.2 -> defensive lunge on the forehand side at about 14.2, contact not actually seen (conf 1). 14.8-15.4 gets up and walks; 15.6-16.4 empty."
+  },
+  {
+   "seq": "b57ac4dd69882114",
+   "n": "14",
+   "title": "14 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 09",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "grey-brown sleeveless top, dark brown shorts, white compression sleeve on right arm, dark hair (no cap)",
+   "match": "AW",
+   "visible": [
+    [
+     4.4,
+     4.6
+    ]
+   ],
+   "hits": [],
+   "maybe": [],
+   "note": "Almost the whole clip is empty court / spectators / courtside bags (tracker not on the player). The player appears only 4.2-4.8: 4.2 at the top-left with head cut off, 4.4 and 4.6 fully in tile moving/hopping with the racket held up in front on the right (ready position, no swing), 4.8 only a leg at the left edge. No ball contact visible. Handedness judged from 4.4-4.6 only (racket and sleeved arm on picture-right, seen from behind)."
+  },
+  {
+   "seq": "54467c2a14afdf17",
+   "n": "15",
+   "title": "15 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 10",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "grey-brown sleeveless top, dark brown shorts, white compression sleeve on right arm, dark hair (no cap)",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     5.8
+    ],
+    [
+     8.2,
+     8.8
+    ]
+   ],
+   "hits": [],
+   "maybe": [
+    6.3
+   ],
+   "note": "0.0-3.8 bouncing the ball before the serve (not hits), 4.0-5.2 set in serve stance with ball against the racket. Serve motion: toss arm (bare left arm) out at 5.4, straight up 5.6-5.8, knee bend/trophy at 6.0 where he is already half cut off at the right tile edge; 6.2-8.0 the tile shows only empty court and spectators, so the serve contact is NOT visible - 6.3 is extrapolated from the toss/trophy timing (conf 1, +-0.2 s). 8.2-8.8 he is back in view just walking with the racket, no further strokes."
+  },
+  {
+   "seq": "26418c95d8acb9d9",
+   "n": "16",
+   "title": "16 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 11",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "grey-brown sleeveless top, dark brown shorts, white compression sleeve on right arm, dark hair (no cap)",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     6.2
+    ]
+   ],
+   "hits": [
+    [
+     1.8,
+     "serve",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     3.9,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Serve fully in view: stance 0.0-0.6, toss arm (bare left arm) out 0.8, up 1.0-1.4, trophy with deep knee bend 1.6, full extension with racket at top at 1.8 (contact), follow-through/landing 2.0-2.2, split step 2.6. Forehand (serve+1): racket held up 3.0-3.4, taken back 3.6, racket dropped low behind him with the ball visible approaching on his right at 3.8, finish high over the head at 4.0-4.2 (reverse/lasso finish). From 4.8 he stands and walks off; 6.4-6.8 cut off at left edge, 7.0-10.6 empty court."
+  },
+  {
+   "seq": "a9127214a4bf0c46",
+   "n": "17",
+   "title": "17 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 12",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "grey-brown sleeveless top, dark brown shorts, white compression sleeve on right arm, dark hair (no cap)",
+   "match": "AW",
+   "visible": [
+    [
+     2.6,
+     2.8
+    ]
+   ],
+   "hits": [
+    [
+     2.6,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-2.2 empty court / umpire chair and courtside bags, no player. Player only in view 2.4-3.0 and appears larger than in other clips: 2.4 half cut off at left edge running to picture-right with racket reaching out, 2.6 full-stretch running forehand with the sleeved right arm fully extended and the ball right at the racket head (contact), 2.8 follow-through with racket up over the head, 3.0 cut off at right edge. 3.2-4.6 empty court / spectators."
+  },
+  {
+   "seq": "76cb84b2011fc299",
+   "n": "18",
+   "title": "18 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 13",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "grey-brown sleeveless top, dark brown shorts, white compression sleeve on right arm, dark hair (no cap)",
+   "match": "AW",
+   "visible": [
+    [
+     1.0,
+     1.4
+    ],
+    [
+     7.2,
+     7.8
+    ],
+    [
+     11.4,
+     11.4
+    ]
+   ],
+   "hits": [],
+   "maybe": [
+    6.1
+   ],
+   "note": "Tracker is off the player for most of this clip, so NO contact is actually seen in any tile; this clip is largely unlabelable. 0.0-0.6 empty. 0.8 player cut off at left edge with racket up; 1.0 wide stance with left arm out and racket on the right, 1.2-1.4 running to picture-right (could be the end of a stroke at about 0.9 or just a change of direction - not recorded). 1.6-3.2 net area, no player. 3.4-7.0 static tile on the left court corner with the player standing just OUTSIDE the left tile edge (only racket bits visible at the edge at 3.4, 4.8, 5.0, 5.4, 6.2, 6.8); at 3.8 the whole racket swings horizontally into the tile for one frame (possible stroke at about 3.8, not recorded). A ball is visible moving toward him at 5.8 and 6.0 and flying back to the right at 6.2, so he must have hit it at about 6.1 while out of the tile: recorded with conf 1, and the stroke TYPE IS A GUESS (backhand assumed only because he is wide on his left side). 7.0-7.8 he comes back into view moving right with racket in front (no swing); 8.0-8.6 lower body hidden behind spectators / leaving at left edge; 8.8-11.0 empty except racket bits at the left edge 10.6-11.0. 11.2 half cut at left edge, 11.4 sprinting right with racket up, 11.6 lunging forward at the right tile edge (cut off) and gone at 11.8 - a possible stretched forehand at about 11.7 is not visible and not recorded. 12.0-13.4 spectators/empty; 13.6-14.4 only his upper body at the bottom edge, walking toward the camera (point over); 14.6-16.0 ball kid / empty."
+  },
+  {
+   "seq": "525adcde1aacdcbb",
+   "n": "19",
+   "title": "19 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 14",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "grey-brown sleeveless top, dark brown shorts, white compression sleeve on right arm, dark hair (no cap)",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     4.8
+    ]
+   ],
+   "hits": [
+    [
+     3.4,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-2.6 return-ready stance, gradually rising, no swing. Backhand return: body turns 2.8, racket taken back on picture-left 3.0-3.2 (both arms across to the left), ball visible right at his head/contact zone at 3.4, follow-through high on the right with back leg kicked up at 3.6. Two hands is the best reading but the grip is small in the tiles. From 3.8 he just walks with the racket in front (point apparently over)."
+  },
+  {
+   "seq": "c408b315855ea295",
+   "n": "20",
+   "title": "20 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 15",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan sleeveless top, dark brown shorts, white sleeve on racket arm, white shoes",
+   "match": "AW",
+   "visible": [
+    [
+     4.8,
+     5.0
+    ],
+    [
+     6.8,
+     7.2
+    ],
+    [
+     8.0,
+     8.6
+    ]
+   ],
+   "hits": [],
+   "maybe": [
+    7.5
+   ],
+   "note": "Tracker mostly lost the player: empty court 0.0-2.2, 3.0-4.4, 5.4-6.4; player only partly in tile at the left edge 2.4-2.8 (running, any stroke there not visible), 4.6, 5.2, 6.6, 7.4-7.8. The single hit is a guess (stroke type also uncertain): he stands upright 6.8-7.0, steps to his left at 7.2 with the racket still in front, is cut off at the left tile edge at 7.4 with the racket raised on his right side beside his head, only the racket (pointing up-right) is visible at 7.6, racket points out to the right at chest height at 7.8, then he turns and walks away 8.0-8.6 (point over). This resembles the end of his running forehand in clips 30/32, but the contact is off-tile and it could also be a backhand or just a tap of a dead ball. Hand R: white-sleeved racket arm on picture-right when seen from behind (6.8-7.2), same player as clips 21 and 28-32."
+  },
+  {
+   "seq": "d224c20bc83f2d10",
+   "n": "21",
+   "title": "21 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 16",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan sleeveless top, dark brown shorts, white sleeve on racket arm, white shoes",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     5.4
+    ],
+    [
+     6.4,
+     7.6
+    ],
+    [
+     8.4,
+     8.4
+    ]
+   ],
+   "hits": [
+    [
+     2.7,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     5.3,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Ready position 0.0-1.6 (receiving). Backhand 1: take-back on picture-left 2.4, racket low-left 2.6, follow-through high right 2.8. Backhand 2: take-back 4.8-5.0, wide stretch low-left 5.2, follow-through 5.4 with ball just leaving. Player cut off at left tile edge 5.6-6.2, then runs to the right 6.4-7.8 with no stroke seen; tracker lost the player from 7.8 (empty court 8.0-8.2, 8.8-9.0, 9.4; partial at 8.6, 9.2); 9.6-10.0 shows a ball kid, not the player."
+  },
+  {
+   "seq": "82fa5758c9e8dfb1",
+   "n": "22",
+   "title": "22 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 17",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink/white shirt, white shorts, white cap, red-orange racket",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     6.6
+    ]
+   ],
+   "hits": [
+    [
+     3.1,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     5.3,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Receiving stance 0.0-2.4. Backhand: racket taken to picture-left 2.8-3.0 (ball incoming at right edge of tile 3.0), follow-through high over right shoulder 3.2. Forehand on the run to the right: off arm pointing right 5.0, racket arm extended low to the right just before contact 5.2, racket over left shoulder 5.4-5.6. Then stands/walks 5.8-6.6. Hand judged R from the forehand (free off arm, racket arm on picture-right); backhand hands=2 is probable, not certain."
+  },
+  {
+   "seq": "bb5f8adc31cc6cf7",
+   "n": "23",
+   "title": "23 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 18",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink/white shirt, white shorts, white cap, red-orange racket",
+   "match": "AW",
+   "visible": [
+    [
+     2.2,
+     3.8
+    ],
+    [
+     10.6,
+     11.8
+    ],
+    [
+     19.2,
+     19.2
+    ],
+    [
+     20.2,
+     20.4
+    ]
+   ],
+   "hits": [
+    [
+     2.1,
+     "backhand",
+     null,
+     2,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "Tracker lost the player for most of the clip: 0.0-1.8 empty court/umpire chair, 4.0-10.4 empty, 12.8-14.6 and 15.2-15.8 empty, 16.2-19.0 shows a ball kid, 19.6-20.0 empty. Backhand at ~2.1: ball in the air at 1.8, player at left tile edge at 2.0 with arm reaching left (racket cut off by tile edge), racket high overhead/right in follow-through 2.2-2.4, back to ready 2.6. Player runs forward toward the net 11.2-12.6 (cut off by top of tile from 12.0) - any stroke there is not visible. Partial views only at 12.0-12.6, 14.8, 15.0, 16.0, 19.4, 20.6-20.8. Hand R: carries racket in his right hand walking toward camera at 19.2 and 20.2."
+  },
+  {
+   "seq": "5f3c7b3b7007f764",
+   "n": "24",
+   "title": "24 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 19",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink/white shirt, white shorts, white cap, red-orange racket",
+   "match": "AW",
+   "visible": [
+    [
+     1.8,
+     2.2
+    ],
+    [
+     5.0,
+     9.8
+    ],
+    [
+     10.4,
+     11.8
+    ],
+    [
+     15.2,
+     15.6
+    ]
+   ],
+   "hits": [
+    [
+     5.5,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     7.9,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     10.3,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     15.7,
+     "backhand",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [
+    3.2
+   ],
+   "note": "Tracker lost the player 0.0-1.6, 2.4-4.6 (empty court), 12.0-15.0 (empty court, only ball dots at 12.4/12.8/13.0 and a racket tip at the left tile edge 14.0-14.6 - one or two strokes probably happened off-tile and are NOT labeled), and from 16.4 on (court, umpire chair, crowd clapping, ball kid on page 3). Serve: 1.8-2.0 service wind-up with hands low (seen from his front-right, like clips 26/27), toss arm extending at 2.2, then lost - the serve contact is NOT visible; 3.2 is estimated from the toss using his serve rhythm in clip 27 (could be 3.0-3.4). Backhand 5.5: two-handed take-back on picture-left 5.0-5.4 (ball incoming in 5.4), racket over right shoulder 5.6, wrapped 5.8. Forehand 7.9: crouch with racket in front 7.2, racket up 7.4, full take-back with off arm pointing right 7.6, racket dropped low on the right 7.8, wrapped around to the left 8.0-8.2. Forehand 10.3: crouch 9.6, racket up 9.8, player half cut off at right tile edge during take-back/swing 10.0-10.2, racket finished low on the left 10.4 (contact tile not seen, could be 10.1-10.3). Backhand 15.7: player at left tile edge stretching left, racket up on the left 15.4, crouched 15.6 with incoming ball just above him, racket low on the right 15.8 - possibly a defensive slice, contact not clearly seen."
+  },
+  {
+   "seq": "5363f63cfc95675d",
+   "n": "25",
+   "title": "25 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 20",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink/white shirt, white shorts, white cap, red-orange racket",
+   "match": "AW",
+   "visible": [
+    [
+     1.0,
+     1.4
+    ],
+    [
+     4.4,
+     10.6
+    ]
+   ],
+   "hits": [
+    [
+     4.7,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     7.7,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [
+    2.4
+   ],
+   "note": "Serve: 1.0-1.2 he stands in the service wind-up with hands low (seen from his front-right, like clips 26/27), toss arm extends at 1.4 and is fully up at 1.6 (half cut at right tile edge), then the tracker loses him (empty court 1.8-4.0) - the serve contact is NOT visible; 2.4 is estimated from the toss using his serve rhythm in clip 27. He re-enters at the right tile edge at 4.2. Forehand 4.7 (first shot after the serve): racket taken up behind the head on his right with knees bent 4.4, racket low by the hip with off arm pointing right 4.6, elbow up/hop 4.8, racket wrapped beside the left of the head 5.0; contact tile not clearly seen, and I first mistook this sequence for a serve, hence conf 2. Forehand 7.7: waits in a crouch with racket in front 6.6-7.0, racket up 7.2, full take-back with off arm pointing right 7.4, racket dropped low on the right with incoming ball visible at 7.6, high follow-through over left shoulder 7.8-8.0. Point appears over afterwards (walks away, fist pump 10.2-10.6). From 10.8 his head is cut off by the top of the tile."
+  },
+  {
+   "seq": "1f6fe7c660b4dea6",
+   "n": "26",
+   "title": "26 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 21",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink/white shirt, white shorts, white cap, red-orange racket",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     1.4
+    ],
+    [
+     4.0,
+     6.0
+    ],
+    [
+     7.4,
+     7.4
+    ],
+    [
+     10.2,
+     12.4
+    ],
+    [
+     14.2,
+     15.2
+    ]
+   ],
+   "hits": [
+    [
+     4.9,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [
+    2.4,
+    12.7
+   ],
+   "note": "Serve: ball bounce 0.0, service stance 0.2-0.6, hands drop 0.8-1.2, toss arm rising with ball at 1.4, then the tracker loses him (only racket tip at left edge 1.6, empty court 1.8-3.6) - the serve certainly happens but its contact is NOT visible; time 2.4 is estimated from the toss using his serve rhythm in clip 27 (could be 2.2-2.5). Backhand 4.9: two-handed take-back up on picture-left 4.2-4.6 (ball incoming in 4.6), racket low-left 4.8, follow-through high right with hop 5.0. Then he sprints to the right 5.4-6.0 and is lost 6.2-9.8 (seen once in mid-court at 7.4) - strokes in that gap are not visible and not labeled. Back in view 10.0 (half cut) - 12.4; backhand take-back up-left 12.0-12.4, then tracker loses him at 12.6 (empty court 12.6-14.0), so the 12.7 contact is a guess and may not have happened. 14.2-15.2 walking back facing the camera, point over. Hand R from the service stance (chest facing camera side, racket in right hand)."
+  },
+  {
+   "seq": "33a0c8be1fe5e8ed",
+   "n": "27",
+   "title": "27 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 22",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink/white shirt, white shorts, white cap, red-orange racket",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     2.6
+    ],
+    [
+     4.6,
+     6.6
+    ],
+    [
+     8.0,
+     8.0
+    ]
+   ],
+   "hits": [
+    [
+     0.8,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     2.7,
+     "backhand",
+     null,
+     2,
+     false,
+     2
+    ],
+    [
+     6.1,
+     "backhand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Serve is unmistakable (toss arm up 0.0-0.4, trophy 0.4, racket drop behind back 0.6, airborne fully extended 0.8, bent-forward follow-through 1.0, landing 1.2) but the racket/contact at 0.8 is cut off by the top of the tile, hence conf 2; contact 0.7-0.8. Backhand 2.7: split step 1.8-2.0, two-handed take-back on picture-left 2.2-2.6 with the incoming ball visible right next to him at 2.6, then the tracker loses him (empty court 2.8-4.2) so contact/follow-through are not seen. He re-enters at 4.4 (cut off at left edge) and sprints forward toward the net 4.6-5.6 for a short ball. Backhand 6.1 on the run near the net: racket reaching low-left 5.8-6.0 (looks like a one-arm reach but not certain), racket up high on the right 6.2; could be a flick/slice, ball bounce not seen. At 6.6 he lunges with racket out to the right and left arm back (possible forehand volley, unclear, NOT labeled); half cut off at 6.8, lost 7.0-7.6, partial at 7.8, 8.2."
+  },
+  {
+   "seq": "bd70e8bbefae7c5c",
+   "n": "28",
+   "title": "28 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 24",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan sleeveless top, dark brown shorts, white sleeve on racket arm, white shoes",
+   "match": "AW",
+   "visible": [
+    [
+     3.2,
+     3.6
+    ]
+   ],
+   "hits": [],
+   "maybe": [
+    3.0
+   ],
+   "note": "Tracker shows empty court 0.0-2.8 (only legs at the top-left tile edge at 1.0-1.2). Player appears at 3.0 at the top-left of the tile in a wide stance with head and racket cut off by the tile top, right arm going up to the right; at 3.2 the racket is held high on the picture-right with one arm (left arm at his side), pointing straight out to the right at 3.4, lowered at 3.6, standing still (point over). Contact is not seen. The up-right / out-right / down sequence matches the end of his running forehand in clips 30 and 32, so labeled forehand at about 3.0 as a guess; a backhand with a high finish on the right cannot be excluded. Racket clearly in the right (white-sleeved) hand seen from behind."
+  },
+  {
+   "seq": "ff3961e7e732b0b5",
+   "n": "29",
+   "title": "29 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 25",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan sleeveless top, dark brown shorts, white sleeve on racket arm, white shoes",
+   "match": "AW",
+   "visible": [
+    [
+     4.0,
+     5.4
+    ],
+    [
+     7.2,
+     7.2
+    ],
+    [
+     8.0,
+     9.2
+    ]
+   ],
+   "hits": [],
+   "maybe": [
+    5.8
+   ],
+   "note": "No contact is actually visible in this clip; the single hit is an inferred guess. Tracker shows empty court 0.0-3.8. At 4.0 the player hops into position, then holds a ready crouch with the racket in front 4.2-4.8 (looks like waiting to return serve), steps forward 5.0-5.4 with racket up in front, is half cut off at the left tile edge at 5.6 with the racket raised on his right side beside his head (forehand-side preparation), then the tracker loses him (empty court 5.8-6.8, ball in the air at 5.8) - a return was probably hit off-tile around 5.8, stroke side not certain. Partial views at 7.0, 7.4-7.8; walking toward the net post after the point 7.2 and 8.0-9.2."
+  },
+  {
+   "seq": "3be34ed792f3847a",
+   "n": "30",
+   "title": "30 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 26",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan sleeveless top, dark brown shorts, white sleeve on racket arm, white shoes",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     3.2
+    ],
+    [
+     4.0,
+     5.2
+    ]
+   ],
+   "hits": [
+    [
+     2.5,
+     "serve",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     4.4,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Serve fully in view: stance with ball at racket 0.0-0.8, hands drop 1.0-1.2, toss arm up 1.4-2.0, trophy 2.2, airborne with racket dropped behind the back 2.4, bent-forward follow-through 2.6, landing 2.8-3.0; contact between 2.4 and 2.6. Player half cut off at left tile edge 3.4-3.8. Forehand on the run to the right at the baseline: racket up 4.0-4.2 (off arm pointing at ball in 4.2), racket arm extended low to the right with the ball right at the racket in 4.4, follow-through stays extended on the right side 4.6-4.8 (no wrap across the body). He keeps running right and leaves the tile at 5.4; empty court/stands from 5.6 to the end (ball kid legs only on page 2). Hand R: service stance with chest toward the camera side, racket/white sleeve on his right arm."
+  },
+  {
+   "seq": "92ef79ba7e11930b",
+   "n": "31",
+   "title": "31 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 27",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan sleeveless top, dark brown shorts, white sleeve on racket arm, white shoes",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     6.6
+    ]
+   ],
+   "hits": [
+    [
+     1.7,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     3.9,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Receiving stance 0.0-1.0, split step 1.0-1.2. Backhand return: take-back up on picture-left 1.4, racket extended left with ball incoming at tile edge 1.6, follow-through high on the right 1.8. Second backhand: take-back 3.6, racket extended left with ball visible beside his head 3.8, racket up by the right shoulder and ball leaving at 4.0, slides into a split 4.2. From 6.0 he turns and sprints to his right with the racket carried in front (6.0-6.6, no swing seen); tracker loses him from 6.8 (empty court to the end), so any forehand after that is not visible and not labeled."
+  },
+  {
+   "seq": "5656c312820dbf02",
+   "n": "32",
+   "title": "32 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 29",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan sleeveless top, dark brown shorts, white sleeve on racket arm, white shoes",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     1.0
+    ],
+    [
+     2.0,
+     6.6
+    ]
+   ],
+   "hits": [
+    [
+     5.4,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-1.2 standing/walking behind the baseline with racket hanging in his right hand (leaves tile at 1.2-1.6, half cut at 1.8). Receiving stance 2.0-4.6. Stretched forehand return on the run to his right: steps in 4.8, racket up 5.0-5.2, racket arm fully extended to the right 5.4, racket swings up to the upper right 5.6, stays on the right 5.8-6.0 (same motion pattern as his running forehand in clip 30). No ball is visible, so actual contact is probable but not certain (he may have missed a wide serve). At 6.2-6.6 he flips the racket into the air and walks off - point over."
+  },
+  {
+   "seq": "460110458d48ba5a",
+   "n": "33",
+   "title": "33 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 30",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan/brown sleeveless top, dark brown shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     4.6
+    ],
+    [
+     7.2,
+     8.0
+    ]
+   ],
+   "hits": [
+    [
+     2.4,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     5.4,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [
+    8.3
+   ],
+   "note": "Return of serve: ready stance 0.0-1.8, take-back to picture-left at 2.2, high backhand contact at 2.4 (ball visible at the racket), finish high-right 2.6; he then crouches/touches the ground 2.8-3.2 and sprints to picture-right. 5.4 is a full-stretch running forehand far wide next to the stands: ball visible right beside the extended racket at 5.4, racket up at 5.6, but his legs are hidden behind spectators from 4.8 and only head/shoulders show 5.4-6.0 (could be a near miss). He then stands/walks back 6.0-7.0. Third hit is a GUESS: backhand take-back at 7.8, lunging to picture-left at 8.0 with racket cut by the tile edge and a ball visible moving toward him (8.0, 8.2); he is half cut off at 8.2 and gone from 8.4, so contact (~8.3) is not visible. 8.4-14.2 empty court / spectators (tracker lost)."
+  },
+  {
+   "seq": "318b5181ff29332e",
+   "n": "34",
+   "title": "34 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 31",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan/brown sleeveless top, dark brown shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     2.6
+    ]
+   ],
+   "hits": [
+    [
+     2.0,
+     "backhand",
+     null,
+     2,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "Return-of-serve stance 0.0-1.6, then a full-stretch lunging backhand to picture-left (take-back 1.8, both arms extended to the racket at 2.0, racket dropping 2.2-2.4). Ball not visible, so it could be a missed/ace lunge; point appears to end right after. Player cut off at left tile edge from 2.8; 3.2-5.0 only partly in tile / behind spectators while walking away; 5.2-7.4 empty court."
+  },
+  {
+   "seq": "83975269708c138b",
+   "n": "35",
+   "title": "35 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 32",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan/brown sleeveless top, dark brown shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     9.4
+    ],
+    [
+     9.8,
+     11.0
+    ]
+   ],
+   "hits": [
+    [
+     5.5,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     7.9,
+     "backhand",
+     null,
+     1,
+     true,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-4.8 crouched return-of-serve stance in the wide corner next to the stands (no hit). 5.2 backhand take-back on picture-left, ball visible incoming at 5.4, racket finishing high on the right at 5.6 -> contact ~5.5. Second shot: racket high on the left 7.4-7.8, then arms spread wide with racket low on the right at 8.0-8.2 = one-handed backhand slice, contact ~7.9. 9.6-10.2 player sprints to picture-left but does not hit; head cut by tile top at 9.6; player half cut off at left edge from 11.2."
+  },
+  {
+   "seq": "04f6b423fa186948",
+   "n": "36",
+   "title": "36 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 33",
+   "hand": "?",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "no player in view",
+   "match": "AW",
+   "visible": [],
+   "hits": [],
+   "maybe": [],
+   "note": "Tracker is locked on the players' bench area beside the umpire chair (equipment bags, coolers, a seated person in dark clothing) for the whole clip 0.0-5.6. No tennis player and no play visible."
+  },
+  {
+   "seq": "aa64956a775dde5d",
+   "n": "37",
+   "title": "37 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 34",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "white cap, pale pink/white shirt, white shorts, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     13.2
+    ],
+    [
+     17.2,
+     17.4
+    ]
+   ],
+   "hits": [
+    [
+     0.9,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     3.1,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     5.9,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     8.5,
+     "backhand",
+     null,
+     2,
+     false,
+     2
+    ],
+    [
+     10.8,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Judged left-handed from the strokes: the racket is taken back with one extended arm on his left side (far picture-left at 0.8, 3.0) and at 10.6 the racket arm is back on the left while the other arm (the one with the wristband, his right) points forward - i.e. one-handed swings on the left side with the off arm in front, not two-handed backhands. He also holds the racket in his left hand at 11.2-11.4, during the fist pump 12.6-13.2 and when walking toward the camera 17.2-17.4 (weak evidence on its own). Camera views this corner diagonally from behind-right, so 'toward the net' is picture-right and the incoming ball shows up on the right of the tile. Hits 0.9/3.1/5.9: racket laid back to picture-left, ball visible incoming in the tile before contact (0.8, 3.0, 5.8), finish up on the right then wrap. 8.5: racket held up-left 8.0-8.4, above head at 8.6, wrapped at 8.8 (player hopping), up-right at 9.0 - contact tile ambiguous (8.5-8.7). 10.8: running shot moving forward, arms spread at 10.6, ball right beside the low-hanging racket at 10.8 (contact), finish up-left 11.0-11.2; forehand-vs-backhand-slice slightly uncertain. Caveat: handedness is hard to see at this size; if this player were right-handed, 0.9/3.1/5.9/8.5 (body turned to picture-left, no free arm visible) would be two-handed backhands while 10.8 stays a forehand. Fist pump after the point. Player cut off at right edge 13.4, tracker on empty court 13.6-17.0. [바로잡음: 오른손잡이 → 표시자가 적은 대로 일부를 양손 백핸드로]"
+  },
+  {
+   "seq": "917d436eb8ee85b2",
+   "n": "38",
+   "title": "38 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 35",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "white cap, pale pink/white shirt, white shorts, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     1.6
+    ],
+    [
+     3.8,
+     16.2
+    ]
+   ],
+   "hits": [
+    [
+     5.1,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     8.4,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     11.1,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     14.7,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Same player as clip 37 (judged left-handed there), seen diagonally from behind-right. 0.0-1.6 wide ready stance (waiting for serve), then he steps to picture-right and the tracker loses him 1.8-3.6 (half cut off at right edge at 1.8 and 3.6; 2.0-3.4 empty court) - any return hit in that gap is not visible and not labeled. 5.1: racket arm back/low on the left with the other (wristbanded) arm pointing forward and ball incoming at 5.0, finish above head at 5.2. 8.4: racket up at 8.0, arms spread at 8.2 (racket arm back, off arm forward), racket low in front at 8.4 (same pose as the ball-at-racket tile 10.8 of clip 37), racket up on the left 8.6-8.8 - contact tile ambiguous (8.3-8.4). 11.1: racket held up-left 10.4-11.0, follow-through over head 11.2-11.4. 14.7: ball visible close to body at 14.6 with racket still back, finish high-right at 14.8. Caveat: handedness is hard to see at this size; if this player were right-handed, 11.1 and 14.7 (body turned to picture-left, no free arm visible) would be two-handed backhands while 5.1 and 8.4 stay forehands. Player runs to picture-left at 16.2 and the tracker drifts to empty court / net / umpire chair from 16.4 to the end. [바로잡음: 오른손잡이 → 표시자가 적은 대로 일부를 양손 백핸드로]"
+  },
+  {
+   "seq": "22b96a05c8747c68",
+   "n": "39",
+   "title": "39 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 36",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan/brown sleeveless top, dark brown shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     2.4,
+     5.2
+    ]
+   ],
+   "hits": [
+    [
+     3.5,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-2.2 empty court (tracker not on player). Player enters at 2.4 moving to picture-left, racket raised on his right at 3.0-3.2 with left arm out, racket dropped low/back at 3.4 with left arm pointing forward, racket high above head with right arm up at 3.6, wrapped to the left at 3.8-4.0 -> one forehand, contact between 3.4 and 3.6 (ball not visible). Afterwards he stands and gestures with his right arm (4.6-5.2) holding the racket in the left hand - no further hits."
+  },
+  {
+   "seq": "256074cf67e4faf6",
+   "n": "40",
+   "title": "40 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 37",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan/brown sleeveless top, dark brown shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     2.0
+    ],
+    [
+     2.4,
+     2.8
+    ],
+    [
+     6.0,
+     6.4
+    ]
+   ],
+   "hits": [
+    [
+     1.2,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Backhand: racket taken to picture-left with both hands at 0.8, fully back at 1.0, ball visible right beside the player's hands at 1.2 (contact), finish high on the right at 1.4. Player touches the right tile edge at 2.2, then moves up/left out of the crop: cut off at 3.0, tracker on empty court 3.2-4.8 (a ball is visible in play at 3.4, so any shot he hit in this gap is not visible and not labeled). He walks back into view 5.0-6.4 (head cut by tile top until 5.8) with a clenched fist, racket carried in his left hand; cut off at right edge 6.6; 6.8-7.2 empty court with cheering crowd."
+  },
+  {
+   "seq": "bd37b86e581770f5",
+   "n": "41",
+   "title": "41 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 38",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan/brown sleeveless top, dark brown shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     2.8
+    ],
+    [
+     4.6,
+     5.6
+    ]
+   ],
+   "hits": [
+    [
+     1.6,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [
+    4.5
+   ],
+   "note": "Hit 1: split step 0.8-1.0, two-handed take-back to picture-left 1.2-1.4 (ball visible incoming at 1.4), racket up-left with arms extended at 1.6 (high contact, same pose as the contact tile of clip 33), finish above head on the right while hopping at 1.8-2.0. Then he moves to picture-left (split step ~2.4), is cut off at the left edge at 3.0, tracker on empty court 3.2-4.2. Hit 2 is a GUESS: at 4.4 he is still cut off at the left edge with the racket raised, at 4.6 and 4.8 he holds a wide lunge at the left baseline corner with the right (sleeved) arm and racket extended low in front - looks like the held finish of a stretched one-handed slice, so contact would be ~4.5 while cut off. Ball never visible; it could be a missed reach, and a defensive forehand chop cannot be excluded. From 5.0 he stands up and walks slowly (point over)."
+  },
+  {
+   "seq": "b2470bffc185c5b8",
+   "n": "42",
+   "title": "42 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 39",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan/brown sleeveless top, dark brown shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     7.2,
+     7.6
+    ],
+    [
+     8.0,
+     8.6
+    ]
+   ],
+   "hits": [],
+   "maybe": [
+    8.9
+   ],
+   "note": "Tracker is mostly off the player: 0.0-6.8 empty court / spectators (only feet or a sliver of a person at the top edge at 0.6 and 1.6). Player walks in 7.0-7.6 (head cut by tile top at 7.0), half cut off at right edge 7.8, crouched return-of-serve stance just right of the left baseline corner 8.0-8.2, then turns and moves quickly to picture-left with the racket head up beside/above his head and the right (sleeved) elbow flared back at 8.4 and 8.6 - the same take-back he shows 0.5 s and 0.3 s before his forehands in clips 39 and 45 (his backhand take-backs put the racket head on the picture-left instead). At 8.6 he is in the top-left of the tile and from 8.8 the tracker has lost him (8.8-10.8 empty court / spectators). The single hit is a GUESS: contact is NOT visible; time extrapolated from the take-back (~8.7-9.0). Because he is moving toward his backhand side, a backhand return cannot be excluded, and he may not have hit the ball at all."
+  },
+  {
+   "seq": "8cf2b9ada4211ab3",
+   "n": "43",
+   "title": "43 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 40",
+   "hand": "?",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "unknown - only white shoes / lower legs visible at top edge",
+   "match": "AW",
+   "visible": [],
+   "hits": [],
+   "maybe": [],
+   "note": "Tracker is aimed at the spectators and the green surround below the baseline for the whole clip 0.0-7.4. Only the player's feet/shins appear at the very top edge of the tile from 0.0 to about 3.2 (body, arms and racket are cut off), then nothing. No stroke can be seen, so no hits are labeled; the player may have hit balls that are out of frame."
+  },
+  {
+   "seq": "1430f2a385fff0e7",
+   "n": "44",
+   "title": "44 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 41",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan/brown sleeveless top, dark brown shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     1.0,
+     1.8
+    ],
+    [
+     4.4,
+     4.8
+    ]
+   ],
+   "hits": [
+    [
+     2.1,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-0.6 empty court, 0.8 player half cut off at right edge. Serve: still stance holding ball against racket 1.0-1.2, toss arm (left) up with ball at 1.4, racket low and knees bending 1.6, deep coil 1.8 (head touching the top tile edge from 1.4). The tracker does not follow him upward: at 2.0 his head/arms are cut off by the tile top (legs pushing off) and at 2.2 only his airborne legs are visible, so the overhead contact (~2.1, estimated from the leg drive / jump) is NOT visible. 2.4-3.0 only feet/legs at the top edge (landing, split step), 3.2-4.2 lower body or headless body only, then he walks back toward the camera fully visible 4.4-4.8 (racket in right hand). No other strokes seen."
+  },
+  {
+   "seq": "da3f1143ecbccc98",
+   "n": "45",
+   "title": "45 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 42",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "tan/brown sleeveless top, dark brown shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     2.4,
+     4.6
+    ]
+   ],
+   "hits": [
+    [
+     2.9,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-0.6 only a sliver of the player (legs/racket) at the top-right tile edge, 0.8-2.0 spectators and empty court, 2.2 player half cut off at right edge. Forehand: unit turn with racket up on his right at 2.4-2.6 (left arm out), racket dropped low/back with left arm pointing forward at 2.8, racket arm extended high forward at 3.0 (racket tip touches the top-right tile corner), wrap to the left at 3.2-3.4 -> contact between 2.8 and 3.0. Afterwards he stands and walks (3.6-4.6), no further hits."
+  },
+  {
+   "seq": "04ce5f4018775844",
+   "n": "46",
+   "title": "46 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 43",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink shirt, white shorts, white cap, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     1.6,
+     8.8
+    ],
+    [
+     9.6,
+     10.8
+    ],
+    [
+     13.2,
+     14.2
+    ]
+   ],
+   "hits": [
+    [
+     3.5,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     6.0,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     8.5,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-1.4 empty court (player not yet in tile). Ball visible next to hands at 6.0 and next to body at 8.4. Player slides off left edge 9.0-9.4, then runs right 9.6-11.0 with racket raised (possible further shot after 11.0 not visible); tracker shows empty court 11.2-12.8; 13.2-14.2 player walking toward camera between points, no hit."
+  },
+  {
+   "seq": "c63e0cc3b94d3143",
+   "n": "47",
+   "title": "47 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 44",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "dark/beige sleeveless top, dark shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     1.8,
+     2.0
+    ]
+   ],
+   "hits": [
+    [
+     0.7,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "Very short clip, tracker mostly off the player. 0.0-0.4 and 1.2-1.6 and 2.4-2.8 show empty court. At 0.6-0.8 the player is at the top edge, airborne with legs together and racket up (serve jump) but head/arms are cut off, so the serve contact (~0.7) is inferred, not seen. 1.8-2.2 player recovering and moving left (half cut at 2.2); no further hit visible."
+  },
+  {
+   "seq": "690a2a1849244b7e",
+   "n": "48",
+   "title": "48 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 45",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "dark/beige sleeveless top, dark shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     0.2,
+     5.6
+    ]
+   ],
+   "hits": [
+    [
+     1.3,
+     "serve",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     3.4,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [
+    5.8
+   ],
+   "note": "View is oblique (left corner, side wall banner behind), player seen partly from the front during the serve. Serve: toss 0.2-0.8, trophy 1.0, racket drop 1.2, follow-through 1.4. Backhand: full backswing at 3.2 with ball visible, racket already up in front at 3.4 with the ball just beyond it (contact a hair before the 3.4 tile). From 5.2 the player sprints left, racket stretched out to the left at 5.6, and dives out of the tile at 5.8: a stretched backhand is a guess only (contact not visible, conf 1). 6.0-7.8 empty court / spectators."
+  },
+  {
+   "seq": "c9bec8c0160f1de6",
+   "n": "49",
+   "title": "49 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 46",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "dark/beige sleeveless top, dark shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     2.2,
+     3.0
+    ],
+    [
+     4.8,
+     5.8
+    ]
+   ],
+   "hits": [
+    [
+     3.1,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [
+    5.1
+   ],
+   "note": "Player sits at the top edge of the tile: head/shoulders cut off 0.0-2.0 (bouncing the ball before the serve, not a hit) and 3.6-4.6; only legs visible 3.2-3.4. Serve: toss 2.2, racket up 2.8, racket drop 3.0, airborne legs at 3.2 -> contact ~3.1 is above the tile (not seen). At 4.8-5.2 (about 2 s after the serve) he crouches and sweeps the racket low from his right to his left at a ball at his feet; the ball is then seen bouncing away behind him (5.4-5.8) and he walks off relaxed. This is either a mishit forehand half-volley off a deep return or a dead-ball scoop after a fault; contact itself is not visible, so it is recorded only as a conf 1 guess."
+  },
+  {
+   "seq": "c7eedb146a1ca709",
+   "n": "50",
+   "title": "50 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 47",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 어두운 옷",
+   "clothes": "dark/beige sleeveless top, dark shorts, white sleeve on right arm",
+   "match": "AW",
+   "visible": [
+    [
+     0.4,
+     2.2
+    ],
+    [
+     4.2,
+     11.0
+    ]
+   ],
+   "hits": [
+    [
+     2.5,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     4.4,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     6.7,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     9.1,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "Serve: toss 1.2-1.8, trophy at 2.2 (player at right edge), then tracker loses the player (2.4-4.0 empty court) so serve contact ~2.5 is inferred from the motion, not seen. Player re-enters at 4.2 already reaching for a backhand; ball visible beside the racket at 4.4. Forehand 6.7: racket drop at 6.6, follow-through high at 6.8. Forehand 9.1: racket drop 9.0 with incoming ball, arm extended forward at 9.2 with ball leaving. 10.0 onward walking between points; head cut off by top edge from 11.2."
+  },
+  {
+   "seq": "2b7518775565f8df",
+   "n": "51",
+   "title": "51 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 48",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink shirt, white shorts, white cap, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     0.6,
+     0.8
+    ],
+    [
+     3.2,
+     4.4
+    ]
+   ],
+   "hits": [
+    [
+     1.3,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-0.4 empty court. Serve: toss arm fully up at 0.6 (player at right edge), deep knee bend with racket coming up at 0.8, body extended upward at 1.0 with head/arms cut off by the top edge, only legs visible 1.2-1.8. Contact is above the tile; time ~1.3 is inferred by matching these phases to the same player's fully visible serve in clip 53 (knee bend 0.5 s before contact). Player then drifts out of the tile (2.0 head cut, 2.2 at right edge, 2.4-2.8 empty, 3.0 at right edge). 3.2-4.4 player standing/walking with racket held low, no rally stroke visible."
+  },
+  {
+   "seq": "d99529c97cfc033c",
+   "n": "52",
+   "title": "52 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 49",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink shirt, white shorts, white cap, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     4.2,
+     8.4
+    ],
+    [
+     9.2,
+     9.2
+    ],
+    [
+     10.8,
+     11.8
+    ]
+   ],
+   "hits": [
+    [
+     4.4,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ],
+    [
+     7.3,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-3.8 tracker off the player (empty court / umpire chair). Player enters at 4.0 (left edge, already in backhand backswing). Backhand: both arms back to the left at 4.2 with incoming ball visible, arms through in front at 4.4, racket wrapped beside head at 4.6. Forehand: unit turn 6.8, arms spread with racket back at 7.0, racket low on hitting side at 7.2, hand high above head in follow-through at 7.4. After 8.4 player leaves the tile to the right (8.6-9.0 cut off, 9.4-10.4 empty court/net); 10.6-11.8 walking between points carrying the racket, no hit."
+  },
+  {
+   "seq": "e9062217903fd81f",
+   "n": "53",
+   "title": "53 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 50",
+   "hand": "R",
+   "backhand": "1h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink shirt, white shorts, white cap, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     1.4,
+     2.2
+    ],
+    [
+     2.8,
+     4.0
+    ],
+    [
+     6.6,
+     7.8
+    ]
+   ],
+   "hits": [
+    [
+     2.1,
+     "serve",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     4.1,
+     "backhand",
+     null,
+     1,
+     true,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-1.2 empty court. Serve fully visible: toss arm up 1.4-1.6, racket up with body extended 1.8, racket drop behind back 2.0, bent-over follow-through 2.2 -> contact 2.1. Legs cut off by bottom edge at 2.4-2.6. Second shot: racket held high on the left (backhand) side 3.6-4.0 with the incoming ball visible just in front of the player at 4.0, racket low and out to the right at 4.2 (player at left edge) -> read as a backhand slice at ~4.1; type is probable, not certain. Tracker then leaves the player (4.4-6.2 net/empty court; any shot in that gap is not visible). 6.6-7.8 player standing with back to camera between points, no hit. 8.2-9.0 empty court."
+  },
+  {
+   "seq": "6915a0804ddd9e2b",
+   "n": "54",
+   "title": "54 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 51",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink shirt, white shorts, white cap, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     5.2,
+     8.0
+    ],
+    [
+     9.6,
+     11.6
+    ],
+    [
+     13.0,
+     14.6
+    ]
+   ],
+   "hits": [
+    [
+     5.1,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     8.5,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     12.1,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     14.8,
+     "backhand",
+     null,
+     2,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-4.8 and 14.8-20.4 tracker is off the player (umpire chair / ball kid / empty court). All four contacts fall where the player is not cleanly in the tile, so all are conf 2. (1) Player enters at 5.2 already in forehand extension (arm and racket reaching forward), racket wrapped to the left at 5.4-5.6 -> contact ~5.1 just before he is in frame. (2) 8.0 racket up in unit turn, 8.2 off arm pointing, 8.4 ball visible approaching, 8.6 arm up in follow-through; player at the left edge next to a dark pole 8.2-8.6 -> forehand ~8.5; 8.8-9.4 empty court. (3) 11.6 unit turn with ball visible, 12.0 off arm extended with ball close, racket back; 12.2-12.6 player hidden behind the pole -> forehand ~12.1-12.3 (12.1 recorded). (4) 14.4-14.6 two-handed backhand backswing with ball visible approaching at 14.6, then the tracker drops him at 14.8 -> backhand ~14.8 inferred."
+  },
+  {
+   "seq": "a29c3c4a9a37ae8c",
+   "n": "55",
+   "title": "55 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 52",
+   "hand": "R",
+   "backhand": "1h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink shirt, white shorts, white cap, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     0.2
+    ],
+    [
+     4.0,
+     5.6
+    ],
+    [
+     6.8,
+     10.2
+    ],
+    [
+     11.2,
+     11.6
+    ]
+   ],
+   "hits": [
+    [
+     5.9,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     8.1,
+     "backhand",
+     null,
+     1,
+     true,
+     3
+    ],
+    [
+     10.7,
+     "backhand",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-4.6 pre-serve routine (ball bouncing, not hits); player is cut off at the right edge 0.4-3.8. Serve: toss 4.8-5.2, racket up with body extended 5.6, racket drop at 5.8 with the player already at the left edge, then the tracker loses him (6.0-6.6 empty court) -> contact ~5.9 inferred from the motion. Slice backhand: racket held high on the left 7.4-8.0, racket low and extended forward with arms spread at 8.2, one-handed finish 8.4. Third shot: player runs left out of the tile (10.4), at 10.8 only his racket is visible at the left edge with the ball just leaving it, at 11.0 he is at the edge with the racket wrapped beside his head -> a hit at ~10.7 on the backhand side; stroke type is inferred (probably two-handed backhand, hands not visible). 11.2-11.8 running back to the right, 12.0 empty."
+  },
+  {
+   "seq": "d6c48314b76f41dc",
+   "n": "56",
+   "title": "56 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 53",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink shirt, white shorts, white cap, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     2.0
+    ],
+    [
+     3.6,
+     4.0
+    ],
+    [
+     4.8,
+     9.8
+    ],
+    [
+     11.6,
+     11.6
+    ],
+    [
+     13.8,
+     14.4
+    ]
+   ],
+   "hits": [
+    [
+     1.9,
+     "serve",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     3.9,
+     "backhand",
+     null,
+     2,
+     false,
+     2
+    ],
+    [
+     6.7,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     14.3,
+     "backhand",
+     "volley",
+     1,
+     false,
+     2
+    ]
+   ],
+   "maybe": [
+    10.1
+   ],
+   "note": "Serve fully visible: toss 0.8-1.4, racket up with body extended 1.6, racket drop 1.8, bent-over follow-through 2.0. Tracker off the player 2.4-3.4. Backhand: backswing at 3.6 with ball visible, racket dropped low on the left at 3.8, racket wrapped beside head at 4.0; player then slides off the left edge 4.2-4.6 (time could be up to ~0.2 s later). Forehand 6.7: unit turn 6.4, arms spread with racket back 6.6, arm and racket extended forward 6.8, wrapped 7.0. From 8.8 the player moves forward; at 9.8 racket is raised on the forehand side and at 10.0 he is leaving the tile (top-left) with the ball visible nearby, then 10.2-11.4 empty court: an approach forehand at ~10.1 is a guess (contact not seen, conf 1). He walks into mid-court (11.6) and is out of view again 11.8-13.6 - a first volley may have been played there unseen. At the net: split step 14.0, racket out to the left 14.2, full low stretch to the left with ball just beside him 14.4 -> low backhand volley ~14.3. 14.6 onward empty court / applauding spectators / umpire chair to 22.8."
+  },
+  {
+   "seq": "9bed4208538d784a",
+   "n": "57",
+   "title": "57 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 54",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink shirt, white shorts, white cap, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     1.8,
+     2.8
+    ],
+    [
+     3.8,
+     6.2
+    ]
+   ],
+   "hits": [
+    [
+     2.7,
+     "serve",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     4.9,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-1.6 tracker on umpire chair / empty court. Serve fully visible: toss arm up 1.8-2.2, racket up with body extended 2.4, racket drop 2.6, bent-over follow-through 2.8 -> contact 2.7. Player cut off at right edge 3.0 and 3.6, empty court 3.2-3.4. Backhand: racket held up on the left 4.4-4.6 with incoming ball visible at 4.6, racket dropped on the left at 4.8, arms and racket up in follow-through at 5.0-5.2 -> contact 4.9. 5.4-6.2 recovering to the right, no further hit; 6.4 player at left edge, 6.6-6.8 side wall / empty."
+  },
+  {
+   "seq": "1cf01b624bb749ac",
+   "n": "58",
+   "title": "58 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 55",
+   "hand": "R",
+   "backhand": "1h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "pale pink shirt, white shorts, white cap, pink racket",
+   "match": "AW",
+   "visible": [
+    [
+     5.4,
+     9.6
+    ]
+   ],
+   "hits": [
+    [
+     5.9,
+     "backhand",
+     null,
+     1,
+     true,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-5.0 player is off the right edge of the tile (only a racket tip / foot / half a body at times while he waits to receive). Slice backhand: racket held high on the left 5.4-5.8 with the ball visible just in front of him at 5.8, racket low and forward with arms spread at 6.0, one-handed finish up to the right at 6.2 -> contact 5.9. The extended racket arm at 6.4-6.6 is the follow-through while he moves forward, not a second hit. 7.0-7.8 ready position; 8.0-8.4 he runs right but makes no swing, ball seen on the ground at 8.6, then walks (point over). 9.8 onward empty court / umpire chair."
+  },
+  {
+   "seq": "edf0fa28449d25c0",
+   "n": "59",
+   "title": "59 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 56",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "light pink shirt, white shorts, white cap",
+   "match": "AW",
+   "visible": [
+    [
+     0.0,
+     4.4
+    ]
+   ],
+   "hits": [
+    [
+     2.1,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     4.3,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "serve: toss arm up 1.2-1.6, trophy position (racket vertical, toss arm still up) at 1.8, body fully stretched at 2.0, landing with racket low in front at 2.2 -> contact between tiles 2.0 and 2.2 (racket probably above the tile top at contact). Second shot: backs up behind the baseline, racket low/back with free left arm out and ball arriving at 4.2, racket finishes high over the head at 4.4 (forehand with high finish). Player is at the left edge of the video frame from 4.2 and leaves the frame at 4.6; tiles 4.8-5.8 show empty court."
+  },
+  {
+   "seq": "bd367f8f04f7a49c",
+   "n": "60",
+   "title": "60 Carlos Alcaraz vs. Wu Yibing (2026 US Open) - 57",
+   "hand": "?",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "알카라스-우 밝은 옷",
+   "clothes": "light pink shirt, white shorts, white cap",
+   "match": "AW",
+   "visible": [
+    [
+     6.0,
+     6.2
+    ]
+   ],
+   "hits": [],
+   "maybe": [],
+   "note": "no strokes. Tracker is not on the player for most of the clip: 0.0-2.2 show the umpire-chair area / net and empty court, 2.6-5.8 follow a ball kid in dark clothes running along the net. The player appears only at 2.4 (bottom-left corner, running with racket, partly cut off), 2.6 (cut off at bottom edge), 6.0-6.2 (walking near the net, racket hanging down) and 6.4 (cut off at top-left). Handedness cannot be judged from this clip (looks like the same player as clip 59, who is right-handed)."
+  },
+  {
+   "seq": "cb61e4f71befa935",
+   "n": "62",
+   "title": "62 Jessica Pegula vs. Leylah Fernandez (2026 US Open) - 02",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "페굴라-페르난데스 오른손",
+   "clothes": "dark maroon dress, maroon visor, dark hair in a bun",
+   "match": "PF",
+   "visible": [
+    [
+     4.4,
+     4.4
+    ],
+    [
+     6.2,
+     6.2
+    ],
+    [
+     8.2,
+     12.4
+    ]
+   ],
+   "hits": [
+    [
+     9.0,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "tracker wanders for the first 8 s: 0.0-4.2, 4.6, 6.0, 6.4-6.8, 7.4-7.8 are empty court, 4.8-5.8 show the umpire-chair area; player only glimpsed at 4.4 and 6.2 (ready position) and cut off at the right tile edge at 7.0-7.2 and 8.0, so earlier hits in the rally (if any) are not visible. One stroke on her left side: racket taken back on picture-left at 8.6, dropped low by the left hip at 8.8, arms stretched out to the left with racket going up and ball next to the racket at 9.0, finish over the right shoulder at 9.2. Handedness R is taken from the clear one-handed forehands with free left arm by the same player in clips 65 and 70 (in this clip alone the left-side stroke could not be told from a lefty forehand). 11.2-11.4 a ball passes her without a swing; from 11.6 she walks."
+  },
+  {
+   "seq": "4c3b574d1227e18a",
+   "n": "63",
+   "title": "63 Jessica Pegula vs. Leylah Fernandez (2026 US Open) - 03",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "페굴라-페르난데스 오른손",
+   "clothes": "dark maroon dress, maroon visor, dark hair in a bun",
+   "match": "PF",
+   "visible": [
+    [
+     0.0,
+     3.6
+    ],
+    [
+     5.0,
+     7.2
+    ],
+    [
+     8.6,
+     11.0
+    ]
+   ],
+   "hits": [
+    [
+     7.3,
+     "backhand",
+     null,
+     2,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-3.6 return-of-serve ready stance at the left corner. She moves left at 3.8 (cut by left tile edge), tiles 4.0-4.6 are empty court and 4.8 is cut off: the serve return (probably a backhand around 4.2) happened while the tracker had lost her, so it is NOT recorded. Backhand: racket up on picture-left at 6.8, full backswing at 7.0, hands dropping by the left hip at 7.2 (player at left tile edge), then tracker lost (7.4-8.2 empty court) - contact is just after 7.2 and not visible. 9.6-9.8 she sprints right and lunges with the racket stretched out low to the right, then stops and walks from 10.0: no ball or contact visible (probably a winner past her), not recorded. Player at tile edge at 8.4 and 11.2; 11.4-12.0 empty court."
+  },
+  {
+   "seq": "853e8f5ae8a3021a",
+   "n": "64",
+   "title": "64 Jessica Pegula vs. Leylah Fernandez (2026 US Open) - 04",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "페굴라-페르난데스 오른손",
+   "clothes": "dark maroon dress, maroon visor, dark hair in a bun",
+   "match": "PF",
+   "visible": [
+    [
+     4.4,
+     9.0
+    ]
+   ],
+   "hits": [
+    [
+     6.1,
+     "backhand",
+     null,
+     2,
+     false,
+     3
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-4.0 tracker is on the far-side background (ball kid / photographers), 4.2 shows only the racket at the left edge. 4.4-5.4 return-of-serve ready stance at the left corner. Backhand return: compact backswing on picture-left at 5.8, forward swing starting (racket blurred, hands by left hip) at 6.0, both hands finishing by the right shoulder at 6.2, racket behind the head at 6.4 -> contact between 6.0 and 6.2. 6.6-7.8 ready position, from 8.0 she turns and walks (point over). 9.2-9.4 cut off at the bottom edge."
+  },
+  {
+   "seq": "7ead1cd3f56f7c89",
+   "n": "65",
+   "title": "65 Jessica Pegula vs. Leylah Fernandez (2026 US Open) - 05",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "페굴라-페르난데스 오른손",
+   "clothes": "dark maroon dress, maroon visor, dark hair in a bun",
+   "match": "PF",
+   "visible": [
+    [
+     1.0,
+     1.0
+    ],
+    [
+     1.6,
+     2.6
+    ],
+    [
+     4.6,
+     5.8
+    ],
+    [
+     6.8,
+     8.8
+    ]
+   ],
+   "hits": [
+    [
+     2.8,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ],
+    [
+     5.4,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     9.0,
+     "backhand",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "handedness: forehand at 5.0-5.8 is clearly one-handed on her right side with the free left arm pointing at the ball -> right-handed. Hit 1: runs right 1.8-2.4, racket back with left arm extended at 2.6, at 2.8 only her foot is in the tile (left edge) and the ball is visible - contact cut off. Hit 2: backswing 5.2, racket low on the right with the ball right at the racket at 5.4, finish over the head/left shoulder 5.6-5.8. Hit 3: runs left with racket prepared on picture-left 8.2-8.8, ball visible arriving at 8.8, at 9.0 she is cut off at the left tile edge - contact not visible. Tracker lost / empty court: 0.0-0.8, 2.8-4.4, 9.2-9.8; player cut off at tile edge at 1.2-1.4, 6.0-6.6, 9.0."
+  },
+  {
+   "seq": "eeac6f82ad2de560",
+   "n": "66",
+   "title": "66 Jessica Pegula vs. Leylah Fernandez (2026 US Open) - 06",
+   "hand": "L",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "페굴라-페르난데스 왼손",
+   "clothes": "pink top with white band, pink skirt, dark hair",
+   "match": "PF",
+   "visible": [
+    [
+     0.0,
+     3.0
+    ]
+   ],
+   "hits": [
+    [
+     3.3,
+     "serve",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "left-handed: seen from behind, the toss goes up with the picture-right arm (2.4-2.6) while the racket is in the picture-left hand (hanging down-left at 2.4-2.6, raised on the left with the left arm out at 2.8-3.0). 0.0-2.2 she stands at the baseline before serving (head touches the top tile edge until 1.4). Serve: toss 2.4-2.6, trophy position 2.8, deep knee bend with racket up at 3.0, then the tracker loses her (3.2-6.8 are empty court / net post) - contact itself is not visible, time estimated from the motion (about 0.3 s after the knee bend)."
+  },
+  {
+   "seq": "a5969600fc08622b",
+   "n": "67",
+   "title": "67 Jessica Pegula vs. Leylah Fernandez (2026 US Open) - 08",
+   "hand": "L",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "페굴라-페르난데스 왼손",
+   "clothes": "pink top with white band, pink skirt, dark hair in a bun, yellow-green racket",
+   "match": "PF",
+   "visible": [
+    [
+     0.0,
+     1.2
+    ],
+    [
+     4.2,
+     8.6
+    ]
+   ],
+   "hits": [
+    [
+     6.1,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ]
+   ],
+   "maybe": [
+    8.9
+   ],
+   "note": "left-handed (same player as clip 66 where the serve shows it; here the swing on her left side is one-handed with the right arm free). 0.4-5.6 return-of-serve crouch at the left corner; from 1.4 to 4.0 the tracker box drifts and she is cut off in the bottom-left corner of the tile (only upper body). Hit 1 (return): racket back on picture-left at 5.8, racket low-left with both arms spread and ball arriving at 6.0, racket straight up overhead at 6.2 -> contact between 6.0 and 6.2. After that she recovers (6.4-6.8) and sprints right 7.0-8.6 (racket just carried at 7.4-7.6, no hit) with the racket drawn back at 8.6 for a stroke on her right side (backhand side for a lefty); at 8.8 she is cut by the right tile edge and from 9.0 the tracker shows empty court, so that contact is NOT visible - recorded only as a conf-1 guess. 9.0-12.8 no player."
+  },
+  {
+   "seq": "86fc05483a12c526",
+   "n": "68",
+   "title": "68 Jessica Pegula vs. Leylah Fernandez (2026 US Open) - 09",
+   "hand": "L",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "페굴라-페르난데스 왼손",
+   "clothes": "pink top with white band, pink skirt, dark hair in a bun, yellow-green racket",
+   "match": "PF",
+   "visible": [
+    [
+     3.8,
+     6.6
+    ]
+   ],
+   "hits": [],
+   "maybe": [],
+   "note": "no ball contact visible. 0.0-3.4 umpire-chair area / empty court. 3.6 player at left tile edge, 3.8 split-step, 4.0-4.4 sprints right and lunges, 4.6 bent over with the racket head on the ground (chased a ball she apparently did not reach - no swing, no ball seen), 4.8-5.4 turns to face the camera holding the racket in her left hand (picture-right while facing us -> left-handed), 5.6-6.6 walks away, 6.8 cut off, 7.0-7.4 only a ball kid."
+  },
+  {
+   "seq": "1f294939e6a90ab5",
+   "n": "69",
+   "title": "69 Jessica Pegula vs. Leylah Fernandez (2026 US Open) - 10",
+   "hand": "L",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "페굴라-페르난데스 왼손",
+   "clothes": "pink top with white band, pink skirt, dark hair in a bun, yellow-green racket",
+   "match": "PF",
+   "visible": [
+    [
+     2.8,
+     3.0
+    ],
+    [
+     6.0,
+     6.0
+    ],
+    [
+     9.0,
+     9.0
+    ]
+   ],
+   "hits": [
+    [
+     5.8,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "tracker is off the player for most of the clip: 0.0-2.4 empty court + spectator, 3.2-5.6 empty court / umpire chair, 7.2-8.8 empty court. Player seen at 2.6 (cut at left edge), 2.8-3.0 (low return crouch), then only from 5.8. One stroke: at 5.8 only her racket head pokes in at the left tile edge with the ball right next to it (contact, body cut off), at 6.0 she is in a deep forward lunge with the racket arm finished up beside/over the head (follow-through). Forehand vs backhand is judged only from that one-armed high finish, so the stroke type is uncertain. 6.2-7.0 she is bent low / crouching and cut off by the bottom tile edge; 9.0 standing, 9.2 cut at left edge. Any return of serve between 3.2 and 5.6 is not visible and not recorded. Handedness L is taken from the same player in clips 66-68 (not decidable from this clip alone)."
+  },
+  {
+   "seq": "0f8a8425f02587be",
+   "n": "70",
+   "title": "70 Jessica Pegula vs. Leylah Fernandez (2026 US Open)",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤(경기)",
+   "group": "페굴라-페르난데스 오른손",
+   "clothes": "dark maroon dress, maroon visor, dark hair in a bun",
+   "match": "PF",
+   "visible": [
+    [
+     0.0,
+     1.8
+    ],
+    [
+     4.4,
+     6.2
+    ],
+    [
+     7.0,
+     9.2
+    ],
+    [
+     10.6,
+     11.0
+    ]
+   ],
+   "hits": [
+    [
+     5.9,
+     "forehand",
+     null,
+     null,
+     false,
+     3
+    ],
+    [
+     8.9,
+     "forehand",
+     null,
+     null,
+     false,
+     2
+    ]
+   ],
+   "maybe": [],
+   "note": "0.0-1.6 ready stance, moves left at 1.8, then tracker lost (2.0-3.6 empty court; 3.8-4.2 only legs / cut off) - a stroke in that gap (likely the serve return) is not visible and not recorded. Hit 1: racket back with free left arm pointing right at 5.6, racket dropped low behind her at 5.8, finish over the left shoulder at 6.0-6.2 -> contact between 5.8 and 6.0. 6.4-6.8 head cut off by top tile edge. Hit 2: standing upright behind the baseline with the racket held up in front (8.2-8.6), at 8.8 the right arm is stretched toward the ball (ball visible about 1 m in front of the racket at shoulder height), at 9.0 the racket has chopped down low, at 9.2 she stands still and then walks - a casual high-to-low block/chop on her forehand side, possibly of a ball flying long after the point was decided; contact falls between 8.8 and 9.0. 9.4 and 10.4 cut off, 9.6-10.2 empty court."
+  }
+ ]
+}

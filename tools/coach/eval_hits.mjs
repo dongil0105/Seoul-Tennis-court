@@ -38,7 +38,7 @@ for (const c of labels) {
     if (sub === 'volley' || (!sub && want !== 'serve')) { tot.sub++; if ((g.sub || null) === (sub || null)) tot.subOk++; else if (verbose) notes.push(`${t}초 세부 ${sub || '스트로크'}→${g.sub || '스트로크'}`); }
   }
   const vis = (t) => !c.visible || c.visible.some(([a, b]) => t >= a - 0.05 && t <= b + 0.05);
-  const extra = sw.filter((x, i) => !used.has(i) && vis(x.t) && c.hits.every(([th]) => Math.abs(th - x.t) > TOL));   // 선수가 안 보이는 구간·친 순간 바로 옆은 세지 않는다
+  const extra = sw.filter((x, i) => !used.has(i) && vis(x.t) && c.hits.every(([th]) => Math.abs(th - x.t) > TOL) && (c.maybe || []).every((tm) => Math.abs(tm - x.t) > 0.5));   // 선수가 안 보이는 구간·친 순간 바로 옆은 세지 않는다
   for (const x of extra) notes.push(`${x.t.toFixed(1)}초 없는 스윙(${x.stroke} ${x.s.toFixed(2)})`);
   tot.hits += c.hits.length; tot.found += found; tot.right += right; tot.extra += extra.length;
   const bv = (byView[c.view] ||= { hits: 0, right: 0, extra: 0 }); bv.hits += c.hits.length; bv.right += right; bv.extra += extra.length;

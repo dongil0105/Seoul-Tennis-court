@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // 친 순간을 사람이 표시한 영상 → '치는 순간' 학습 자료(후보마다 특징 + 스윙인지 아닌지).
 //   node tools/coach/build_hit_cands.mjs <자세 줄 폴더> <친 순간 표시.json> out.jsonl [--src 이름]
-// 표시 파일: { clips: [{ seq, hand, hits: [[초, 종류, 세부]], visible?: [[t0, t1]], group? }] } (eval_hits_*.json 과 같은 모양)
+// 표시 파일: { clips: [{ seq, hand, hits: [[초, 종류, 세부]], visible?: [[t0, t1]], maybe?: [초](쳤는지 확실하지 않은 순간), group? }] } (eval_hits_*.json 과 같은 모양)
 // 후보(손목 속도의 꼭대기)마다: 표시한 친 순간에서 0.3초 안이면 스윙(가장 가까운 후보 하나만), 0.5초 넘게 떨어져 있고 선수가 보이는 구간이면 '스윙 아님',
 // 그 사이는 애매하다(pos = -1: 학습에는 쓰지 않고, 끝까지 재는 데만 쓴다).
 import fs from 'node:fs';
@@ -48,7 +48,7 @@ for (const c of clips) {
     const t = fr[i].t;
     let pos = -1, label = 'forehand';
     if (posOf.has(i)) { pos = 1; label = posOf.get(i); }
-    else if (visible(t) && c.hits.every(([th]) => Math.abs(th - t) > FAR)) pos = 0;
+    else if (visible(t) && c.hits.every(([th]) => Math.abs(th - t) > FAR) && (c.maybe || []).every((tm) => Math.abs(tm - t) > FAR)) pos = 0;
     out.write(JSON.stringify({ src, who: c.group || c.seq, clip: c.seq, label, t: Math.round(t * 100) / 100, v: Math.round(v[i] * 100) / 100, pos, x: r4(swingSequence(fr, t, c.hand, h, 1, v)) }) + '\n');
     if (pos > 0) nPos++; else if (pos === 0) nNeg++;
   }
