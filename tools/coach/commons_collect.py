@@ -2,7 +2,8 @@
 """위키미디어 공용(Wikimedia Commons) 분류에서 테니스 선수 사진을 모은다 — 기준 자세 데이터의 원본.
 
 - 분류 페이지(HTML)만 읽고, 사진은 공용이 권하는 표준 썸네일 크기(960px)로 받는다. 원본·API 는 쓰지 않는다.
-- 요청 사이를 띄우고(분류 페이지 1.2초, 사진 10초), 429 가 오면 Retry-After 만큼 쉰 뒤 다시 한다.
+- 사진은 썸네일 전용 주소(thumb.wikimedia.org)에서 받는다. upload.wikimedia.org 는 한 IP 에 분당 몇 장만 준다.
+- 요청 사이를 띄우고(분류 페이지 1.2초, 사진 1.5초), 429 가 오면 Retry-After 만큼 쉰 뒤 다시 한다.
 - 받은 사진은 저장소 밖(--out)에 둔다. 저장소에는 뼈대 수치와 출처만 올린다.
 
   python3 tools/coach/commons_collect.py --out /tmp/commons \
@@ -88,8 +89,8 @@ def main() -> None:
     ap.add_argument("--max", type=int, default=5000, help="받을 사진 수 상한")
     ap.add_argument("--width", type=int, default=960, choices=[500, 960, 1280])
     ap.add_argument("--gap", type=float, default=1.2)
-    ap.add_argument("--img-gap", type=float, default=10.0, dest="img_gap",
-                    help="사진 사이 쉬는 초. 공용은 한 IP 에 10초에 한 장쯤만 준다(더 빨리 하면 429).")
+    ap.add_argument("--img-gap", type=float, default=1.5, dest="img_gap",
+                    help="사진 사이 쉬는 초. 썸네일 전용 주소(thumb.wikimedia.org)는 이 정도면 429 가 안 난다.")
     ap.add_argument("--skip", default="wheelchair|padel|table|beach|soft tennis|real tennis|pickleball|platform tennis")
     a = ap.parse_args()
 
@@ -143,7 +144,7 @@ def main() -> None:
             local = os.path.join(img_dir, hashlib.sha1(title.encode()).hexdigest()[:16] + ".jpg")
             url = None
             for w in (a.width, 500):   # 원본이 작으면 큰 썸네일이 없다 → 한 단계 작은 것으로
-                u = f"https://upload.wikimedia.org/wikipedia/commons/thumb/{h1}/{h2}/{name}/{w}px-{name}"
+                u = f"https://thumb.wikimedia.org/wikipedia/commons/thumb/{h1}/{h2}/{name}/{w}px-{name}"
                 data = fetch(u, a.img_gap, binary=True, tries=4)
                 if data and len(data) > 2000:
                     with open(local, "wb") as f:

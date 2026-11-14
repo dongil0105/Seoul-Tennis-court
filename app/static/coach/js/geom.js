@@ -140,12 +140,27 @@ export function lerpPose(a, b, t) {
   return { t, lm: mix(a.lm, b.lm), w: mix(a.w, b.w) };
 }
 
-/** 시각 t 의 자세 — 프레임 사이면 보간 */
-export function poseAt(frames, t) {
+/** 시각 t 의 자세 — 프레임 사이면 보간. 사람을 놓친 긴 빈 구간(maxGap 초)을 가로지르면 가까운 쪽 프레임을 그대로 쓴다. */
+export function poseAt(frames, t, maxGap = 0.25) {
   if (!frames.length) return null;
   if (t <= frames[0].t) return frames[0];
-  for (let i = 1; i < frames.length; i++) if (frames[i].t >= t) return lerpPose(frames[i - 1], frames[i], t);
+  for (let i = 1; i < frames.length; i++) {
+    if (frames[i].t < t) continue;
+    const a = frames[i - 1], b = frames[i];
+    if (b.t - a.t > maxGap) return t - a.t <= b.t - t ? a : b;
+    return lerpPose(a, b, t);
+  }
   return frames[frames.length - 1];
+}
+
+/** 자세 좌표가 모두 숫자인지(추론이 깨진 프레임을 걸러낼 때) */
+export function validPose(p) {
+  if (!p || !Array.isArray(p.lm) || !Array.isArray(p.w) || p.lm.length < 33 || p.w.length < 33 || !Number.isFinite(p.t)) return false;
+  for (let i = 0; i < 33; i++) {
+    const a = p.lm[i], b = p.w[i];
+    if (!a || !b || !Number.isFinite(a[0]) || !Number.isFinite(a[1]) || !Number.isFinite(b[0]) || !Number.isFinite(b[1]) || !Number.isFinite(b[2])) return false;
+  }
+  return true;
 }
 
 /** 기준 자세와 견줄 때 쓰는 특징: 주요 관절 12곳의 몸 기준 좌표 ÷ 키. 카메라 방향과 상관없다. */

@@ -44,7 +44,7 @@ const SERVE = [
     get: (m) => m.chestAtTrophy, range: () => ({ lo: 62, hi: 175 }),
     low: () => ({ title: '정면을 보고 서서 팔로만 치고 있어요', why: '몸통을 감았다 풀어야 힘이 실립니다.', cue: '옆으로 서서, 토스할 때 등이 상대에게 살짝 보이게 어깨를 돌리세요.' }) },
   { id: 'serve_contact_height', phase: 'contact', label: '타점 높이', unit: 'h', sev: 3,
-    get: (m) => m.contactHeight, range: (c) => ({ lo: c.level === 'adv' ? 1.14 : 1.08, hi: 9 }),
+    get: (m) => m.wristHeightGround, range: (c) => ({ lo: c.level === 'adv' ? 1.14 : 1.08, hi: 9 }),
     low: (v, b, c) => ({ title: `타점이 낮아요 — 약 ${cm(b.lo + 0.04 - v, c)}cm 더 높은 곳에서 맞히세요`, why: '타점이 낮으면 네트를 넘길 수 있는 각도가 급격히 좁아집니다(아래 "들어가는 각도" 참고).',
       cue: '공이 떨어지기를 기다리지 말고, 가장 높은 곳으로 올라가서 팔을 다 편 채 맞히세요.', you: `손목 ${Math.round(v * c.heightCm)}cm` }) },
   { id: 'serve_contact_elbow', phase: 'contact', label: '임팩트 팔꿈치', unit: '°', sev: 2,
@@ -75,18 +75,18 @@ const groundCommon = (S, opt) => [
     get: (m) => P(m, 'contact').wristFront, range: (c) => band(c, opt.refStroke, 'contact', 'wristFront', [0.05, 0.36], { k: 1.8 }),
     low: () => ({ title: '타점이 몸에 가깝거나 늦어 보여요', why: '가슴보다 충분히 앞에서 맞아야 힘이 실립니다. (옆에서 찍으면 몇 cm 인지 정확히 알려 드릴 수 있어요.)', cue: opt.frontCue }) },
   { id: `${S}_knee`, phase: 'load', label: '무릎 굽힘', unit: '°', sev: 2,
-    get: (m) => m.kneeBend, range: (c, m) => ({ lo: m.contactHeight < 0.42 ? 38 : 22, hi: 95 }),
-    low: (v, b, c, m) => (m.contactHeight < 0.42
+    get: (m) => m.kneeBend, range: (c, m) => ({ lo: m.wristHeightGround < 0.42 ? 38 : 22, hi: 95 }),
+    low: (v, b, c, m) => (m.wristHeightGround < 0.42
       ? { title: '낮은 공인데 서서 치고 있어요', why: '허리만 숙이면 라켓이 공 밑으로 들어가지 못해 네트에 걸립니다.', cue: '허리 말고 무릎을 굽혀 엉덩이를 공 높이로 낮추세요.', you: `${deg0(v)}°` }
       : { title: '무릎을 펴고 서서 치고 있어요', why: '다리를 못 쓰면 라켓 속도가 크게 떨어지고 높낮이 조절이 안 됩니다.', cue: '치기 전에 의자에 살짝 앉듯 굽혔다가, 일어나면서 치세요.', you: `${deg0(v)}°` }) },
   { id: `${S}_high_ball`, phase: 'contact', label: '타점 높이', unit: 'h', sev: 2,
-    get: (m) => m.contactHeight, range: () => ({ lo: -9, hi: opt.highBall }),
+    get: (m) => m.wristHeightGround, range: () => ({ lo: -9, hi: opt.highBall }),
     high: (v, b, c) => ({ title: '어깨 위 높은 공을 억지로 쳤어요', why: '높은 타점에서는 라켓 속도가 떨어지고 면 조절이 어렵습니다.', cue: opt.highCue, you: `손목 ${Math.round(v * c.heightCm)}cm` }) },
   { id: `${S}_turn`, phase: 'backswing', label: '어깨 턴', unit: '°', sev: 3,
     get: (m) => m.chestAtBackswing, range: () => ({ lo: opt.turn, hi: 181 }),
     low: (v) => ({ title: '어깨 턴이 부족해요 — 팔로만 치고 있어요', why: '몸통을 돌렸다 풀어야 힘이 실리고 타점도 앞으로 나옵니다.', cue: opt.turnCue, you: `${deg0(v)}°` }) },
   { id: `${S}_lean_back`, phase: 'contact', label: '상체 기울기', unit: 'h', sev: 2, when: sideOnly,
-    get: (m) => m.headFront, range: () => ({ lo: -0.035, hi: 9 }),
+    get: (m) => m.headFront, range: () => ({ lo: -0.075, hi: 9 }),
     low: () => ({ title: '상체가 뒤로 젖혀진 채 맞고 있어요', why: '체중이 뒷발에 남으면 면이 열려 공이 길게 뜹니다.', cue: '가슴을 공 쪽으로 내미세요. 코가 앞발 위에 오게.' }) },
   { id: `${S}_head`, phase: 'contact', label: '머리 고정', unit: 'h', sev: 1,
     get: (m) => m.headMove, range: () => ({ lo: -9, hi: 0.11 }),
@@ -174,7 +174,10 @@ export function advise(m, ctxIn = {}) {
     const v = rule.get(m);
     if (!Number.isFinite(v)) continue;
     const b = rule.range(ctx, m);
-    const sideHit = v < b.lo ? 'low' : v > b.hi ? 'high' : null;
+    // 타점 앞뒤는 프레임 간격 때문에 생기는 위치 오차(posErr)보다 크게 벗어났을 때만 말한다
+    const tol = /contact_front$/.test(rule.id) && Number.isFinite(m.posErr) ? Math.min(0.12, m.posErr) : 0;
+    const sideHit = v < b.lo - tol ? 'low' : v > b.hi + tol ? 'high' : null;
+    if (tol && !sideHit && (v < b.lo || v > b.hi)) notes.push('타점 앞뒤가 경계선에 있는데, 영상 프레임 간격 때문에 확실히 말하기 어렵습니다. 슬로모션으로 찍으면 정확해집니다.');
     if (!sideHit || !rule[sideHit]) {
       if (b.src === 'pro' || rule.sev >= 2) good.push({ id: rule.id, label: rule.label, phase: rule.phase });
       continue;
@@ -192,7 +195,8 @@ export function advise(m, ctxIn = {}) {
   const grade = score >= 88 ? '아주 좋아요' : score >= 76 ? '좋아요' : score >= 62 ? '조금만 다듬으면' : '기본부터 하나씩';
   if (m.conf < 0.6) notes.push('화면에서 팔다리가 잘 안 보여 정확도가 낮습니다. 몸 전체가 크게 나오게, 밝은 곳에서 다시 찍어 보세요.');
   if (m.view !== 'side') notes.push('옆에서 찍으면 타점이 몇 cm 앞·뒤인지까지 알려 드릴 수 있어요.');
-  if (m.sf > 1.5) notes.push('슬로모션 영상으로 보입니다. 타점 위치가 더 정확하게 잡힙니다.');
+  if (m.sf > 1.5) notes.push(m.sfAuto ? '슬로모션 영상으로 보고 분석했습니다. 일반 속도 영상이면 위에서 바꿔 주세요.' : '슬로모션 영상이라 타점 위치가 더 정확하게 잡힙니다.');
+  if (m.uncertain) notes.push('포핸드인지 백핸드인지 확실하지 않습니다. 종류를 직접 골라 주세요.');
 
   let resultNote = null;
   if (ctx.result && ctx.result !== 'good') {

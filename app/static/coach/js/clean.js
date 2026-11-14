@@ -35,7 +35,7 @@ export function cleanFrames(frames, aspect = 1) {
     }
     const size = d2(sc(cur.lm[11]), sc(cur.lm[23])) + d2(sc(cur.lm[12]), sc(cur.lm[24])) || 0.2;   // 몸통 길이 두 배쯤
     const flipped = dt < 0.25 && swap < 0.5 * keep && keep > 0.6 * size && swap < 0.9 * size;
-    parity[i] = parity[i - 1] ^ (flipped ? 1 : 0);
+    parity[i] = flipped ? 1 : 0;        // 이 프레임의 원래 이름표가 첫 프레임 기준과 달랐나(누적하지 않는다: seq 는 이미 맞춰진 줄이다)
     if (flipped) cur = swapLR(cur);       // 앞 프레임과 이어지게 맞춘다
     seq.push(cur);
   }
@@ -49,18 +49,23 @@ export function cleanFrames(frames, aspect = 1) {
   });
   let out = w1 > w0 ? seq.map(swapLR) : seq;
 
-  // ② 한 프레임만 튄 팔다리 관절
+  // ② 한 프레임만 튄 팔다리 관절: 앞뒤 프레임을 시간 비율로 이은 자리에서, 몸통 길이에 견줘 크게 벗어난 점
   out = out.map((f) => ({ ...f, lm: f.lm.slice(), w: f.w.slice() }));
+  const d3 = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
   for (let i = 1; i < out.length - 1; i++) {
     const a = out[i - 1], b = out[i], c = out[i + 1];
-    if (c.t - a.t > 0.3) continue;
+    if (c.t - a.t > 0.3 || c.t <= a.t) continue;
+    const al = (b.t - a.t) / (c.t - a.t);
+    const torso2 = d2(sc(b.lm[11]), sc(b.lm[23])) || 0.1;          // 화면에서 몸통 길이
+    const torso3 = d3(b.w[11], b.w[23]) || 0.5;                     // 3차원 몸통 길이(약 0.5m)
     for (const j of LIMBS) {
-      const span = d2(sc(a.lm[j]), sc(c.lm[j]));
-      const mx = [(a.lm[j][0] + c.lm[j][0]) / 2, (a.lm[j][1] + c.lm[j][1]) / 2];
-      const off = d2(sc(b.lm[j]), sc(mx));
-      if (off > 3 * span + 0.06) {
-        b.lm[j] = [mx[0], mx[1], (a.lm[j][2] + c.lm[j][2]) / 2, Math.min(a.lm[j][3], c.lm[j][3]) * 0.5];
-        b.w[j] = [(a.w[j][0] + c.w[j][0]) / 2, (a.w[j][1] + c.w[j][1]) / 2, (a.w[j][2] + c.w[j][2]) / 2, b.w[j][3]];
+      const mix = (u, v2, n) => Array.from({ length: n }, (_, k) => u[k] + (v2[k] - u[k]) * al);
+      const m2 = mix(a.lm[j], c.lm[j], 3), m3 = mix(a.w[j], c.w[j], 3);
+      const off2 = d2(sc(b.lm[j]), sc(m2)), span2 = d2(sc(a.lm[j]), sc(c.lm[j]));
+      const off3 = d3(b.w[j], m3), span3 = d3(a.w[j], c.w[j]);
+      if (off2 > 3 * span2 + 0.35 * torso2 || off3 > 3 * span3 + 0.45 * torso3) {
+        b.lm[j] = [m2[0], m2[1], m2[2], Math.min(a.lm[j][3], c.lm[j][3]) * 0.5];
+        b.w[j] = [m3[0], m3[1], m3[2], b.w[j][3]];
         b.fixed = (b.fixed || 0) + 1;
       }
     }
