@@ -195,6 +195,8 @@ pytest
 테니스 스윙 영상을 넣으면 선수 자세와 나란히 보여 주고 고칠 점을 알려 주는 화면. 분석은 휴대폰 브라우저 안에서만 돌고 영상은 서버로 오지 않는다.
 서버 설정은 필요 없다(같은 서버의 `/coach`). 구조·기준 데이터 만드는 법·한계는 [docs/COACH.md](docs/COACH.md).
 
+- 코트 오픈과 한 앱처럼 쓴다: 두 화면 아래에 같은 탭 줄(코트 오픈 | 스윙 코치)이 있고, 어느 아이콘으로 설치해도 두 화면이 앱 안에서 열린다
+  (두 manifest 모두 범위 `/`, 앱 아이콘을 길게 누르면 서로의 바로가기). 스윙 코치에서는 처음 화면에서만 탭이 보인다(분석 중에 화면을 떠나지 않게).
 - 화면: `app/static/coach/`, 경로: `app/routers/coach.py`
 - 테스트: `node --test tests/js/coach_engine.test.mjs tests/js/coach_tools.test.mjs tests/js/coach_physics.test.mjs`, `pytest tests/test_coach.py`
 

@@ -55,8 +55,9 @@ def coach_manifest() -> JSONResponse:
         "short_name": "스윙 코치",
         "description": "테니스 스윙 영상을 넣으면 선수 자세와 나란히 보고 고칠 점을 알려 줍니다.",
         "lang": "ko",
+        "id": "/coach",
         "start_url": "/coach",
-        "scope": "/coach",
+        "scope": "/",            # 코트 오픈(/)으로 넘어가도 앱 안에서 열리게 범위를 사이트 전체로
         "display": "standalone",
         "orientation": "portrait",
         "background_color": "#0B1210",
@@ -64,6 +65,10 @@ def coach_manifest() -> JSONResponse:
         "icons": [
             {"src": "/static/coach/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
             {"src": "/static/coach/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+        ],
+        "shortcuts": [
+            {"name": "코트 오픈", "short_name": "코트 오픈", "description": "테니스장 예약 오픈 일정과 빈 코트", "url": "/",
+             "icons": [{"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png"}]},
         ],
     }, media_type="application/manifest+json")
 

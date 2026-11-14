@@ -176,4 +176,14 @@ ol.steps li{position:relative;padding:12px 0 12px 40px;border-bottom:1px solid v
 ol.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:12px;width:26px;height:26px;border-radius:50%;background:var(--surface-2);font-size:13px;font-weight:800;text-align:center;line-height:26px;color:var(--ball)}
 ol.steps li span{display:block;font-size:13px;color:var(--ink-3)}
 @media (prefers-reduced-motion:no-preference){ .spin{animation:spin 1s linear infinite;transform-origin:50% 50%} @keyframes spin{to{transform:rotate(360deg)}} }
+/* 아래 탭: 코트 오픈 ↔ 스윙 코치. 처음 화면에서만 보인다(분석 중·결과 화면에서는 '뒤로'로 돌아온다) */
+.tabs{display:none;position:fixed;left:50%;bottom:0;z-index:30;transform:translateX(-50%);grid-template-columns:1fr 1fr;width:100%;max-width:520px;
+  padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--line);background:rgba(11,18,16,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+body.tabs-on .tabs{display:grid}
+body.tabs-on .app{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+body.tabs-on .toast{bottom:calc(72px + env(safe-area-inset-bottom))}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:56px;font-size:11px;font-weight:600;color:var(--ink-3)}
+.tab svg{width:24px;height:24px}
+.tab.on{color:var(--ball)}
+.tab:active{background:var(--surface)}
 @media (min-width:560px){ body{background:#070B0A} .app{background:var(--bg);box-shadow:0 0 0 1px var(--line)} }

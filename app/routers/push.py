@@ -85,4 +85,9 @@ def manifest() -> JSONResponse:
             {"src": "/static/icon-maskable-512.png", "sizes": "512x512", "type": "image/png",
              "purpose": "maskable"},
         ],
+        # 앱 아이콘을 길게 누르면 스윙 코치로 바로 간다(화면 아래 탭으로도 오간다)
+        "shortcuts": [
+            {"name": "스윙 코치", "short_name": "스윙 코치", "description": "스윙 영상을 넣으면 자세 조언", "url": "/coach",
+             "icons": [{"src": "/static/coach/icon-192.png", "sizes": "192x192", "type": "image/png"}]},
+        ],
     }, media_type="application/manifest+json")

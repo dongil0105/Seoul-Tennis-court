@@ -31,7 +31,9 @@ def test_coach_page_served():
 
 def test_manifest_scope():
     m = _client().get("/coach/manifest.webmanifest").json()
-    assert m["start_url"] == "/coach" and m["scope"] == "/coach"
+    # 범위는 사이트 전체: 스윙 코치 아이콘으로 열어도 코트 오픈(/)이 앱 안에서 열린다
+    assert m["start_url"] == "/coach" and m["scope"] == "/" and m["id"] == "/coach"
+    assert [s["url"] for s in m["shortcuts"]] == ["/"]
     for icon in m["icons"]:
         assert (STATIC / icon["src"].removeprefix("/static/")).is_file()
 
@@ -102,3 +104,32 @@ def test_coach_page_blocks_outside_connections():
     html = r.text
     assert "cdn.jsdelivr.net" not in html and "googleapis" not in html
     assert "onload=" not in html and "onclick=" not in html           # 인라인 스크립트는 정책에서 막힌다
+
+
+def _tab_links(html: str) -> dict[str, bool]:
+    """아래 탭의 링크 → 지금 화면 표시(aria-current) 여부"""
+    import re
+    nav = re.search(r'<nav class="tabs"[^>]*>(.*?)</nav>', html, re.S)
+    assert nav, "아래 탭이 없다"
+    return {m.group(2): 'aria-current="page"' in m.group(1) for m in re.finditer(r'<a class="tab([^>]*?) href="([^"]+)"', nav.group(1))}
+
+
+def test_tabs_link_both_screens():
+    """코트 오픈과 스윙 코치가 아래 탭으로 서로 이어진다(한 앱처럼)."""
+    from app.routers import dashboard, push
+
+    app = FastAPI()
+    app.include_router(dashboard.router)
+    app.include_router(coach.router)
+    app.include_router(push.router)
+    c = TestClient(app)
+    court = _tab_links(c.get("/").text)
+    swing = _tab_links(c.get("/coach").text)
+    assert court == {"/": True, "/coach": False}           # 코트 오픈 화면: 코트 오픈 탭이 켜져 있다
+    assert swing == {"/": False, "/coach": True}           # 스윙 코치 화면: 스윙 코치 탭이 켜져 있다
+    m = c.get("/manifest.webmanifest").json()
+    assert m["scope"] == "/" and m["start_url"] == "/?source=pwa"          # 이미 설치한 앱이 그대로 이어지게 바꾸지 않는다
+    assert [s["url"] for s in m["shortcuts"]] == ["/coach"]
+    for s in m["shortcuts"]:
+        for icon in s["icons"]:
+            assert (STATIC / icon["src"].removeprefix("/static/")).is_file()
