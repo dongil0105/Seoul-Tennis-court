@@ -250,6 +250,13 @@ def _open_item(g: dict, areas: set) -> dict:
             "key": f"open|{str(g['open_at'])[:16]}", "text": text}
 
 
+def free_item(body: str) -> dict:
+    """반포 '빈 시간이 생겼어요' 알림 한 건(앱 알림의 items 와 보낸 알림 기록이 같이 쓴다)."""
+    from app.services import tennisplay as PLAY
+    return {"area": PLAY.AREA, "place": settings.ttp_place, "kind": "free",
+            "key": f"free|{body[:80]}", "text": body[:300]}
+
+
 def _fit(payload: dict) -> dict:
     """items 때문에 알림이 너무 길어지면 뒤에서부터 덜어 낸다(알림 문구는 그대로)."""
     items = list(payload.get("items") or [])[:MAX_ITEMS]
@@ -282,26 +289,26 @@ def send_play_free(session: Session | None, title: str, body: str, badge: int = 
             continue
         payload = {"title": title, "body": body, "url": "/#play", "tag": "play-free",
                    "badge": badge + (play_badge if PLAY.AREA in areas else 0),
-                   "items": [{"area": PLAY.AREA, "place": settings.ttp_place, "kind": "free",
-                              "key": f"free|{body[:80]}", "text": body[:300]}]}
+                   "items": [free_item(body)]}
         if _send(session, row, _fit(payload), ttl=1800):
             sent += 1
     return sent
 
 
 def send_opening_alerts(session: Session | None, groups: list[dict], badge: int = 0,
-                        play_badge: int = 0) -> int:
+                        play_badge: int = 0, delivered: list | None = None) -> int:
     """오픈 알람을 기기별(고른 지역·시점)로 보낸다. 보낸 기기 수 반환.
 
     기기마다 받은 알림을 PushSent 에 남겨, 같은 알림은 한 번만 가고 실패한 기기는 다음
     수집(7분 뒤) 때 다시 시도한다. 새로 구독한 기기도 아직 유효한 알림은 받는다.
+    delivered: 목록을 주면 한 대에라도 실제로 보낸 묶음을 거기에 담는다(보낸 알림 기록용).
     """
     if not groups or not ready():
         return 0
     if session is None:                      # 스레드에서 부를 때: 자기 세션을 열고 닫는다
         from app.db import get_session
         with get_session() as own:
-            return send_opening_alerts(own, groups, badge, play_badge)
+            return send_opening_alerts(own, groups, badge, play_badge, delivered)
     from app.services import tennisplay as PLAY
     sent = 0
     for row in list(session.exec(select(PushSub))):
@@ -335,6 +342,8 @@ def send_opening_alerts(session: Session | None, groups: list[dict], badge: int 
         if _send(session, row, _fit(payload), ttl=3600 if h1 else 6 * 3600):
             for g in mine:
                 session.add(PushSent(endpoint=endpoint, event=_event_key(g)))
+                if delivered is not None and g not in delivered:
+                    delivered.append(g)
             session.commit()
             sent += 1
     return sent

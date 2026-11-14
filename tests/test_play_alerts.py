@@ -270,9 +270,17 @@ def test_free_budget_limits_per_day(monkeypatch, clock):
     assert TP.free_budget()
 
 
-async def test_scheduler_sends_after_quiet_hours_only_what_is_still_free(monkeypatch, clock):
+async def test_scheduler_sends_after_quiet_hours_only_what_is_still_free(monkeypatch, clock, session):
+    from contextlib import contextmanager
+
     import app.scheduler as SCH
+    from app.services import feed as FEED
     sent: list[tuple[str, str]] = []
+
+    @contextmanager
+    def mem_session():                               # 보낸 알림 기록이 실제 DB 파일에 남지 않게
+        yield session
+    monkeypatch.setattr(SCH, "get_session", mem_session)
 
     async def fake_kakao(session, title, body):
         sent.append((title, body))
@@ -298,6 +306,9 @@ async def test_scheduler_sends_after_quiet_hours_only_what_is_still_free(monkeyp
     assert sent == [("반포 빈 시간이 생겼어요", "11.14(토) 21~22시 · 2번 코트")]
     await SCH._notify_play_free()
     assert len(sent) == 1
+    # 카카오톡으로만 보냈어도 앱 안 '새 알림'에 뜨게 기록한다
+    assert [(r["area"], r["kind"], r["text"]) for r in FEED.recent(session)] == [
+        ("반포", "free", "11.14(토) 21~22시 · 2번 코트")]
 
 
 async def test_scheduler_free_alerts_can_be_turned_off(monkeypatch, clock):

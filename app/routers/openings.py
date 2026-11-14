@@ -6,6 +6,7 @@ from datetime import date as date_cls
 from fastapi import APIRouter, HTTPException
 
 from app.db import get_session
+from app.services import feed as FEED
 from app.services import openings as OP
 from app.services import sync as SYNC
 from app.services import tennisplay as PLAY
@@ -25,6 +26,7 @@ def get_board() -> dict:
     """5곳 전용 화면: 다음 예약 오픈 + 지금 예약 가능한 코트 번호."""
     with get_session() as session:
         b = OP.board(session)
+        b["feed"] = FEED.recent(session)   # 최근 24시간에 보낸 알림(카카오톡 · 앱 알림) — 앱 안 '새 알림' 표시용
     b["play"] = PLAY.public()      # 반포종합운동장(테니스플레이) 빈 시간 — 계정을 넣은 서버에서만
     return b
 

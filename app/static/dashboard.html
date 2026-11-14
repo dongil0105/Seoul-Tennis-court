@@ -434,7 +434,7 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
    서버(/board, /refresh, /push/*)만 호출한다. 서울시 예약 사이트 주소는 사람이 누르는 링크로만 쓴다. */
 const $ = (id) => document.getElementById(id);
 const sheet = $('sheet');
-const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr | new | playnew
+const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr | new | playnew | feed | playfeed
 const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
 const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장', '반포': '반포종합운동장'};
 // 반포(테니스플레이) 알림 — 고른 기기에만 간다. PLAY_AREA = 예약 오픈 예고, PLAY_FREE = 빈 시간이 새로 생기면
@@ -599,7 +599,9 @@ const periodText = (p) => (!p ? '' : /이용분$/.test(p) ? dots(p) : `${dots(p)
 /* ── 새 알림: 받은 알림을 앱 안에서도 보여 준다 ─────────
    서비스워커(sw.js)가 알림을 받을 때마다 보관함(Cache 'tn-inbox')에 적어 둔다. 앱을 열면 그것을 읽어 맨 위와
    그 테니스장 이름 옆에 '새 알림'으로 보여 주고 보관함을 비운다 → 앱 아이콘 숫자(아직 안 본 알림 수)도 지운다.
-   한 번 본 알림은 10분이 지난 뒤 앱을 다시 열면 사라진다. */
+   한 번 본 알림은 10분이 지난 뒤 앱을 다시 열면 사라진다.
+   카카오톡으로만 받았거나 앱 알림이 이 기기에 도착하지 못한 알림은 서버의 보낸 알림 기록(/board 의 feed)에서 읽어
+   같은 자리에 보여 준다(아래 takeFeed). */
 const FRESH_KEEP = 10 * 60000, FRESH_AGE = 24 * 36e5, FRESH_ROWS = 5;
 let fresh = [];
 function freshItem(x) {
@@ -621,6 +623,63 @@ if (!MOCK) {
       {area: '반포', place: '반포종합운동장 테니스장', kind: 'free', key: 'free|c', text: '11.16(월) 14~15시 · 3번 코트\n11.17(화) 14~15시 · 2번, 6번 코트', at: t - 60000, seen: t}] : [])];
 }
 const saveFresh = () => { if (!MOCK) { try { localStorage.setItem('tn_fresh', JSON.stringify(fresh)); } catch {} } };
+
+/* 보낸 알림 기록(/board 의 feed) — 서버가 최근 24시간에 보낸 알림(카카오톡 · 앱 알림).
+   이 기기에서 이미 보여 준 알림은 seenAt(곳|key|종류 → 보낸 때)에 적어 두어 다시 '새 알림'으로 뜨지 않게 한다. */
+const FEED_TOL = 5 * 60000;                           // 같은 알림으로 보는 시각 차(앱 알림이 도착한 때 ↔ 서버가 보낸 때)
+let seenAt = {};
+if (!MOCK) {
+  try {
+    const v = JSON.parse(localStorage.getItem('tn_seen')), t = Date.now();
+    if (v && typeof v === 'object') {
+      Object.keys(v).forEach((k) => { if (Number.isFinite(v[k]) && t - v[k] < 2 * FRESH_AGE) seenAt[k] = v[k]; });
+    }
+  } catch {}
+}
+const seenId = (x) => `${x.area}|${x.key}|${x.kind}`;
+function markSeen(x) { const id = seenId(x); if (!(seenAt[id] >= x.at)) seenAt[id] = x.at; }
+function saveSeen() {
+  if (MOCK) return;
+  const t = Date.now();
+  Object.keys(seenAt).forEach((k) => { if (t - seenAt[k] >= 2 * FRESH_AGE) delete seenAt[k]; });
+  try { localStorage.setItem('tn_seen', JSON.stringify(seenAt)); } catch {}
+}
+// 카카오톡 알림에 든 링크(…?k=1)로 연 브라우저 = 카카오톡 알림을 받는 사람 → 서버가 보낸 알림을 모두 보여 준다.
+let showAll = new URLSearchParams(location.search).has('k');
+if (!MOCK) {
+  try { if (showAll) localStorage.setItem('tn_all', '1'); else showAll = localStorage.getItem('tn_all') === '1'; } catch {}
+}
+// 이 기기가 받기로 한 알림인가 — 알림 설정에서 고른 곳 · 시간(알림을 켜지 않은 기기는 기본값 = 5곳의 오픈 알림).
+function feedWanted(x, areas) {
+  if (showAll) return true;
+  if (x.kind === 'free') return settings.free === true;
+  if ((x.kind === 'd1' && !settings.d1) || (x.kind === 'h1' && !settings.h1)) return false;
+  return areas.some((a) => settings.areas.includes(a));
+}
+/* 보낸 알림 기록에서 이 기기가 아직 보여 주지 않은 것을 '새 알림'에 넣는다. 넣은 것이 있으면 true(그리기는 부른 쪽에서). */
+function takeFeed(list) {
+  if (!Array.isArray(list) || document.visibilityState !== 'visible') return false;   // 화면을 보고 있을 때만 '보여 줬다'고 적는다
+  const now = Date.now();
+  let added = false, noted = false;
+  list.forEach((raw) => {
+    const x = freshItem(raw);
+    if (!x || now - x.at >= FRESH_AGE) return;
+    const areas = Array.isArray(raw.areas) ? raw.areas.filter((a) => typeof a === 'string' && a) : [];
+    if (!feedWanted(x, areas.length ? areas : [x.area])) return;
+    const id = seenId(x);
+    if (seenAt[id] >= x.at - FEED_TOL) return;         // 이미 보여 준 알림(앱 알림으로 먼저 받았거나 지난번에 봄)
+    seenAt[id] = x.at;
+    noted = true;
+    const same = fresh.find((y) => y.area === x.area && y.key === x.key);
+    if (same && same.at >= x.at - FEED_TOL) return;    // 같은 알림이 이미 떠 있음
+    fresh = fresh.filter((y) => !(y.area === x.area && y.key === x.key));   // 전날 알림 → 1시간 전 알림은 한 줄로
+    fresh.push({...x, seen: now});
+    added = true;
+  });
+  if (noted) saveSeen();
+  if (added) saveFresh();
+  return added;
+}
 // 그 테니스장 이름 옆에 붙이는 표시
 const newTag = (area) => (area && fresh.some((x) => x.area === area) ? `<em class="newtag" data-area="${esc(area)}">새 알림</em>` : '');
 const freshName = (x) => (NAMES[x.area] || x.place || '코트 오픈') + (x.kind === 'free' ? ' 빈 시간' : '');
@@ -629,7 +688,7 @@ function freshWhen(at) {                              // 알림을 받은 때: '
   const d = new Date(at), day = dayFmt.format(d), diff = dayDiff(day);
   return `${diff === 0 ? '오늘' : diff === -1 ? '어제' : shortDate(day)} ${clockFmt.format(d)}`;
 }
-function paintFresh() {
+function paintFreshBar() {
   const el = $('fresh'), list = [...fresh].sort((a, b) => b.at - a.at);
   el.hidden = !list.length;
   el.innerHTML = !list.length ? ''
@@ -637,6 +696,9 @@ function paintFresh() {
       + list.slice(0, FRESH_ROWS).map((x) => `<button class="fresh-item" data-act="fresh-go" data-area="${esc(x.area)}">
         <b>${esc(freshName(x))}<small>${esc(freshWhen(x.at))} 알림</small></b><span class="num">${esc(x.text)}</span></button>`).join('')
       + (list.length > FRESH_ROWS ? `<p class="fresh-more">외 ${list.length - FRESH_ROWS}건</p>` : '');
+}
+function paintFresh() {
+  paintFreshBar();
   if (board) { try { renderBoard(board); } catch (e) { console.error(e); } }   // 테니스장 옆 '새 알림' 표시도 다시 그린다
 }
 function clearBadge() {                               // 앱을 열면 아이콘 숫자를 지운다
@@ -667,7 +729,9 @@ function checkInbox(opened) {
     got.map(freshItem).filter(Boolean).forEach((x) => {
       fresh = fresh.filter((y) => !(y.area === x.area && y.key === x.key));
       fresh.push({...x, seen: now});
+      markSeen(x);                                    // 같은 알림이 보낸 알림 기록으로 한 번 더 뜨지 않게
     });
+    if (got.length) saveSeen();
     if (JSON.stringify(fresh) !== before) { saveFresh(); paintFresh(); }
   })().finally(() => { inboxBusy = null; });
   return inboxBusy;
@@ -1067,15 +1131,18 @@ async function loadBoard() {
   if (id !== boardReq) return 'ignored';                                         // 더 새 요청이 있음
   if (updatedAt && d.updated_at && d.updated_at < updatedAt) return 'ignored';   // 더 오래된 응답
   if (Number.isFinite(d.now_ms)) { const s = d.now_ms - Date.now(); skew = Math.abs(s) < 1500 ? 0 : s; }
+  const fed = takeFeed(d.feed);                                                  // 카카오톡으로만 온 알림도 '새 알림'으로
   const sig = JSON.stringify([d.openings, d.available, d.places, d.closed, d.play]);
   if (board && sig === lastSig && renderedDay === todayKST()) {                  // 내용이 같으면 다시 그리지 않는다
     board = d;
     if (d.updated_at) updatedAt = d.updated_at;
     paintStamp();
+    if (fed) paintFresh();
     return true;
   }
   try { renderBoard(d); lastSig = sig; return true; }
   catch (e) { console.error(e); if (!lastSig) renderError(); return false; }
+  finally { if (fed) paintFreshBar(); }
 }
 function refreshData(manual = false) {
   if (refreshing) { if (manual) refreshing.then(() => toast('이미 최신 정보예요.')); return refreshing; }
@@ -1434,6 +1501,7 @@ window.addEventListener('pageshow', (e) => { if (e.persisted) checkInbox(true); 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   checkInbox(true);                                  // 새 알림 보여 주기 + 아이콘 숫자 지우기
+  if (board && takeFeed(board.feed)) paintFresh();   // 화면을 안 보는 사이 받아 둔 보낸 알림 기록
   tick();
   checkPush();
   reconnectPush();
@@ -1446,7 +1514,7 @@ function mockStamp() {
 }
 function mockBoard(kind) {
   const playKind = kind;
-  if (/^play/.test(kind || '') || kind === 'new') kind = 'next';   // 반포 · 새 알림 미리보기는 나머지 화면을 '다음 오픈' 상태로
+  if (/^play/.test(kind || '') || kind === 'new' || kind === 'feed') kind = 'next';   // 반포 · 새 알림 미리보기는 나머지 화면을 '다음 오픈' 상태로
   const url = 'https://yeyak.seoul.go.kr/web/main.do';
   const at = (mins) => {                       // 지금부터 mins 분 뒤의 한국 시간 문자열
     const d = new Date(Date.now() + mins * 60000 + 9 * 36e5);
@@ -1511,8 +1579,14 @@ function mockBoard(kind) {
     g('선우공원', '선우공원', '관악구', 'rcpt', '', '11/30까지 접수', 'full', off([c('A', '평일 주간', '06:00-18:00'), c('B', '주말·공휴일', '06:00-18:00')], 'full')),
     g('서울숲', '서울숲 테니스장', '성동구', '', '', '상시 예약', 'full', off([c('코트', '주말·공휴일', '06:00-19:00')], 'full')),
   ];
+  // 보낸 알림 기록 미리보기(?mock=feed · ?mock=playfeed, 반포 것은 &k=1 을 붙이거나 반포 알림을 고른 기기에만 보인다)
+  const feed = !/feed$/.test(playKind || '') ? [] : [
+    {area: '한남', areas: ['한남'], place: '한남테니스장', kind: 'd1', key: 'open|a', text: '11.14(토) 09:00 예약 오픈', at: Date.now() - 40 * 60000},
+    ...(playKind === 'playfeed' ? [
+      {area: '반포', areas: ['반포'], place: '반포종합운동장 테니스장', kind: 'd1', key: 'open|b', text: '11.14(토) 09:00 예약 오픈 · 11.21(토) 이용분', at: Date.now() - 20 * 60000},
+      {area: '반포', areas: ['반포'], place: '반포종합운동장 테니스장', kind: 'free', key: 'free|c', text: '11.16(월) 14~15시 · 3번 코트', at: Date.now() - 60000}] : [])];
   return {now: mockStamp().slice(0, 16), updated_at: mockStamp(), badge: 0, areas: AREAS, places, openings, available, closed,
-    play: mockPlay(playKind, day)};
+    play: mockPlay(playKind, day), feed};
 }
 function mockPlay(kind, day) {                 // 반포종합운동장(테니스플레이) 빈 시간
   if (!/^play/.test(kind || '')) return null;
