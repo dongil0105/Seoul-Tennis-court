@@ -18,10 +18,14 @@ export function makeFinder(players) {
   };
 }
 
-/** 기준 자세에서 뺄 사진: 1970년 이전 사진(장비·기술이 다르다), 어린이 사진 */
+// 1970년 이전에 뛴 선수(나무 라켓 시절 — 장비와 기술이 지금과 다르다). 제목에 연도가 없는 사진을 거르는 데 쓴다.
+const OLD_PLAYERS = /\b(lenglen|jedrzejowska|tilden|fred perry|don budge|helen wills|lacoste|cochet|borotra|brugnon|bunny austin|von cramm|jack crawford|alice marble|maureen connolly|pancho gonzales|ken rosewall|lew hoad|kitty mckane|molla mallory|dorothea|suzanne|pat hughes|henner henkel|ellsworth vines|bobby riggs|althea gibson|doris hart|louise brough|margaret osborne|helen jacobs|simonne mathieu|cilly aussem|hilde krahwinkel)\b/;
+
+/** 기준 자세에서 뺄 사진: 1970년 이전 사진·옛 선수(장비·기술이 다르다), 어린이 사진 */
 export function excluded(title) {
   const t = String(title);
   if (/(?<!\d)(18\d{2}|19[0-6]\d)(?!\d)/.test(t)) return 'old';
+  if (OLD_PLAYERS.test(norm(t))) return 'old';                    // 제목에 연도가 없어도, 나무 라켓 시절 선수는 뺀다
   if (/\b(boy|girl|child|children|kid|kids|toddler)\b/i.test(t.replace(/_/g, ' '))) return 'child';
   return null;
 }

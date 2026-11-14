@@ -33,6 +33,9 @@ test('옛 사진과 어린이 사진은 기준에서 뺀다', () => {
   assert.equal(excluded('File:2021_Montevideo_Open_(tennis)_-_Round_2.jpg'), null);
   assert.equal(excluded('File:Dominika_Cibulková_(5047217890).jpg'), null, '긴 숫자(사진 번호)를 연도로 보지 않는다');
   assert.equal(excluded('File:US_Open_2019_serve.jpg'), null);
+  assert.equal(excluded('File:Suzanne_Lenglen_02.jpg'), 'old', '연도가 없어도 옛 선수는 뺀다');
+  assert.equal(excluded('File:Jadwiga_Jędrzejowska.jpg'), 'old');
+  assert.equal(excluded('File:Roger_Federer_(26_June_2009,_Wimbledon)_2_new.jpg'), null);
 });
 
 test('norm 은 콜론·괄호·악센트를 지운다', () => {
