@@ -21,6 +21,7 @@ if (!a.poses || !a.out) { console.error('usage: build_reference.mjs --poses pose
 
 const players = JSON.parse(fs.readFileSync(path.join(HERE, 'players.json'), 'utf8'));
 const findPlayer = makeFinder(players);
+const PRIORITY = new Set(players.priority || []);
 
 const meta = a.meta && fs.existsSync(a.meta) ? JSON.parse(fs.readFileSync(a.meta, 'utf8')) : {};
 const KEYS = ['kneeHit', 'kneeOff', 'kneeAvg', 'elbowHit', 'elbowOff', 'armTrunk', 'shoulderTilt', 'trunkTilt', 'trunkLeanF', 'trunkLeanSide',
@@ -93,7 +94,9 @@ for (const [stroke, st] of Object.entries(stats)) {
     }
     const usable = cell._rows.filter((r) => !a.meta || meta[r.title]);
     const kept = [];                                              // 거의 같은 자세(원본과 잘라낸 판 등 중복)는 하나만
-    usable.sort((p, q) => (p.extreme - 0.6 * p.m.vis - (p.legs ? 0.3 : 0)) - (q.extreme - 0.6 * q.m.vis - (q.legs ? 0.3 : 0)));
+    // 먼저 넣을 선수(players.json 의 priority — 사용자가 꼽은 선수와 대표 선수)를 앞에, 그다음은 분포 한가운데에 가깝고 잘 보이는 순
+    const rank = (r) => (PRIORITY.has(r.player) ? -10 : 0) + r.extreme - 0.6 * r.m.vis - (r.legs ? 0.3 : 0);
+    usable.sort((p, q) => rank(p) - rank(q));
     const perPlayer = {};
     for (const r of usable) {
       if (samples.filter((s) => s.stroke === stroke && s.phase === phase).length >= Number(a.perCell)) break;
@@ -128,5 +131,10 @@ const count = {};
 for (const r of rows) count[`${r.stroke}/${r.phase}`] = (count[`${r.stroke}/${r.phase}`] || 0) + 1;
 console.error(`사진 ${seen} · 옛 사진·어린이 ${skipped} · 사람 없음 ${noPose} · 너무 작음 ${small} · 순간 불명 ${noPhase} · 잘 안 보임 ${lowVis} → 사용 ${rows.length}`);
 console.error('성별:', JSON.stringify(rows.reduce((c, r) => { c[r.sex] = (c[r.sex] || 0) + 1; return c; }, {})));
+{ // 먼저 넣을 선수가 실제로 몇 장 쓰였는지
+  const got = {};
+  for (const r of rows) if (PRIORITY.has(r.player)) got[r.player] = (got[r.player] || 0) + 1;
+  console.error('먼저 넣을 선수(쓸 수 있는 사진 수):', JSON.stringify(got), '· 없음:', [...PRIORITY].filter((n) => !got[n]).join(', ') || '-');
+}
 console.error('순간별:', JSON.stringify(count));
 console.error(`대조군 표본 ${samples.length}개 · 이름 알아본 선수 ${new Set(rows.map((r) => r.player).filter(Boolean)).size}명 · ${(fs.statSync(a.out).size / 1024).toFixed(0)}KB → ${a.out}`);

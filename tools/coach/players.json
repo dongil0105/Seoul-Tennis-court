@@ -1,5 +1,5 @@
 {
- "_note": "사진 제목에서 선수를 알아보기 위한 표. sex: M/F, hand: 왼손잡이만 L. 없는 선수는 성별 '모름', 오른손으로 본다(자세로 다시 확인한다).",
+ "_note": "사진 제목에서 선수를 알아보기 위한 표. sex: M/F, hand: 왼손잡이만 L. 없는 선수는 성별 '모름', 오른손으로 본다(자세로 다시 확인한다). priority: 대조군 표본을 고를 때 먼저 넣을 선수.",
  "M": [
   "Roger Federer",
   "Novak Djokovic",
@@ -416,5 +416,28 @@
   "Arantxa Rus",
   "Jil Teichmann",
   "Casey Dellacqua"
+ ],
+ "priority": [
+  "Roger Federer",
+  "Novak Djokovic",
+  "Jannik Sinner",
+  "Alexander Zverev",
+  "Carlos Alcaraz",
+  "Rafael Nadal",
+  "Andy Murray",
+  "Daniil Medvedev",
+  "Taylor Fritz",
+  "Casper Ruud",
+  "Stefanos Tsitsipas",
+  "Serena Williams",
+  "Maria Sharapova",
+  "Iga Swiatek",
+  "Iga Świątek",
+  "Aryna Sabalenka",
+  "Elena Rybakina",
+  "Coco Gauff",
+  "Naomi Osaka",
+  "Jessica Pegula",
+  "Ons Jabeur"
  ]
 }
