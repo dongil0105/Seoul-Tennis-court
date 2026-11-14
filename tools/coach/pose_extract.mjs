@@ -3,6 +3,7 @@
 // 기준 자세 데이터(선수 사진)를 만들 때와 테스트에 같이 쓴다. 결과는 한 줄에 사진 한 장(JSONL).
 //
 //   node tools/coach/pose_extract.mjs --in list.txt --out poses.jsonl [--model full|lite|/abs/path.task] [--poses 2]
+//        [--mode video --fps 30]   ← list 가 영상의 프레임 순서일 때(프레임 사이를 이어서 추적)
 //   list.txt: 한 줄에 파일 경로 하나(뒤에 탭으로 아무 메모나 붙여도 된다 — 그대로 결과의 meta 로 간다)
 import http from 'node:http';
 import fs from 'node:fs';
@@ -19,7 +20,7 @@ const MIME = { '.mjs': 'text/javascript', '.js': 'text/javascript', '.wasm': 'ap
   '.html': 'text/html', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json' };
 
 function args() {
-  const a = { model: 'full', poses: 1, conf: 0.5 };
+  const a = { model: 'full', poses: 1, conf: 0.5, mode: 'image', fps: 30 };
   const v = process.argv.slice(2);
   for (let i = 0; i < v.length; i += 2) a[v[i].replace(/^--/, '')] = v[i + 1];
   if (!a.in || !a.out) { console.error('usage: pose_extract.mjs --in list.txt --out out.jsonl [--model full|lite|path] [--poses n]'); process.exit(2); }
@@ -32,14 +33,15 @@ const q = new URLSearchParams(location.search);
 const fileset = await FilesetResolver.forVisionTasks('/coach/vendor/tasks-vision/wasm');
 const pl = await PoseLandmarker.createFromOptions(fileset, {
   baseOptions: { modelAssetPath: q.get('model'), delegate: 'CPU' },
-  runningMode: 'IMAGE', numPoses: Number(q.get('poses') || 1),
-  minPoseDetectionConfidence: Number(q.get('conf') || 0.5), minPosePresenceConfidence: 0.5,
+  runningMode: q.get('mode') === 'video' ? 'VIDEO' : 'IMAGE', numPoses: Number(q.get('poses') || 1),
+  minPoseDetectionConfidence: Number(q.get('conf') || 0.5), minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5,
 });
+const VIDEO = q.get('mode') === 'video';
 const r4 = (x) => Math.round(x * 1e4) / 1e4;
 const pack = (ps) => ps.map((p) => p.map((k) => [r4(k.x), r4(k.y), r4(k.z), r4(k.visibility ?? 0)]));
-window.detect = async (url) => {
+window.detect = async (url, ts) => {
   const img = new Image(); img.src = url; await img.decode();
-  const r = pl.detect(img);
+  const r = VIDEO ? pl.detectForVideo(img, ts) : pl.detect(img);   // 영상 모드: 앞 프레임을 이어받아 덜 흔들린다(앱과 같은 방식)
   return { w: img.naturalWidth, h: img.naturalHeight, lm: pack(r.landmarks), world: pack(r.worldLandmarks) };
 };
 window.ready = true;
@@ -71,7 +73,7 @@ const base = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch();
 const page = await browser.newPage();
 page.on('pageerror', (e) => console.error('page error:', e.message));
-await page.goto(`${base}/harness?model=/model&poses=${a.poses}&conf=${a.conf}`);
+await page.goto(`${base}/harness?model=/model&poses=${a.poses}&conf=${a.conf}&mode=${a.mode}`);
 await page.waitForFunction('window.ready === true', null, { timeout: 120000 });
 
 const out = fs.createWriteStream(a.out);
@@ -80,7 +82,7 @@ const t0 = Date.now();
 for (let i = 0; i < items.length; i++) {
   let rec;
   try {
-    const r = await page.evaluate((u) => window.detect(u), `${base}/img?i=${i}`);
+    const r = await page.evaluate(([u, ts]) => window.detect(u, ts), [`${base}/img?i=${i}`, Math.round((i * 1000) / Number(a.fps))]);
     rec = { file: items[i].file, meta: items[i].meta, ...r };
     if (r.lm.length) ok++; else none++;
   } catch (e) { rec = { file: items[i].file, meta: items[i].meta, error: String(e.message || e).slice(0, 200) }; bad++; }
