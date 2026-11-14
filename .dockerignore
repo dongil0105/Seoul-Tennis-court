@@ -5,6 +5,7 @@
 .venv/
 venv/
 data/
+!app/static/coach/data/
 db/
 *.db
 *.sqlite3

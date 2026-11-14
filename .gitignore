@@ -5,6 +5,8 @@
 
 # data / db
 data/
+# 스윙 코치의 선수 기준 데이터는 앱이 내려 주는 파일이라 올린다(위 data/ 규칙의 예외)
+!app/static/coach/data/
 *.db
 *.sqlite3
 

@@ -133,3 +133,20 @@ def test_tabs_link_both_screens():
     for s in m["shortcuts"]:
         for icon in s["icons"]:
             assert (STATIC / icon["src"].removeprefix("/static/")).is_file()
+
+
+def test_served_files_are_committed():
+    """앱이 내려 주는 파일이 저장소에 올라가 있어야 한다(.gitignore 의 data/ 규칙에 걸려 기준 데이터가 빠진 적이 있다)."""
+    import shutil
+    import subprocess
+
+    root = STATIC.parent.parent
+    if not shutil.which("git") or not (root / ".git").exists():
+        return                                                     # 저장소 밖(배포 이미지 등)에서는 건너뛴다
+    files = [p for p in (STATIC / "coach").rglob("*") if p.is_file() and "__pycache__" not in p.parts]
+    assert any(p.name == "reference.json" for p in files)
+    tracked = set(subprocess.run(["git", "ls-files", "app/static/coach"], cwd=root, capture_output=True, text=True, check=True).stdout.split("\n"))
+    missing = [str(p.relative_to(root)) for p in files if str(p.relative_to(root)) not in tracked]
+    assert not missing, f"저장소에 없는 파일: {missing}"
+    ignored = subprocess.run(["git", "check-ignore", "app/static/coach/data/reference.json"], cwd=root, capture_output=True, text=True)
+    assert ignored.returncode != 0, "기준 데이터가 .gitignore 에 걸린다"
