@@ -184,7 +184,7 @@ export async function scan(video, pl, { t0 = 0, t1 = video.duration, rate = 2, p
   }
   await seek(video, t0);
   await new Promise((resolve, reject) => {
-    let ended = false, handle = 0, last = -1, lastTick = performance.now();
+    let ended = false, handle = 0, last = -1, lastTick = performance.now(), cost = 0.03;
     const finish = (err) => {
       if (ended) return;
       ended = true;
@@ -209,7 +209,15 @@ export async function scan(video, pl, { t0 = 0, t1 = video.duration, rate = 2, p
       try {
         const t = meta.mediaTime;
         if (t >= t1 || video.ended) { finish(); return; }
-        if (t - last >= minGap) { last = t; push(t, detect(pl, video)); }
+        if (t - last >= minGap) {
+          last = t;
+          const c0 = performance.now();
+          push(t, detect(pl, video));
+          cost = cost * 0.8 + ((performance.now() - c0) / 1000) * 0.2;        // 한 장 읽는 데 걸리는 시간(이동 평균)
+          // 느린 기기에서는 천천히 재생해 촘촘히 읽고, 빠른 기기에서는 최대 3배속까지
+          const want = Math.min(Math.max(rate, 3), Math.max(0.5, 0.07 / Math.max(cost, 0.005)));
+          if (Math.abs(video.playbackRate - want) > 0.2) video.playbackRate = Math.round(want * 4) / 4;
+        }
         if (onProgress) onProgress(Math.min(1, (t - t0) / Math.max(0.01, t1 - t0)));
         handle = video.requestVideoFrameCallback(tick);
       } catch (e) { finish(e); }

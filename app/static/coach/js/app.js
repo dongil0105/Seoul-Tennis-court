@@ -392,7 +392,12 @@ function drawRef(canvas, r, creditEl) {
   const img = new Image();
   img.crossOrigin = 'anonymous'; img.referrerPolicy = 'no-referrer';
   img.onload = () => { if (canvas.isConnected) paint(img); };
-  img.onerror = () => { if (creditEl && creditEl.isConnected) creditEl.insertAdjacentHTML('beforeend', ' · 사진을 불러오지 못해 뼈대만 보여 줍니다'); };
+  // 공용의 사진 주소는 두 군데(thumb / upload)다. 한쪽이 막히면 다른 쪽으로 한 번 더 해 보고, 그래도 안 되면 뼈대만 보여 준다.
+  let retried = false;
+  img.onerror = () => {
+    if (!retried) { retried = true; img.src = r.thumb.includes('thumb.wikimedia.org') ? r.thumb.replace('thumb.wikimedia.org', 'upload.wikimedia.org') : r.thumb.replace('upload.wikimedia.org', 'thumb.wikimedia.org'); return; }
+    if (creditEl && creditEl.isConnected) creditEl.insertAdjacentHTML('beforeend', ' · 사진을 불러오지 못해 뼈대만 보여 줍니다');
+  };
   img.src = r.thumb;
 }
 
@@ -537,6 +542,7 @@ async function runFull(person) {
       onProgress: (p) => { if (job === S.job) progress(p * 0.55); } });
     if (job !== S.job) return;
     flush(true);
+    console.debug(`[coach] 훑기 끝: 스윙 후보 ${cands.length}개`, cands.map((c) => c.tc.toFixed(1)).join(' '));
     if (!cands.length) { fail(job, '스윙 장면을 찾지 못했어요. 고른 사람이 화면에 작게 나오면 잘 안 잡힙니다.', 'people'); return; }
     cands.sort((a, b) => b.peak - a.peak);
     const top = cands.slice(0, 18).sort((a, b) => a.tc - b.tc);
@@ -547,13 +553,14 @@ async function runFull(person) {
     const shots = [];
     for (let i = 0; i < top.length; i++) {
       if (job !== S.job) return;
-      const c = top[i], st2 = { color: st.color.slice(), sizeRef: person.size };
+      const c = top[i], st2 = { color: person.color.slice(), sizeRef: person.size };   // 처음 고른 색에서 다시 시작(훑는 동안 색이 딴 사람 쪽으로 흘렀을 수 있다)
       const step = 1 / Math.min(S.fps, 60);
       const raw = await Pose.extract(video, full, { t0: Math.max(S.opt.t0, c.tc - 1.5), t1: Math.min(S.opt.t1, c.tc + 0.8), step, signal,
         pick: (poses, t) => Track.pickTarget(poses, Track.readColors(smallCtx, video, poses), st2, t),
         onProgress: (p) => { if (job === S.job) progress(0.55 + 0.45 * (i + p) / top.length); } });
       const fr = cleanFrames(raw.filter(G.validPose), aspect);
       const sw = fr.length >= 10 ? mainSwing(fr, { hand: S.profile.hand, sf: 1 }) : null;
+      console.debug(`[coach] ${c.tc.toFixed(1)}초: 읽은 프레임 ${raw.length} → 다듬은 뒤 ${fr.length} → ${sw ? sw.stroke : '스윙 못 찾음'}`);
       if (!sw) continue;
       const m = swingMetrics(fr, sw, S.meta.width, S.meta.height);
       const a = advise(m, ctxFor({}));
