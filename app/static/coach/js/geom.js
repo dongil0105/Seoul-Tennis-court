@@ -174,9 +174,10 @@ export function poseFeature(pose) {
   return out;
 }
 const FEATURE_WEIGHT = [1, 1, 1.5, 1.5, 2, 2, 0.5, 0.5, 1, 1, 1, 1];   // 팔·손목을 더 무겁게
-export function featureDistance(a, b) {
+/** legs=false 면 무릎·발목은 빼고 견준다(다리가 잘린 사진) */
+export function featureDistance(a, b, legs = true) {
   let s = 0, wsum = 0;
-  for (let j = 0; j < FEATURE_JOINTS.length; j++) {
+  for (let j = 0; j < (legs ? FEATURE_JOINTS.length : 8); j++) {
     const k = j * 3, wt = FEATURE_WEIGHT[j];
     s += wt * Math.hypot(a[k] - b[k], a[k + 1] - b[k + 1], a[k + 2] - b[k + 2]);
     wsum += wt;

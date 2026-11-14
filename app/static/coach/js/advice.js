@@ -221,8 +221,8 @@ export function matchReference(ref, stroke, phase, pose, { hand = 'R', sex = 'U'
   const feat = poseFeature(hand === 'L' ? mirrorPose(pose) : pose);
   const cands = ref.samples.filter((s) => s.stroke === stroke && s.phase === phase && s.feat);
   const scored = cands.map((s) => {
-    const d = featureDistance(feat, s.feat);
-    const bonus = (sex !== 'U' && s.sex === sex ? -0.008 : 0) + 0.02 * (s.extreme || 0);
+    const d = featureDistance(feat, s.feat, s.legs !== false);
+    const bonus = (sex !== 'U' && s.sex === sex ? -0.008 : 0) + 0.02 * (s.extreme || 0) + (s.legs === false ? 0.01 : 0);
     return { sample: s, dist: d, score: d + bonus };
   });
   scored.sort((a, b) => a.score - b.score);

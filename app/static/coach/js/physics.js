@@ -26,6 +26,7 @@ export const COURT = Object.freeze({
   netCenterHeight: 0.914,
   netPostHeight: 1.07,
   netPostY: 6.399, // 복식 사이드라인 바깥 0.914 m
+  singlesStickY: 5.029, // 단식 사이드라인 바깥 0.914 m, 높이 1.07 m
   targetInset: 0.4, // 서브 T/와이드 목표선은 라인 안쪽 0.4 m
 });
 
@@ -51,14 +52,56 @@ export const SPIN_TILT_DEG = Object.freeze({ topspin: 0, kick: 45, slice: 75, ba
 const DEG = Math.PI / 180;
 const KMH = 3.6;
 
-const withConstants = (overrides) => (overrides ? { ...DEFAULTS, ...overrides } : DEFAULTS);
+const MAX_FLIGHT_STEPS = 100_000;
+const MAX_SCAN_STEPS = 10_000;
+const MAX_BISECT_STEPS = 64;
+
+function positive(value, name) {
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new RangeError(`physics: ${name} must be finite and > 0`);
+  }
+}
+
+function withConstants(overrides) {
+  const c = overrides ? { ...DEFAULTS, ...overrides } : DEFAULTS;
+  for (const name of ['dt', 'elevScanStepDeg', 'maxTime', 'elevTolDeg']) positive(c[name], name);
+  if (!Number.isFinite(c.elevCapDeg) || c.elevCapDeg <= -85 || c.elevCapDeg > 85) {
+    throw new RangeError('physics: elevCapDeg must be finite and in (-85, 85]');
+  }
+  if (Math.ceil(c.maxTime / c.dt) > MAX_FLIGHT_STEPS) {
+    throw new RangeError(`physics: maxTime / dt exceeds ${MAX_FLIGHT_STEPS} flight iterations`);
+  }
+  if (Math.ceil(170 / c.elevScanStepDeg) > MAX_SCAN_STEPS) {
+    throw new RangeError(`physics: elevScanStepDeg requires more than ${MAX_SCAN_STEPS} scan iterations`);
+  }
+  return c;
+}
+
+function validateNet(net) {
+  if (net !== 'doubles' && net !== 'singles') throw new RangeError(`physics: unknown net "${net}"`);
+}
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const optional = (obj) => Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
 
-/** 네트 코드 높이 (m). 포스트 바깥은 포스트 높이로 본다. */
-export function netHeightAt(y) {
-  const frac = Math.min(Math.abs(y), COURT.netPostY) / COURT.netPostY;
+/** 네트 코드 높이(m). doubles(기본)는 복식 포스트, singles는 단식 스틱까지 선형으로 높아진다. 바깥은 1.07 m. */
+export function netHeightAt(y, net = 'doubles') {
+  validateNet(net);
+  const postY = net === 'singles' ? COURT.singlesStickY : COURT.netPostY;
+  const frac = Math.min(Math.abs(y), postY) / postY;
   return COURT.netCenterHeight + (COURT.netPostHeight - COURT.netCenterHeight) * frac;
+}
+
+/** 손목 높이로 추정한 공 컨택 높이(m). 이 범위는 시나리오 가정이며 측정값이 아니다. */
+export function ballContactHeight({ wristHeightM, stroke } = {}) {
+  positive(wristHeightM, 'wristHeightM');
+  if (stroke === 'serve') {
+    // 라켓이 팔과 거의 일직선인 서브: 공 중심은 손목보다 약 0.40–0.55 m 위.
+    return { low: wristHeightM + 0.40, mid: wristHeightM + 0.475, high: wristHeightM + 0.55 };
+  }
+  if (stroke === 'forehand' || stroke === 'backhand') {
+    return { low: wristHeightM - 0.10, mid: wristHeightM, high: wristHeightM + 0.10 };
+  }
+  throw new RangeError(`physics: unknown stroke "${stroke}"`);
 }
 
 /** 양력계수 Cl = 1 / (2 + v / (r·ω)). speed m/s, spinRadS rad/s. */
@@ -165,7 +208,7 @@ function crossing(step, prev, cur, i, target, dt) {
 }
 
 // 발사 상태에서 첫 착지까지 적분한다. 네트에 걸리더라도 멈추지 않고 clearance(음수)만 기록한다.
-function fly(launch, c, wantPath) {
+function fly(launch, c, wantPath, netType = 'doubles') {
   const { dt, ballRadius: groundZ } = c;
   const step = makeStepper(c, launch.w);
   const s = Float64Array.of(launch.x0, launch.y0, launch.z0, launch.vx, launch.vy, launch.vz);
@@ -180,32 +223,37 @@ function fly(launch, c, wantPath) {
 
   for (let n = 1; n <= maxSteps && !end; n++) {
     prev.set(s);
-    step(s, dt);
+    const h = Math.min(dt, c.maxTime - t);
+    if (h <= 0) break;
+    step(s, h);
     if (net === null && prev[0] < COURT.netX && s[0] >= COURT.netX) {
-      const hit = crossing(step, prev, s, 0, COURT.netX, dt);
+      const hit = crossing(step, prev, s, 0, COURT.netX, h);
       const z = hit.s[2];
       const y = hit.s[1];
-      net = { z, y, t: t + hit.t, clearance: z - c.ballRadius - netHeightAt(y) };
+      net = { z, y, t: t + hit.t, clearance: z - c.ballRadius - netHeightAt(y, netType) };
     }
     if (s[2] <= groundZ) {
-      end = crossing(step, prev, s, 2, groundZ, dt);
+      end = crossing(step, prev, s, 2, groundZ, h);
       end.t += t;
       break;
     }
-    t = n * dt;
+    t = Math.min(n * dt, c.maxTime);
     if (s[2] > maxHeight) maxHeight = s[2];
     if (path && n % sampleEvery === 0) path.push({ t, x: s[0], y: s[1], z: s[2] });
   }
-  if (!end) end = { s, t }; // maxTime 초과 (비현실적 입력)
+  const landed = end !== null;
+  if (!end) end = { s, t }; // 시간 초과 시 마지막 상태는 path 에만 기록한다.
   if (net && net.t > end.t) net = null; // 같은 스텝 안에서 네트 앞에 먼저 떨어진 경우
 
   const [x, y, z, vx, vy, vz] = end.s;
   if (path && end.t > path[path.length - 1].t) path.push({ t: end.t, x, y, z });
   return {
-    landing: { x, y, t: end.t, angleDeg: Math.atan2(-vz, Math.hypot(vx, vy)) / DEG },
+    landed,
+    ...(!landed ? { reason: 'timeout' } : {}),
+    landing: landed ? { x, y, t: end.t, angleDeg: Math.atan2(-vz, Math.hypot(vx, vy)) / DEG } : null,
     net,
     maxHeight,
-    speedAtLandingKmh: Math.sqrt(vx * vx + vy * vy + vz * vz) * KMH,
+    speedAtLandingKmh: landed ? Math.sqrt(vx * vx + vy * vy + vz * vz) * KMH : null,
     path,
   };
 }
@@ -215,7 +263,9 @@ function fly(launch, c, wantPath) {
  * spin: 'topspin' | 'backspin' | 'slice' | 'kick' | 'flat' ('flat' 은 spinRpm 을 무시).
  * sideSign: 사이드스핀 성분의 방향. +1 = 오른손잡이 슬라이스/킥(−y 로 휨), −1 = 왼손잡이.
  * tiltDeg: 스핀 축 기울기를 직접 지정 (0 탑스핀 … 90 사이드스핀 … 180 백스핀). 생략하면 SPIN_TILT_DEG[spin].
- * 반환: { landing:{x,y,t,angleDeg}, net:{z,y,t,clearance}|null, maxHeight, speedAtLandingKmh, path:[{t,x,y,z}] }
+ * net: 'doubles'(기본, 포스트 |y|=6.399 m) | 'singles'(단식 스틱 |y|=5.029 m).
+ * 시간 초과: landed=false, reason='timeout', landing=null, speedAtLandingKmh=null.
+ * 반환: { landed:true, landing:{x,y,t,angleDeg}, net:{z,y,t,clearance}|null, maxHeight, speedAtLandingKmh, path:[{t,x,y,z}] }
  *   net 은 네트 평면에 닿기 전에 떨어지면 null. clearance < 0 이면 네트에 걸린 것.
  */
 export function simulate({
@@ -229,32 +279,38 @@ export function simulate({
   spin = 'topspin',
   sideSign = 1,
   tiltDeg,
+  net = 'doubles',
   constants,
 } = {}) {
-  if (![x0, y0, z0, speedKmh, elevDeg, azimDeg].every(Number.isFinite)) {
-    throw new TypeError('simulate: z0, speedKmh, elevDeg must be finite numbers');
+  positive(z0, 'z0 (contact height)');
+  positive(speedKmh, 'speedKmh');
+  validateNet(net);
+  if (![x0, y0, elevDeg, azimDeg].every(Number.isFinite)) {
+    throw new TypeError('simulate: x0, y0, elevDeg, azimDeg must be finite numbers');
   }
   const shot = { x0, y0, z0, speedKmh, spinRpm, spin, sideSign, tiltDeg };
-  return fly(launchState(shot, elevDeg, azimDeg), withConstants(constants), true);
+  return fly(launchState(shot, elevDeg, azimDeg), withConstants(constants), true, net);
 }
 
 // 목표선에 떨어지도록 방위각을 맞춰 날린다.
 // 모델이 수직축 회전에 대칭이라, 고도각이 같으면 방위각을 바꿔도 궤적은 발사점을 중심으로 통째로 돌 뿐이다.
 // 그래서 az = 0 시험 발사 한 번으로 착지 거리 R 과 스핀에 의한 휨각 δ 를 얻으면 필요한 방위각이 바로 나온다.
 function flyAimed(shot, elevDeg, aim, c) {
-  const probe = fly(launchState(shot, elevDeg, 0), c, false);
+  const probe = fly(launchState(shot, elevDeg, 0), c, false, shot.net);
+  if (!probe.landed) return { ...probe, azimDeg: 0 };
   const dx = probe.landing.x - shot.x0;
   const dy = probe.landing.y - shot.y0;
   const azimDeg = aim(Math.hypot(dx, dy), Math.atan2(dy, dx)) / DEG;
-  const flight = Math.abs(azimDeg) < 1e-9 ? probe : fly(launchState(shot, elevDeg, azimDeg), c, false);
+  const flight = Math.abs(azimDeg) < 1e-9 ? probe : fly(launchState(shot, elevDeg, azimDeg), c, false, shot.net);
   flight.azimDeg = azimDeg;
   return flight;
 }
 
 // pred(a) = false, pred(b) = true 인 구간을 tol 이하로 좁힌다.
 function bisect(pred, a, b, tol) {
-  while (b - a > tol) {
+  for (let n = 0; n < MAX_BISECT_STEPS && b - a > tol; n++) {
     const mid = (a + b) / 2;
+    if (mid === a || mid === b) break;
     if (pred(mid)) b = mid;
     else a = mid;
   }
@@ -268,17 +324,17 @@ const NO_WINDOW = Object.freeze({ minElevDeg: NaN, maxElevDeg: NaN, capped: fals
 function elevationWindow(flyAt, tooShort, tooLong, startDeg, c) {
   const tol = c.elevTolDeg / 2;
   const step = c.elevScanStepDeg;
-  let e0 = startDeg;
+  let e0 = clamp(startDeg, -85, c.elevCapDeg);
   let r0 = flyAt(e0);
-  while (!tooShort(r0) && e0 > -85) {
-    e0 -= 2 * step; // 강한 백스핀 등으로 시작 각도에서 이미 넘어가면 더 아래에서 출발
+  for (let n = 0; n < MAX_SCAN_STEPS && !tooShort(r0) && e0 > -85; n++) {
+    e0 = Math.max(-85, e0 - 2 * step); // 강한 백스핀 등으로 시작 각도에서 이미 넘어가면 더 아래에서 출발
     r0 = flyAt(e0);
   }
   let short0 = tooShort(r0);
   let long0 = tooLong(r0);
   let minElevDeg = short0 ? null : e0;
   let maxElevDeg = long0 ? e0 : null;
-  while (e0 < c.elevCapDeg && (minElevDeg === null || maxElevDeg === null)) {
+  for (let n = 0; n < MAX_SCAN_STEPS && e0 < c.elevCapDeg && (minElevDeg === null || maxElevDeg === null); n++) {
     const e1 = Math.min(e0 + step, c.elevCapDeg);
     const r1 = flyAt(e1);
     const short1 = tooShort(r1);
@@ -298,8 +354,33 @@ function elevationWindow(flyAt, tooShort, tooLong, startDeg, c) {
   return { minElevDeg, maxElevDeg: capped ? c.elevCapDeg : maxElevDeg, capped };
 }
 
+// 최적 발사의 방위각을 고정하고, 그 발사를 포함하는 연속적인 인 구간의 폭(deg)을 구한다.
+// 양쪽 경계를 따로 찾으므로 네트/깊이뿐 아니라 사이드라인·서비스 센터라인 이탈도 반영한다.
+function fixedAimWindow(shot, best, isIn, c) {
+  const valid = (e) => isIn(fly(launchState(shot, e, best.azimDeg), c, false, shot.net));
+  if (!valid(best.elevDeg)) return 0;
+  const boundary = (direction, limit) => {
+    let inside = best.elevDeg;
+    for (let n = 0; n < MAX_SCAN_STEPS && inside !== limit; n++) {
+      const next = clamp(inside + direction * c.elevScanStepDeg, -85, c.elevCapDeg);
+      if (!valid(next)) {
+        return direction > 0
+          ? bisect((e) => !valid(e), inside, next, c.elevTolDeg / 2)[0]
+          : bisect(valid, next, inside, c.elevTolDeg / 2)[1];
+      }
+      inside = next;
+    }
+    return inside;
+  };
+  return boundary(1, c.elevCapDeg) - boundary(-1, -85);
+}
+
 // 서브·스트로크 공통: 창을 풀고, 창 한가운데 각도("best")의 궤적을 요약한다.
 function solveWindow(shot, aim, tooShort, tooLong, c) {
+  positive(shot.z0, 'contactHeight');
+  positive(shot.speedKmh, 'speedKmh');
+  validateNet(shot.net);
+  const isIn = (f) => f.landed && !tooShort(f) && !tooLong(f);
   const usable =
     [shot.x0, shot.y0, shot.z0, shot.speedKmh].every(Number.isFinite) &&
     shot.speedKmh > 0 &&
@@ -313,16 +394,17 @@ function solveWindow(shot, aim, tooShort, tooLong, c) {
   const win = usable ? elevationWindow(flyAt, tooShort, tooLong, Math.floor(sightDeg) - 6, c) : NO_WINDOW;
 
   const span = win.maxElevDeg - win.minElevDeg;
-  const feasible = span > 0;
+  const middle = Number.isFinite(span) ? flyAt((win.minElevDeg + win.maxElevDeg) / 2) : null;
+  const feasible = span > 0 && isIn(middle);
   const windowDeg = feasible ? span : 0;
   // simulate() 에 그대로 넣을 수 있는 발사 조건 (방위각은 그 고도각에서 목표선에 맞춘 값)
   const launchAt = (elevDeg, f = flyAt(elevDeg)) => ({ ...shot, elevDeg, azimDeg: f.azimDeg });
   let best = null;
   let minLaunch = null;
   let maxLaunch = null;
-  if (Number.isFinite(span)) {
+  if (middle?.landed) {
     const elevDeg = (win.minElevDeg + win.maxElevDeg) / 2;
-    const f = flyAt(elevDeg);
+    const f = middle;
     best = {
       elevDeg,
       azimDeg: f.azimDeg,
@@ -340,7 +422,9 @@ function solveWindow(shot, aim, tooShort, tooLong, c) {
     minElevDeg: win.minElevDeg,
     maxElevDeg: win.maxElevDeg,
     windowDeg,
-    toleranceDeg: windowDeg / 2, // best 각도에서 위아래로 허용되는 발사각 오차 (±)
+    toleranceDeg: windowDeg / 2, // 호환용: 고도각마다 재조준한 범위의 절반, 고정 조준 오차가 아님.
+    elevRangeReaimedDeg: windowDeg, // 고도각마다 방위각을 다시 풀 때의 고도각 범위 전체 폭(deg).
+    fixedAimWindowDeg: feasible ? fixedAimWindow(shot, best, isIn, c) : 0, // best 방위각 고정 시 인 구간 전체 폭(deg), 대칭 ± 오차가 아님.
     feasible,
     maxElevCapped: win.capped,
     best,
@@ -371,6 +455,10 @@ function serveGeometry({ court, standY, contactForward, target }) {
  * 서브의 발사 고도각 허용 창.
  * court: 'deuce' | 'ad'. standY: 센터마크에서 자기 쪽으로 떨어진 거리(m). contactForward: 베이스라인 안쪽 컨택 거리(m).
  * target: 'T'(센터라인 안쪽 0.4 m) | 'body'(박스 한가운데) | 'wide'(단식 사이드라인 안쪽 0.4 m) — 이 선 위에 떨어지도록 방위각을 푼다.
+ * net: 'doubles'(기본) | 'singles'. simulate 와 같은 네트 모델을 쓰며 launch 에도 보존한다.
+ * elevRangeReaimedDeg: 고도각마다 재조준할 때의 전체 폭(deg), 기존 windowDeg 와 같다.
+ * toleranceDeg: 호환용으로 재조준 폭의 절반을 유지한다. 고정 방위각 오차로 해석하지 않는다.
+ * fixedAimWindowDeg: best.azimDeg 를 고정한 연속적인 인 구간의 전체 폭(deg), best 주변에 비대칭일 수 있다.
  * 반환: { minElevDeg(네트를 넘는 최저각), maxElevDeg(서비스라인 안에 떨어지는 최고각), windowDeg, toleranceDeg, feasible,
  *         maxElevCapped, best:{elevDeg, azimDeg, netClearanceCm, netY, landingDepthM(네트 뒤 거리), flightTimeS, landingSpeedKmh, launch},
  *         minLaunch, maxLaunch, netHeightOnPathCm, distanceToServiceLineM, contact:{x0,y0,z0}, targetY }
@@ -390,23 +478,26 @@ export function serveWindow({
   target = 'T',
   rightHanded = true,
   tiltDeg,
+  net = 'doubles',
   constants,
 } = {}) {
   const c = withConstants(constants);
   const geo = serveGeometry({ court, standY, contactForward, target });
   const shot = {
     x0: geo.x0, y0: geo.y0, z0: contactHeight, speedKmh, spinRpm, spin,
-    sideSign: rightHanded ? 1 : -1, ...optional({ tiltDeg, constants }),
+    sideSign: rightHanded ? 1 : -1, net, ...optional({ tiltDeg, constants }),
   };
   // 착지 y = y0 + R·sin(az + δ) = targetY
   const aim = (R, delta) => Math.asin(clamp((geo.targetY - geo.y0) / R, -0.99, 0.99)) - delta;
-  const tooShort = (f) => f.net === null || f.net.clearance < 0;
-  const tooLong = (f) => f.landing.x > COURT.farServiceLineX;
+  const boxSign = court === 'deuce' ? -1 : 1;
+  const tooShort = (f) => !f.landed || f.net === null || f.net.clearance < 0 ||
+    f.landing.x < COURT.netX || boxSign * f.landing.y < 0 || Math.abs(f.landing.y) > COURT.singlesHalfWidth;
+  const tooLong = (f) => !f.landed || f.landing.x > COURT.farServiceLineX;
   const result = solveWindow(shot, aim, tooShort, tooLong, c);
   const netY = result.best && Number.isFinite(result.best.netY) ? result.best.netY : geo.netY;
   return {
     ...result,
-    netHeightOnPathCm: netHeightAt(netY) * 100,
+    netHeightOnPathCm: netHeightAt(netY, net) * 100,
     distanceToServiceLineM: geo.distance,
     contact: { x0: geo.x0, y0: geo.y0, z0: contactHeight },
     targetY: geo.targetY,
@@ -419,7 +510,8 @@ export function serveWindow({
  * startY: 컨택 지점의 좌우 위치 (기본 3 m, 단식 사이드라인 안쪽 약 1.1 m).
  * crossCourt: false = 사이드라인과 평행한 다운더라인, true = 반대편 같은 위치(y = −startY)를 향한 크로스
  *   (크로스는 낮은 네트 가운데를 지나고 코트가 대각선만큼 길어진다).
- *   목표점은 상대 베이스라인 위이며 단식 사이드라인 안쪽 0.4 m 를 넘지 않게 제한한다. 방위각은 컨택점 → 목표점 직선에 맞춘다.
+ * doubles: false(기본) = 단식 코트, true = 복식 코트. net 옵션은 코트 폭과 별도로 선택한다.
+ *   목표점은 상대 베이스라인 위이며 해당 코트 사이드라인 안쪽 0.4 m 를 넘지 않게 제한한다. 방위각은 컨택점 → 목표점 직선에 맞춘다.
  * 반환: serveWindow 와 같은 모양 (maxElevDeg 는 상대 베이스라인 안에 떨어지는 최고각) + distanceToBaselineM.
  */
 export function groundWindow({
@@ -430,30 +522,34 @@ export function groundWindow({
   fromBaseline = 0,
   minDepthFromNet = 0,
   crossCourt = false,
+  doubles = false,
   startY = 3,
   sideSign = 1,
   tiltDeg,
+  net = 'doubles',
   constants,
 } = {}) {
   const c = withConstants(constants);
   const x0 = 0 - fromBaseline;
   const y0 = startY;
-  const reach = Math.min(Math.abs(startY), COURT.singlesHalfWidth - COURT.targetInset);
+  const halfWidth = doubles ? COURT.doublesHalfWidth : COURT.singlesHalfWidth;
+  const reach = Math.min(Math.abs(startY), halfWidth - COURT.targetInset);
   const targetY = (crossCourt ? -1 : 1) * Math.sign(startY) * reach || 0;
   const aimLine = Math.atan2(targetY - y0, COURT.farBaselineX - x0);
   const shot = {
-    x0, y0, z0: contactHeight, speedKmh, spinRpm, spin, sideSign, ...optional({ tiltDeg, constants }),
+    x0, y0, z0: contactHeight, speedKmh, spinRpm, spin, sideSign, net, ...optional({ tiltDeg, constants }),
   };
   const aim = (_R, delta) => aimLine - delta; // 착지점이 컨택점 → 목표점 직선 위에 오도록
   const tooShort = (f) =>
-    f.net === null || f.net.clearance < 0 || f.landing.x - COURT.netX < minDepthFromNet;
-  const tooLong = (f) => f.landing.x > COURT.farBaselineX;
+    !f.landed || f.net === null || f.net.clearance < 0 ||
+    f.landing.x < COURT.netX + Math.max(0, minDepthFromNet) || Math.abs(f.landing.y) > halfWidth;
+  const tooLong = (f) => !f.landed || f.landing.x > COURT.farBaselineX;
   const result = solveWindow(shot, aim, tooShort, tooLong, c);
   const straightNetY = y0 + ((COURT.netX - x0) / (COURT.farBaselineX - x0)) * (targetY - y0);
   const netY = result.best && Number.isFinite(result.best.netY) ? result.best.netY : straightNetY;
   return {
     ...result,
-    netHeightOnPathCm: netHeightAt(netY) * 100,
+    netHeightOnPathCm: netHeightAt(netY, net) * 100,
     distanceToBaselineM: Math.hypot(COURT.farBaselineX - x0, targetY - y0),
     contact: { x0, y0, z0: contactHeight },
     targetY,
@@ -474,10 +570,11 @@ export function straightLineMinHeight({
   target = 'T',
   court = 'deuce',
   standY = 0.3,
+  net = 'doubles',
   constants,
 } = {}) {
   const c = withConstants(constants);
   const geo = serveGeometry({ court, standY, contactForward, target });
   const ratio = (COURT.farServiceLineX - geo.x0) / (COURT.farServiceLineX - COURT.netX);
-  return c.ballRadius + netHeightAt(geo.netY) * ratio;
+  return c.ballRadius + netHeightAt(geo.netY, net) * ratio;
 }

@@ -3,6 +3,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  ballContactHeight,
   COURT,
   DEFAULTS,
   SPIN_TILT_DEG,
@@ -66,7 +67,7 @@ describe('court and constants', () => {
     near(netHeightAt(6.399), 1.07, 1e-12);
     assert.equal(netHeightAt(-2.5), netHeightAt(2.5));
     assert.equal(netHeightAt(9), netHeightAt(COURT.netPostY)); // 포스트 바깥은 더 높아지지 않는다
-    strictlyIncreasing([0, 1, 2, 3, 4.115, 5.485, 6.399].map(netHeightAt), 'net height vs |y|');
+    strictlyIncreasing([0, 1, 2, 3, 4.115, 5.485, 6.399].map((y) => netHeightAt(y)), 'net height vs |y|');
   });
 
   test('lift coefficient follows Cl = 1 / (2 + v / (r·ω))', () => {
@@ -207,7 +208,7 @@ describe('simulate', () => {
   });
 
   test('rejects bad input', () => {
-    assert.throws(() => simulate({ speedKmh: 100, elevDeg: 0 }), TypeError);
+    assert.throws(() => simulate({ speedKmh: 100, elevDeg: 0 }), RangeError);
     assert.throws(() => simulate({ z0: 1, speedKmh: 100, elevDeg: 0, spinRpm: 1000, spin: 'wobble' }), RangeError);
     assert.throws(() => serveWindow({ contactHeight: 2.5, speedKmh: 150, target: 'corner' }), RangeError);
     assert.throws(() => serveWindow({ contactHeight: 2.5, speedKmh: 150, court: 'left' }), RangeError);
@@ -405,9 +406,7 @@ describe('serveWindow', () => {
     assert.equal(tooSlow.minLaunch, null);
     assert.equal(tooSlow.maxLaunch, null);
 
-    const missing = serveWindow({ speedKmh: 150 }); // 컨택 높이를 못 잰 경우
-    assert.equal(missing.feasible, false);
-    assert.equal(missing.windowDeg, 0);
+    assert.throws(() => serveWindow({ speedKmh: 150 }), { name: 'RangeError', message: /contactHeight/ });
   });
 
   test('slow serves have a wide, upward window', () => {
@@ -513,5 +512,205 @@ describe('sweep', () => {
     strictlyIncreasing(spins, 'groundstroke window vs topspin');
     const calls = sweep((args) => args.x * 2, { x: 0, keep: 1 }, 'x', new Set([1, 2]));
     assert.deepEqual(calls, [{ value: 1, result: 2 }, { value: 2, result: 4 }]);
+  });
+});
+
+describe('court boundaries and fixed aim', () => {
+  const inside = (flight, farX, minY, maxY) => flight.landed && flight.net !== null &&
+    flight.net.clearance >= 0 && flight.landing.x >= COURT.netX && flight.landing.x <= farX &&
+    flight.landing.y >= minY && flight.landing.y <= maxY;
+
+  test('pulled-wide groundstrokes must enter both singles and doubles sidelines', () => {
+    for (const startY of [-8, 8]) {
+      for (const doubles of [false, true]) {
+        const win = groundWindow({ speedKmh: 110, spin: 'flat', startY, doubles });
+        const width = doubles ? COURT.doublesHalfWidth : COURT.singlesHalfWidth;
+        assert.ok(win.feasible);
+        for (const launch of [win.minLaunch, win.best.launch, win.maxLaunch]) {
+          assert.ok(inside(simulate(launch), COURT.farBaselineX, -width, width));
+        }
+        const outside = simulate({ ...win.minLaunch, elevDeg: win.minElevDeg - 0.01 });
+        assert.ok(outside.net.clearance > 0 && outside.landing.x < COURT.farBaselineX);
+        assert.ok(Math.abs(outside.landing.y) > width, 'lower bound is the sideline, not net or baseline');
+      }
+    }
+  });
+
+  test('doubles accepts alley landings while singles aims inside its narrower court', () => {
+    const args = { speedKmh: 110, spin: 'flat', startY: 5 };
+    const doubles = groundWindow({ ...args, doubles: true });
+    const singles = groundWindow(args);
+    assert.ok(simulate(doubles.best.launch).landing.y > COURT.singlesHalfWidth);
+    assert.ok(simulate(doubles.best.launch).landing.y <= COURT.doublesHalfWidth);
+    assert.ok(simulate(singles.best.launch).landing.y <= COURT.singlesHalfWidth);
+    assert.deepEqual(singles, groundWindow({ ...args, doubles: false }));
+  });
+
+  test('serves land inside the correct service box in both dimensions', () => {
+    for (const court of ['deuce', 'ad']) {
+      for (const target of ['T', 'wide']) {
+        const win = serveWindow({ contactHeight: 2.7, speedKmh: 80, spin: 'slice', spinRpm: 6000, court, target });
+        const [minY, maxY] = court === 'deuce' ? [-COURT.singlesHalfWidth, 0] : [0, COURT.singlesHalfWidth];
+        assert.ok(win.feasible);
+        for (const launch of [win.minLaunch, win.best.launch, win.maxLaunch]) {
+          assert.ok(inside(simulate(launch), COURT.farServiceLineX, minY, maxY));
+        }
+        // Unreachable lateral target: the clamped azimuth can clear the net and land
+        // before the service line while still being in the wrong half or beyond a sideline.
+        const unreachable = serveWindow({ contactHeight: 5, speedKmh: 500, standY: 200, court, target, constants: VACUUM });
+        assert.equal(unreachable.feasible, false);
+        assert.equal(unreachable.windowDeg, 0);
+      }
+    }
+  });
+
+  test('named ranges retain aliases and fixed-aim width matches independent elevation samples', () => {
+    const cases = [
+      [groundWindow({ speedKmh: 80, spin: 'slice', spinRpm: 6000, startY: 4 }), COURT.farBaselineX, -COURT.singlesHalfWidth, COURT.singlesHalfWidth],
+      [serveWindow({ contactHeight: 2.7, speedKmh: 80, spin: 'slice', spinRpm: 6000, target: 'wide' }), COURT.farServiceLineX, -COURT.singlesHalfWidth, 0],
+      [serveWindow({ contactHeight: 2.7, speedKmh: 80, spin: 'slice', spinRpm: 6000, target: 'T', court: 'ad' }), COURT.farServiceLineX, 0, COURT.singlesHalfWidth],
+    ];
+    for (const [win, farX, minY, maxY] of cases) {
+      assert.equal(win.elevRangeReaimedDeg, win.windowDeg);
+      assert.equal(win.toleranceDeg, win.elevRangeReaimedDeg / 2);
+      const resolution = 0.02;
+      let count = 0;
+      for (let e = win.best.elevDeg - 20; e <= win.best.elevDeg + 20; e += resolution) {
+        if (inside(simulate({ ...win.best.launch, elevDeg: e }), farX, minY, maxY)) count++;
+      }
+      near(win.fixedAimWindowDeg, count * resolution, 2 * resolution, 'fixed azimuth sampling');
+    }
+    assert.ok(cases[0][0].fixedAimWindowDeg < cases[0][0].elevRangeReaimedDeg - 1);
+    assert.ok(cases[1][0].fixedAimWindowDeg < cases[1][0].elevRangeReaimedDeg - 0.5);
+  });
+
+  test('impossible and capped windows expose both new widths', () => {
+    for (const win of [serveWindow({ contactHeight: 2, speedKmh: 200 }), groundWindow({ speedKmh: 30 })]) {
+      assert.equal(win.elevRangeReaimedDeg, 0);
+      assert.equal(win.fixedAimWindowDeg, 0);
+    }
+    const capped = groundWindow({ speedKmh: 60, spin: 'flat', startY: 0 });
+    assert.equal(capped.maxElevCapped, true);
+    near(capped.fixedAimWindowDeg, capped.windowDeg, DEFAULTS.elevTolDeg);
+  });
+});
+
+describe('validation and time limits', () => {
+  const simArgs = { z0: 2.6, speedKmh: 150, elevDeg: -4 };
+  const calls = [
+    (constants) => simulate({ ...simArgs, constants }),
+    (constants) => serveWindow({ contactHeight: 2.6, speedKmh: 150, constants }),
+    (constants) => groundWindow({ speedKmh: 110, constants }),
+  ];
+
+  test('rejects nonpositive and nonfinite integration and scan constants', () => {
+    for (const key of ['dt', 'elevScanStepDeg', 'maxTime', 'elevTolDeg']) {
+      for (const value of [0, -1, NaN, Infinity, -Infinity]) {
+        for (const call of calls) {
+          assert.throws(() => call({ [key]: value }), { name: 'RangeError', message: new RegExp(key) });
+        }
+      }
+    }
+  });
+
+  test('rejects invalid speeds and contact heights in every trajectory API', () => {
+    for (const value of [0, -1, NaN, Infinity, -Infinity, null]) {
+      for (const call of [
+        () => simulate({ ...simArgs, speedKmh: value }),
+        () => serveWindow({ contactHeight: 2.6, speedKmh: value }),
+        () => groundWindow({ speedKmh: value }),
+      ]) assert.throws(call, { name: 'RangeError', message: /speedKmh/ });
+      for (const call of [
+        () => simulate({ ...simArgs, z0: value }),
+        () => serveWindow({ contactHeight: value, speedKmh: 150 }),
+        () => groundWindow({ contactHeight: value, speedKmh: 110 }),
+      ]) assert.throws(call, { name: 'RangeError', message: /contactHeight|z0/ });
+    }
+  });
+
+  test('rejects excessive flight/scan iteration budgets without starting loops', () => {
+    for (const call of calls) {
+      for (const constants of [{ dt: 1e-300 }, { maxTime: 1e100 }, { elevScanStepDeg: 1e-300 }]) {
+        assert.throws(() => call(constants), { name: 'RangeError', message: /iterations/ });
+      }
+    }
+    // Even a tolerance below floating-point resolution cannot trap bisection.
+    assert.ok(groundWindow({ speedKmh: 110, constants: { elevTolDeg: Number.MIN_VALUE } }).feasible);
+  });
+
+  test('timeout has no fake landing and ends the path exactly at maxTime', () => {
+    const flight = simulate({ ...simArgs, constants: { maxTime: 0.005, dt: 0.002 } });
+    assert.equal(flight.landed, false);
+    assert.equal(flight.reason, 'timeout');
+    assert.equal(flight.landing, null);
+    assert.equal(flight.speedAtLandingKmh, null);
+    assert.equal(flight.path.at(-1).t, 0.005);
+    assert.ok(flight.path.at(-1).z > R);
+    const normal = simulate(simArgs);
+    assert.equal(normal.landed, true);
+    assert.ok(normal.landing && !normal.reason);
+  });
+
+  test('a final partial step cannot invent a landing after the deadline', () => {
+    const args = { z0: 0.1, speedKmh: 10, elevDeg: 0, constants: { ...VACUUM, dt: 0.1, maxTime: 0.11 } };
+    assert.equal(simulate(args).landed, false); // analytic ground contact is about 0.117 s
+    const landed = simulate({ ...args, constants: { ...args.constants, maxTime: 0.13 } });
+    assert.equal(landed.landed, true);
+    assert.ok(landed.landing.t <= 0.13);
+  });
+
+  test('window solvers handle timeouts without dereferencing null landings', () => {
+    for (const fn of [serveWindow, groundWindow]) {
+      const win = fn({ contactHeight: 2.6, speedKmh: 150, constants: { maxTime: 0.001 } });
+      assert.equal(win.feasible, false);
+      assert.equal(win.windowDeg, 0);
+      assert.equal(win.fixedAimWindowDeg, 0);
+      assert.equal(win.best, null);
+    }
+  });
+});
+
+describe('net selection and ball contact height', () => {
+  test('singles sticks reach 1.07 m at ±5.029 m, with doubles unchanged by default', () => {
+    for (const y of [0, 2, 5.029, 6.399, 9]) {
+      assert.equal(netHeightAt(y), netHeightAt(y, 'doubles'));
+      assert.equal(netHeightAt(y, 'singles'), netHeightAt(-y, 'singles'));
+    }
+    near(netHeightAt(0, 'singles'), 0.914, 1e-12);
+    near(netHeightAt(5.029, 'singles'), 1.07, 1e-12);
+    near(netHeightAt(9, 'singles'), 1.07, 1e-12);
+    assert.ok(netHeightAt(4, 'singles') > netHeightAt(4, 'doubles'));
+    assert.throws(() => netHeightAt(0, 'unknown'), RangeError);
+  });
+
+  test('net selection propagates through simulations, windows, replay and geometry', () => {
+    const args = { z0: 2.6, y0: 4, speedKmh: 150, elevDeg: -4 };
+    const singles = simulate({ ...args, net: 'singles' });
+    const doubles = simulate(args);
+    assert.deepEqual(singles.landing, doubles.landing);
+    assert.ok(singles.net.clearance < doubles.net.clearance);
+    near(singles.net.clearance, singles.net.z - R - netHeightAt(singles.net.y, 'singles'), 1e-12);
+    for (const fn of [serveWindow, groundWindow]) {
+      const win = fn({ contactHeight: 2.6, speedKmh: 110, target: 'wide', net: 'singles' });
+      assert.ok(win.feasible);
+      assert.equal(win.best.launch.net, 'singles');
+      near(win.netHeightOnPathCm, 100 * netHeightAt(win.best.netY, 'singles'), 1e-12);
+      near(simulate(win.best.launch).net.clearance * 100, win.best.netClearanceCm, 1e-9);
+      assert.equal(win.minLaunch.net, 'singles');
+      assert.equal(win.maxLaunch.net, 'singles');
+    }
+    assert.ok(straightLineMinHeight({ target: 'wide', net: 'singles' }) > straightLineMinHeight({ target: 'wide' }));
+  });
+
+  test('ball contact scenario ranges use metres for serve, forehand and backhand', () => {
+    const serve = ballContactHeight({ wristHeightM: 2, stroke: 'serve' });
+    near(serve.low, 2.40, 1e-12);
+    near(serve.mid, 2.475, 1e-12);
+    near(serve.high, 2.55, 1e-12);
+    for (const stroke of ['forehand', 'backhand']) {
+      assert.deepEqual(ballContactHeight({ wristHeightM: 1, stroke }), { low: 0.9, mid: 1, high: 1.1 });
+    }
+    assert.throws(() => ballContactHeight({ wristHeightM: NaN, stroke: 'serve' }), RangeError);
+    assert.throws(() => ballContactHeight({ wristHeightM: 1, stroke: 'volley' }), RangeError);
   });
 });
