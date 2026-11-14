@@ -205,3 +205,115 @@ test('화면 모듈이 모두 문법 오류 없이 읽힌다', async () => {
     assert.equal(r.status, 0, `${f}: ${String(r.stderr).split('\n').slice(0, 6).join(' ')}`);
   }
 });
+
+// ── 공 속도 어림 ────────────────────────────────────────────────
+test('공 속도 어림: 손목이 빠를수록 빠르고, 범위와 함께 돌려준다', async () => {
+  const { estimateSpeed, frameGain, speedSummary, benchmarks, shotSpeed } = await import('../../app/static/coach/js/speed.js');
+  const base = { stroke: 'serve', serveType: 'flat', peak: 10, bodyH: 1.7, heightCm: 170, sf: 1, sfAuto: false, step: 1 / 60, vis: 0.9, view: 'side' };
+  const e = estimateSpeed(base);
+  assert.ok(e.ok);
+  assert.ok(e.kmh >= 90 && e.kmh <= 125, `손목 10m/s 서브 → ${e.kmh}km/h`);           // 동호인 서브 범위
+  assert.ok(e.lo < e.kmh && e.kmh < e.hi && e.kmh % 5 === 0);
+  assert.equal(e.pct, 25);
+  assert.ok(estimateSpeed({ ...base, peak: 14 }).kmh > e.kmh);
+  // 같은 스윙이면 플랫 > 슬라이스 > 킥
+  const sl = estimateSpeed({ ...base, serveType: 'slice' }).kmh, kk = estimateSpeed({ ...base, serveType: 'kick' }).kmh;
+  assert.ok(e.kmh > sl && sl > kk);
+  // 키가 크면 같은 화면 속도라도 실제 속도가 빠르다(모델 키 대비 환산)
+  assert.ok(estimateSpeed({ ...base, heightCm: 190 }).kmh > e.kmh);
+  // 포핸드: 손목 7m/s 는 동호인 포핸드 범위
+  const f = estimateSpeed({ ...base, stroke: 'forehand', peak: 7 });
+  assert.ok(f.ok && f.kmh >= 55 && f.kmh <= 80, `손목 7m/s 포핸드 → ${f.kmh}km/h`);
+  // 프로 수준 손목 속도(14.5m/s) 포핸드는 프로 평균(117~126) 근처
+  const pro = estimateSpeed({ ...base, stroke: 'forehand', peak: 14, step: 1 / 60 });
+  assert.ok(pro.kmh >= 110 && pro.kmh <= 140, `손목 14m/s 포핸드 → ${pro.kmh}km/h`);
+  // 옆에서 찍지 않았으면 범위를 넓힌다
+  assert.equal(estimateSpeed({ ...base, view: 'behind' }).pct, 30);
+  // 프레임 간격이 길면 뭉개진 만큼 올려 잡는다
+  assert.ok(frameGain(1 / 30) > frameGain(1 / 60) && frameGain(1 / 240) === 1);
+  assert.ok(estimateSpeed({ ...base, step: 1 / 30 }).kmh >= e.kmh);
+  // 요약
+  assert.deepEqual(speedSummary([{ ok: true, kmh: 100 }, { ok: true, kmh: 120, cal: true }, { ok: false }]), { n: 2, of: 3, avg: 110, max: 120, cal: true, assumed: false });
+  assert.equal(speedSummary([{ ok: true, kmh: 100, assumed: true }]).assumed, true);
+  assert.equal(speedSummary([{ ok: false }]), null);
+  assert.ok(benchmarks('serve').length === 3 && benchmarks('backhand')[0][0].includes('백핸드'));
+  // 샷에서 바로
+  const s = shotSpeed({ swing: { peak: 10, h: 1.7, sf: 1, sfAuto: false, stroke: 'serve' }, m: { stroke: 'serve', vis: 0.9, view: 'side' }, step: 1 / 60 }, { heightCm: 170 });
+  assert.equal(s.kmh, e.kmh);
+});
+
+test('공 속도 어림: 믿을 수 없을 때는 숫자를 내지 않는다', async () => {
+  const { estimateSpeed } = await import('../../app/static/coach/js/speed.js');
+  const base = { stroke: 'serve', serveType: 'flat', peak: 10, bodyH: 1.7, heightCm: 170, sf: 1, sfAuto: false, step: 1 / 60, vis: 0.9, view: 'side' };
+  assert.equal(estimateSpeed({ ...base, sf: 6, sfAuto: true, peak: 1.3 }).ok, false);     // 슬로모션 배수를 영상에서 어림한 경우
+  assert.match(estimateSpeed({ ...base, sf: 6, sfAuto: true, peak: 1.3 }).why, /슬로모션/);
+  assert.equal(estimateSpeed({ ...base, vis: 0.4 }).ok, false);                           // 팔이 흐릿함
+  assert.equal(estimateSpeed({ ...base, suspect: true }).ok, false);                      // 준비 동작
+  assert.equal(estimateSpeed({ ...base, peak: 0 }).ok, false);
+  assert.equal(estimateSpeed({ ...base, peak: 1.5 }).ok, false);                          // 너무 느린 스윙
+  assert.equal(estimateSpeed({ ...base, stroke: 'volley' }).ok, false);
+  // 사용자가 슬로모션 배수(4배)를 알려 준 경우: 화면 속도 2.5 → 실제 10 과 같은 값
+  const slow = estimateSpeed({ ...base, peak: 2.5, sf: 4, sfAuto: false, step: 1 / 30 });
+  const real = estimateSpeed({ ...base, peak: 10, step: 1 / 120 });
+  assert.ok(slow.ok && slow.kmh === real.kmh, `${slow.kmh} vs ${real.kmh}`);
+  assert.equal(slow.pct, 30);
+  // 범위를 벗어난 값은 자르지 않고 숫자를 내지 않는다
+  assert.equal(estimateSpeed({ ...base, peak: 40 }).ok, false);
+  assert.equal(estimateSpeed({ ...base, peak: 3.2 }).ok, false);                          // 약 36km/h 서브: 하한(40) 아래
+  // 가장 빠른 순간의 화면이 드문드문 찍혔으면(초당 20장 미만) 말하지 않는다
+  assert.equal(estimateSpeed({ ...base, step: 1 / 10 }).ok, false);
+  assert.match(estimateSpeed({ ...base, step: 1 / 10 }).why, /드문드문/);
+  assert.equal(estimateSpeed({ ...base, step: NaN }).ok, false);
+  // 긴 영상인데 사용자가 슬로모션이라고 했으면(분석은 일반 속도로 했다) 말하지 않는다
+  assert.equal(estimateSpeed({ ...base, sfIgnored: true }).ok, false);
+  // 영상 속도를 사용자가 고르지 않았으면 '일반 속도로 가정'했다고 표시한다
+  assert.equal(estimateSpeed(base).assumed, true);
+  assert.equal(estimateSpeed({ ...base, sfGiven: true }).assumed, false);
+  assert.equal(estimateSpeed({ ...base, peak: 2.5, sf: 4, step: 1 / 10 }).assumed, false);
+  // 한쪽만 프레임이 빠져도(앞 20ms · 뒤 70ms) 말하지 않는다: 평균(45ms)이 아니라 넓은 쪽으로 판정한다
+  assert.equal(estimateSpeed({ ...base, step: 0.045, stepMax: 0.07 }).ok, false);
+  assert.equal(estimateSpeed({ ...base, step: 0.033, stepMax: 0.034 }).ok, true);
+  assert.equal(estimateSpeed({ ...base, peak: 2.5, sf: 4, step: 1 / 10 }).slow, 4);        // 계산에 쓴 배수를 알려 준다(화면에 적는다)
+  assert.equal(estimateSpeed(base).slow, 0);
+  // 슬로모션 4배 영상은 화면 간격이 1/10초여도 실제로는 1/40초라 괜찮다
+  assert.equal(estimateSpeed({ ...base, peak: 2.5, sf: 4, step: 1 / 10 }).ok, true);
+});
+
+test('공 속도 보정: 실제 속도를 알려 주면 그 비율로 맞추고 범위를 좁힌다', async () => {
+  const { estimateSpeed, calibration, shotSpeed } = await import('../../app/static/coach/js/speed.js');
+  const base = { stroke: 'serve', serveType: 'flat', peak: 10, bodyH: 1.7, heightCm: 170, sf: 1, sfAuto: false, step: 1 / 60, vis: 0.9, view: 'side' };
+  const e = estimateSpeed(base);
+  assert.equal(e.cal, false);
+  const f = calibration(e, 120);                                   // 실제로는 120km/h 였다
+  assert.ok(f > 1 && f < 1.4);
+  const c = estimateSpeed({ ...base, cal: f });
+  assert.equal(c.kmh, 120); assert.equal(c.cal, true);
+  assert.equal(c.pct, e.pct);                                      // 한 번 맞췄다고 참고 범위를 좁히지 않는다
+  // 보정은 보정 전 값 기준이라, 이미 보정된 결과로 다시 보정해도 같은 비율이 나온다
+  assert.equal(calibration(c, 120), f);
+  // 터무니없는 값은 받지 않는다
+  assert.equal(calibration(e, 400), null); assert.equal(calibration(e, 10), null); assert.equal(calibration(e, 235), null);
+  assert.equal(calibration(estimateSpeed({ ...base, peak: 6 }), 140), null);            // 어림값의 2배가 넘는다
+  // 맞춘 결과가 범위를 벗어나면 잘라서 보여 주지 않고 숫자를 내지 않는다. 맞춘 값 탓이라고 알려 준다(지울 수 있게)
+  assert.equal(estimateSpeed({ ...base, peak: 18, cal: 1.4 }).ok, false);
+  assert.equal(estimateSpeed({ ...base, peak: 18, cal: 1.4 }).calOut, true);
+  // 잘못 잰 값(맞추기 전부터 범위 밖)이 맞춘 비율 때문에 그럴듯한 숫자로 바뀌어 나오면 안 된다
+  assert.equal(estimateSpeed({ ...base, peak: 3.2, cal: 2 }).ok, false);                  // 약 36 → 72km/h
+  assert.equal(estimateSpeed({ ...base, peak: 25, cal: 0.5 }).ok, false);                 // 약 281 → 140km/h
+  assert.equal(estimateSpeed({ ...base, peak: 3.2, cal: 2 }).calOut, false);
+  // 경계값(서브 40km/h)을 넣어 맞춰도 다시 계산하면 그 값이 나온다(비율을 반올림하지 않는다)
+  const e5 = estimateSpeed({ ...base, peak: 5 });
+  const f5 = calibration(e5, 40);
+  assert.ok(f5 > 0.7 && f5 < 0.72);
+  assert.equal(estimateSpeed({ ...base, peak: 5, cal: f5 }).kmh, 40);
+  assert.equal(calibration({ ok: false }, 120), null);
+  // 서브 보정은 서브에만, 스트로크 보정은 스트로크에만
+  const shot = { swing: { peak: 10, h: 1.7, sf: 1, sfAuto: false, stroke: 'serve' }, m: { stroke: 'serve', vis: 0.9, view: 'side' }, step: 1 / 60 };
+  assert.equal(shotSpeed(shot, { heightCm: 170, cal: { serve: f, forehand: 1, backhand: 1 } }).kmh, 120);
+  assert.equal(shotSpeed(shot, { heightCm: 170, cal: { serve: 1, forehand: 1.5, backhand: 1.5 } }).kmh, e.kmh);
+  // 가장 빠른 순간 앞뒤 프레임이 빠져 있으면(사람을 놓친 화면) 그 간격으로 판단한다
+  const fr = (ts) => ts.map((x) => ({ t: x }));
+  assert.equal(shotSpeed({ ...shot, swing: { ...shot.swing, ip: 2 }, frames: fr([0, 0.017, 0.033, 0.05, 0.067]) }, { heightCm: 170 }).ok, true);
+  assert.equal(shotSpeed({ ...shot, swing: { ...shot.swing, ip: 2 }, frames: fr([0, 0.017, 0.033, 0.25, 0.27]) }, { heightCm: 170 }).ok, false);
+  assert.equal(shotSpeed({ ...shot, swing: { ...shot.swing, ip: 2 }, frames: fr([0, 0.02, 0.04, 0.11, 0.13]) }, { heightCm: 170 }).ok, false);   // 뒤쪽만 70ms
+});
