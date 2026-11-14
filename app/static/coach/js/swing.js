@@ -134,17 +134,28 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   const pPre = G.poseAt(frames, tp - 0.15 * sf);
   const preAboveShoulder = pPre.w[S.hit.sh][1] - pPre.w[S.hit.wr][1] > 0.02 * h;
   const tossUp = Math.max(-9, ...win(tp - 1.5 * sf, tp - 0.15 * sf).map((i) => W(i, J.nose)[1] - W(i, S.off.wr)[1])) > 0.03 * h;
-  let auto = upMax > 0.11 * h && (preAboveShoulder || tossUp) ? 'serve' : side >= 0 ? 'forehand' : 'backhand';
+  // 포핸드/백핸드: 손목이 임팩트를 지나며 좌우 어느 쪽으로 갔나(몸 기준). 포핸드는 치는 쪽에서 몸을 가로질러 반대쪽으로,
+  // 백핸드는 몸 앞(반대쪽)에서 치는 쪽으로 나간다. 실제로 공을 친 모션캡처(Tennis-MoCap)에서 포핸드 약 -0.27, 한손 백핸드 약 +0.34,
+  // 양손 백핸드 약 +0.22, 백핸드 발리 약 +0.19 (키 대비)로 갈렸다. 백스윙 때 손이 어느 쪽에 있었나(side)만 보면 한손 백핸드가
+  // 포핸드로 잡힌다(몸을 옆으로 돌리고 있어서 손이 몸 가운데 앞에 있다).
+  const lat = (i) => G.dot(G.sub(W(i, S.hit.wr), G.mid(W(i, J.lSh), W(i, J.rSh))), G.bodyFrame(frames[i]).R) * sign;
+  const meanLat = (ids) => (ids.length ? ids.reduce((sum, i) => sum + lat(i), 0) / ids.length / h : NaN);
+  const sweep = meanLat(near(0.08, 0.3)) - meanLat(near(-0.45, -0.1));
+  const swept = Number.isFinite(sweep) && Math.abs(sweep) >= 0.06;
+  // 백스윙 때 손이 치는 쪽으로 멀리(키의 0.15배 이상) 나가 있었으면 포핸드다: 모션캡처에서 포핸드는 모두 0.20 이상, 백핸드는 한손·양손·발리 모두 0.13 이하였다.
+  // 그렇지 않을 때(손이 몸 앞·반대쪽) 휘두른 방향으로 가른다.
+  const fhSide = side >= 0.15;
+  let auto = upMax > 0.11 * h && (preAboveShoulder || tossUp) ? 'serve' : (fhSide || (swept ? sweep < 0 : side >= 0)) ? 'forehand' : 'backhand';
   // 양손 백핸드라고 알려 줬으면 '두 손이 붙어 있었나'로 가른다: 붙어 있으면 백핸드, 떨어져 있으면 포핸드.
   // 손목 사이 거리만 보므로 자세 인식이 좌우를 뒤바꿔도, 뒤에서 찍어도 통한다(몸의 어느 쪽인지 보는 side 는 그럴 때 틀린다).
-  let by = 'side';
+  let by = fhSide ? 'side' : swept ? 'sweep' : 'side';
   if (auto !== 'serve' && bh === '2h') {
     if (together >= 0.6) { auto = 'backhand'; by = 'hands'; } else if (together <= 0.2) { auto = 'forehand'; by = 'hands'; }
   }
   const kind = stroke || auto;
   // 양손 여부: 알려 줬으면 그대로(백핸드일 때만), 아니면 임팩트 전 0.25초 동안 두 손이 계속 붙어 있었나로 추측
   const twoHanded = bh ? kind === 'backhand' && bh === '2h' : kind !== 'serve' && together >= 0.6;
-  const uncertain = !stroke && auto !== 'serve' && by === 'side' && Math.abs(side) < 0.02;
+  const uncertain = !stroke && auto !== 'serve' && by === 'side' && Math.abs(side) < 0.02;      // 휘두른 방향도 흐리고 손 위치도 가운데일 때만
 
   // ② 임팩트 시각(예측): 서브는 손목이 골반 기준 가장 높은 순간, 스트로크는 손목이 가장 빠른 순간 바로 뒤
   const wrUp = (i) => -W(i, S.hit.wr)[1];                     // 골반 중심 기준 손목 높이(머리를 숙여도 안 변한다)
@@ -216,12 +227,22 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   //    테이크백만 한 동작, 라켓을 내리는 동작은 손이 앞으로 나오지 않는다 → suspect 로 표시(전체 영상에서는 버리고, 스윙 영상에서는 조언을 삼간다).
   //    또는 피니시까지 손이 몸을 가로질러 반대편으로 넘어갔어야 한다(포핸드: 치는 쪽 → 반대쪽, 백핸드: 그 반대). 둘 다 아니면 의심.
   const inChest = (p) => G.inBody(G.bodyFrame(p, 'shoulders'), p.w[S.hit.wr], G.mid(p.w[J.lSh], p.w[J.rSh]));
-  let suspect = false;
+  let suspect = false, fwdChest = NaN, acrossBody = NaN, gazeGo = NaN, fwdStart = NaN;
   if (kind !== 'serve' && tFrom != null) {
     const b0 = inChest(P(tFrom)), c0 = inChest(pc), f0 = inChest(P(keys.finish));
-    const forward = (c0[2] - b0[2]) / h >= 0.05;                                   // 가슴 앞쪽으로 나왔다
-    const across = ((f0[0] - b0[0]) * sign * (kind === 'forehand' ? -1 : 1)) / h >= 0.08;   // 몸을 가로질러 넘어갔다
-    suspect = !forward && !across;
+    fwdChest = (c0[2] - b0[2]) / h;                                                // 가슴 앞쪽으로 나온 만큼
+    acrossBody = ((f0[0] - b0[0]) * sign * (kind === 'forehand' ? -1 : 1)) / h;    // 몸을 가로질러 넘어간 만큼
+    // 얼굴이 향한 쪽으로 손이 나간 만큼(백스윙 끝 → 임팩트 직후). 공을 치는 스윙은 보는 쪽으로 손이 나가고, 테이크백은 반대로 간다.
+    const gaze = [0, 0, 0];
+    for (const i of win(tFrom, tc)) { const e = G.mid(W(i, J.lEar), W(i, J.rEar)), nz = W(i, J.nose); gaze[0] += nz[0] - e[0]; gaze[2] += nz[2] - e[2]; }
+    if (G.len(gaze) > 1e-6) gazeGo = G.dot(G.sub(P(Math.min(frames[i1].t, tc + 0.1 * sf)).w[S.hit.wr], P(tFrom).w[S.hit.wr]), G.unit(gaze)) / h;
+    // 백스윙 끝에서 가슴이 향하던 쪽으로 손이 나간 만큼(백스윙 끝 → 임팩트 직후)
+    fwdStart = G.dot(G.sub(P(Math.min(frames[i1].t, tc + 0.1 * sf)).w[S.hit.wr], P(tFrom).w[S.hit.wr]), G.bodyFrame(P(tFrom)).F) / h;
+    suspect = !(fwdChest >= 0.05) && !(acrossBody >= 0.08);
+    // 포핸드 테이크백(손이 앞에서 치는 쪽 뒤로 간다)은 몸 기준으로는 백핸드 스윙과 같은 방향이다. 다른 점은 얼굴이 향한 쪽:
+    // 백핸드는 보는 쪽으로 손이 나가고(모션캡처 실측 가운데값 +0.03~+0.09, 하위 5% -0.13~-0.31), 테이크백은 보는 쪽 반대로 간다.
+    // 그래서 '휘두른 방향'만으로 백핸드라고 본 것 중 손이 보는 쪽 반대로 크게 간 것은 의심한다(두 손이 붙어 있던 양손 백핸드는 빼고).
+    if (!stroke && kind === 'backhand' && by === 'sweep' && gazeGo < -0.35) suspect = true;
   }
 
   // ⑥ 팔다리가 얼마나 잘 보였나(정확도가 아니라 '보인 정도')
@@ -229,7 +250,7 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   const vis = around.length
     ? around.reduce((s, i) => s + G.vis(frames[i], S.hit.wr, S.hit.el, S.hit.sh, J.lHip, J.rHip, J.lKnee, J.rKnee), 0) / around.length : 0;
 
-  return { i0, i1, ip, ic, tc, tcErr, posErr, sf, sfAuto, h, peak: v[ip], stroke: kind, auto, uncertain, suspect, twoHanded, hand, bh, by, together,
+  return { i0, i1, ip, ic, tc, tcErr, posErr, sf, sfAuto, h, peak: v[ip], stroke: kind, auto, uncertain, suspect, twoHanded, hand, bh, by, together, side, sweep, upMax: upMax / h, fwdChest, acrossBody, gazeGo, fwdStart,
     dir: d, dirKnown, dirX, view, keys, vis, conf: vis, _v: v };
 }
 
