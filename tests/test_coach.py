@@ -67,3 +67,17 @@ def test_cache_policy():
     assert "immutable" in coach.cache_header_for("/static/coach/vendor/models/pose_landmarker_full.task")
     assert coach.cache_header_for("/static/coach/js/app.js") == "no-cache"
     assert coach.cache_header_for("/static/dashboard.html") is None
+
+
+def test_main_app_serves_coach_with_cache_headers():
+    """실제 앱(app.main)에서: /coach 가 뜨고, 큰 파일에는 오래 보관 머리말이 붙고, 기존 화면(/)은 그대로다."""
+    from app.main import app as main_app
+
+    c = TestClient(main_app)          # lifespan(스케줄러·외부 호출)은 돌리지 않는다
+    assert c.get("/coach").status_code == 200
+    r = c.get("/static/coach/vendor/tasks-vision/VERSION")
+    assert r.status_code == 200 and "immutable" in r.headers["cache-control"]
+    assert c.get("/static/coach/js/geom.js").headers["cache-control"] == "no-cache"
+    home = c.get("/")
+    assert home.status_code == 200 and "코트 오픈" in home.text
+    assert "cache-control" not in {k.lower() for k in c.get("/static/sw.js").headers} or "immutable" not in c.get("/static/sw.js").headers["cache-control"]
