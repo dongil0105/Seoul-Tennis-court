@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as G from '../../app/static/coach/js/geom.js';
 import { cleanFrames } from '../../app/static/coach/js/clean.js';
-import { detectSwings, mainSwing, withContact, bodyScale } from '../../app/static/coach/js/swing.js';
+import { detectSwings, mainSwing, withContact, withStroke, bodyScale } from '../../app/static/coach/js/swing.js';
 import { poseMetrics, swingMetrics, guessPhase } from '../../app/static/coach/js/metrics.js';
 import { advise, matchReference } from '../../app/static/coach/js/advice.js';
 import * as Track from '../../app/static/coach/js/track.js';
@@ -130,6 +130,35 @@ test('서브는 손목이 머리 위로 올라가는 것으로 알아본다', ()
   const m = swingMetrics(serve(), sw, 1920, 1080);
   assert.ok(m.phases.contact.wristUp > 0.2, '임팩트 때 손목이 머리 위');
   assert.ok(m.wristHeightGround > 1.0 && m.wristHeightGround < 1.6, `손목 높이 ${m.wristHeightGround}`);
+});
+
+test('백핸드 종류를 알려 주면: 양손은 "두 손이 붙어 있었나"로 포핸드/백핸드를 가른다', () => {
+  const apart = forehand();                                        // 반대 손이 떨어져 있는 스윙
+  // 두 손을 붙인 스윙(반대 손목을 치는 손목 바로 옆에)
+  const glued = forehand().map((f) => {
+    const w = f.w.map((p) => p.slice()), lm = f.lm.map((p) => p.slice());
+    for (const [a, b] of [[15, 16], [17, 18], [19, 20], [21, 22]]) {
+      w[a] = [w[b][0] + 0.06, w[b][1], w[b][2], 1]; lm[a] = [lm[b][0] + 0.012, lm[b][1], lm[b][2], 1];
+    }
+    return { t: f.t, w, lm };
+  });
+  const one = (frames, o) => mainSwing(frames, { hand: 'R', ...o });
+  // 양손 백핸드라고 알려 줬다: 붙어 있으면 백핸드(양손), 떨어져 있으면 포핸드
+  assert.equal(one(glued, { backhand: '2h' }).stroke, 'backhand');
+  assert.equal(one(glued, { backhand: '2h' }).twoHanded, true);
+  assert.equal(one(glued, { backhand: '2h' }).by, 'hands');
+  assert.equal(one(apart, { backhand: '2h' }).stroke, 'forehand');
+  assert.equal(one(apart, { backhand: '2h' }).twoHanded, false);
+  // 한손 백핸드라고 알려 줬다: 손이 붙어 보여도 양손이라고 하지 않고, 몸의 어느 쪽에서 쳤는지로 가른다
+  assert.equal(one(glued, { backhand: '1h' }).stroke, 'forehand');
+  assert.equal(one(glued, { backhand: '1h' }).twoHanded, false);
+  // 알려 주지 않았으면 예전처럼 추측한다
+  assert.equal(one(glued, {}).stroke, 'forehand');
+  assert.equal(one(glued, {}).twoHanded, true);
+  // 사용자가 종류를 바로잡아도 알려 준 백핸드 종류는 유지된다
+  const sw = one(apart, { backhand: '2h' });
+  assert.equal(withStroke(apart, sw, 'backhand').twoHanded, true);
+  assert.equal(withContact(apart, sw, sw.tc + 0.02).bh, '2h');
 });
 
 test('왼손잡이 포핸드도 포핸드로 본다', () => {
@@ -332,10 +361,12 @@ test('임팩트가 한 장 어긋나도 높은 공으로 보지 않게, 앞뒤 �
 test('저장된 내 정보·기준 자세는 믿지 않고 다시 맞춘다(스크립트 삽입 방지)', async () => {
   const { cleanProfile, validRef } = await import('../../app/static/coach/js/ui.js');
   const bad = cleanProfile({ sex: '<img src=x onerror=alert(1)>', heightCm: '<img src=x onerror=alert(1)>', hand: 'x', level: {} });
-  assert.deepEqual(bad, { sex: 'U', heightCm: 170, hand: 'R', level: 'mid' });
-  assert.deepEqual(cleanProfile({ sex: 'F', heightCm: '163.4', hand: 'L', level: 'adv' }), { sex: 'F', heightCm: 163, hand: 'L', level: 'adv' });
+  assert.deepEqual(bad, { sex: 'U', heightCm: 170, hand: 'R', level: 'mid', backhand: '2h', stance: 'platform' });
+  assert.deepEqual(cleanProfile({ sex: 'F', heightCm: '163.4', hand: 'L', level: 'adv', backhand: '1h', stance: 'pinpoint' }), { sex: 'F', heightCm: 163, hand: 'L', level: 'adv', backhand: '1h', stance: 'pinpoint' });
+  assert.equal(cleanProfile({ backhand: '<b>', stance: 7 }).backhand, '2h');
+  assert.equal(cleanProfile({ backhand: '<b>', stance: 7 }).stance, 'platform');
   assert.equal(cleanProfile({ heightCm: 999 }).heightCm, 170);
-  assert.deepEqual(cleanProfile(null), { sex: 'U', heightCm: 170, hand: 'R', level: 'mid' });
+  assert.deepEqual(cleanProfile(null), { sex: 'U', heightCm: 170, hand: 'R', level: 'mid', backhand: '2h', stance: 'platform' });
   const pose = figure({ wrist: [0.4, -0.3, -0.2] });
   const good = { stroke: 'forehand', phase: 'contact', title: '코치님 포핸드', feat: G.poseFeature(pose), lm: pose.lm.map((k) => [k[0], k[1]]), w: pose.w.map((k) => [k[0], k[1], k[2]]) };
   assert.equal(validRef(good), true);

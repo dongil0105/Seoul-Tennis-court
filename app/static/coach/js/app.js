@@ -64,10 +64,15 @@ $('#shareApp').addEventListener('click', async () => {
   try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(data.url); toast('주소를 복사했어요'); } } catch (_) { /* 취소 */ }
 });
 
+/** 내 정보의 일부를 바꾸고 이 휴대폰에 저장한다 */
+const setProfile = (patch) => { S.profile = { ...S.profile, ...patch }; saveProfile(S.profile); };
+
 function profileSheet(after) {
   const p = { ...S.profile };
   sheet(`<h2>내 정보</h2><p class="small muted">비교 기준과 cm 환산에만 씁니다. 이 휴대폰에만 저장됩니다.</p>
     <div class="field"><div class="label">치는 손</div>${seg('hand', [['R', '오른손'], ['L', '왼손']], p.hand)}</div>
+    <div class="field"><div class="label">백핸드</div>${seg('backhand', [['2h', '양손'], ['1h', '한손']], p.backhand)}</div>
+    <div class="field"><div class="label">서브 자세</div>${seg('stance', [['platform', '플랫폼'], ['pinpoint', '핀포인트']], p.stance)}</div>
     <div class="field"><div class="label">비교할 선수</div>${seg('sex', [['M', '남자 선수'], ['F', '여자 선수'], ['U', '상관없음']], p.sex)}
       <p class="small muted" style="margin-top:6px">동호인의 공 속도는 여자 선수 쪽에 더 가깝습니다.</p></div>
     <div class="field"><label for="pfH">키 (cm)</label><input class="input num" id="pfH" type="number" inputmode="numeric" min="120" max="220" value="${p.heightCm}"></div>
@@ -155,6 +160,14 @@ function renderSetup() {
     <h2 style="margin-top:4px">이 영상을 분석할게요</h2>
     <div class="stage"><canvas id="preview"></canvas><span class="tag num">${vids.length > 1 ? `영상 ${S.cur + 1} · ` : ''}${fmtTime(S.meta.duration)} · ${S.meta.width}×${S.meta.height}</span></div>
     ${vids.length > 1 ? `<ol class="vlist">${vids.map((v, i) => `<li><b>영상 ${i + 1}</b><span class="num">${fmtTime(v.meta.duration)}</span></li>`).join('')}</ol>` : ''}
+    <div class="sec" style="margin-top:20px"><h3>누구의 스윙인가요</h3>
+      <p class="small muted" style="margin-top:4px">알려 주신 대로 봅니다(영상에서 추측하지 않아요).</p>
+      <div class="field"><div class="label">치는 손</div>${seg('hand', [['R', '오른손'], ['L', '왼손']], S.profile.hand)}</div>
+      <div class="field"><div class="label">백핸드</div>${seg('backhand', [['2h', '양손'], ['1h', '한손']], S.profile.backhand)}</div>
+      <div class="field"><div class="label">서브 자세</div>${seg('stance', [['platform', '플랫폼'], ['pinpoint', '핀포인트']], S.profile.stance)}
+        <p class="small muted" style="margin-top:6px">플랫폼: 두 발을 벌린 채 그대로 뛰어오름 · 핀포인트: 뒷발을 앞발 옆으로 끌어 모은 뒤 뛰어오름</p></div>
+      <div class="field"><label for="suH">키 (cm)</label><input class="input num" id="suH" type="number" inputmode="numeric" min="120" max="220" value="${S.profile.heightCm}"></div>
+    </div>
     <ol class="steps" style="margin-top:20px">
       <li>스윙을 알아서 찾습니다<span>서브·포핸드·백핸드를 가려내고, 스윙 한 번짜리 영상도 그대로 됩니다.</span></li>
       <li>여러 사람이 나오면 한 명을 고릅니다<span>단식·복식 영상에서는 누구를 볼지 물어보고, 그 사람만 끝까지 따라갑니다.</span></li>
@@ -167,9 +180,11 @@ function renderSetup() {
       <div style="margin-top:10px">${seg('speed', [['auto', '알아서'], ['1', '일반'], ['4', '슬로 4배'], ['8', '슬로 8배']], S.opt.speed)}</div>
       <p class="small muted" style="margin-top:8px">${SHORT_SEC}초보다 짧은 영상에만 적용됩니다. 보통은 '알아서'로 두면 됩니다. 휴대폰 슬로모션은 보통 4배(초당 120장)나 8배(초당 240장)입니다. 공 속도를 보려면 배수를 직접 골라 주세요.</p></details>
     <div class="btns"><button class="btn" id="go">분석 시작</button></div>
-    <p class="small muted" style="margin-top:12px">치는 손: ${S.profile.hand === 'L' ? '왼손' : '오른손'} · 키 ${S.profile.heightCm}cm · <button id="editPf" style="text-decoration:underline">바꾸기</button></p>`;
+    <p class="small muted" style="margin-top:12px"><button id="editPf" style="text-decoration:underline">비교할 선수·수준 바꾸기</button></p>`;
   show('setup');
-  bindSegs(el, (k, v) => { S.opt[k] = v; });
+  bindSegs(el, (k, v) => { if (k === 'speed') S.opt.speed = v; else setProfile({ [k]: v }); });
+  const suH = $('#suH', el);
+  suH.addEventListener('change', () => { const h = Number(suH.value); if (h >= 120 && h <= 220) setProfile({ heightCm: Math.round(h) }); else suH.value = S.profile.heightCm; });
   $('#editPf', el).addEventListener('click', () => profileSheet(() => renderSetup()));
   $('#go', el).addEventListener('click', () => runAll());
   const note = () => {
@@ -393,7 +408,7 @@ async function analyzeShort(v, i, { signal, job, label, onP }) {
   if (job !== S.job) return { shots: [] };
   const frames = cleanFrames(raw.filter(G.validPose), v.meta.width / v.meta.height);
   if (frames.length < 10) return { shots: [], why: '영상에서 사람을 찾지 못했어요.' };
-  const opts = { hand: S.profile.hand, sf: sfOpt() };
+  const opts = { hand: S.profile.hand, sf: sfOpt(), backhand: S.profile.backhand };
   const all = detectSwings(frames, opts);
   console.debug(`[coach] ${label}짧은 영상: 스윙 후보 ${all.length}개`, all.map((x) => `${x.tc.toFixed(1)}초 ${x.stroke} 속도 ${x.peak.toFixed(1)}${x.suspect ? ' (준비 동작)' : ''}${x.uncertain ? ' (종류 불확실)' : ''}`).join(' · '));
   let swings = all.filter((s) => !s.suspect);
@@ -420,7 +435,7 @@ async function analyzeLong(v, i, { signal, job, label, onP }) {
   const flush = (final) => {
     if (buf.length < 10) { if (final) buf = []; return; }
     const end = buf[buf.length - 1].t;
-    const found = detectSwings(cleanFrames(buf.filter(G.validPose), aspect), { hand: S.profile.hand, sf: 1 });
+    const found = detectSwings(cleanFrames(buf.filter(G.validPose), aspect), { hand: S.profile.hand, sf: 1, backhand: S.profile.backhand });
     for (const c of found) {
       if (c.suspect) continue;                                    // 테이크백만 한 동작은 샷으로 치지 않는다
       if (!final && c.tc > end - 2) continue;                     // 구간 끝에 걸친 스윙은 다음 구간에서 온전히 본다
@@ -450,7 +465,7 @@ async function analyzeLong(v, i, { signal, job, label, onP }) {
       pick: (poses, t) => follow(poses, Track.readColors(smallCtx, video, poses), st2, t),
       onProgress: (p) => onP(0.55 + 0.45 * (k + p) / top.length) });
     const fr = cleanFrames(raw.filter(G.validPose), aspect);
-    const sw = fr.length >= 10 ? mainSwing(fr, { hand: S.profile.hand, sf: 1 }) : null;
+    const sw = fr.length >= 10 ? mainSwing(fr, { hand: S.profile.hand, sf: 1, backhand: S.profile.backhand }) : null;
     console.debug(`[coach] ${c.tc.toFixed(1)}초: 읽은 프레임 ${raw.length} → 다듬은 뒤 ${fr.length} → ${sw ? sw.stroke : '스윙 못 찾음'}`);
     if (!sw || sw.suspect) continue;
     shots.push(makeShot(fr, sw, step, i, { sfGiven: sfOpt() === 1, sfIgnored: sfOpt() > 1 }));   // 긴 영상은 일반 속도로 보고 분석한다(공 속도 예측이 이 표시를 본다)

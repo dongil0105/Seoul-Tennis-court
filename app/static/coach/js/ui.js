@@ -85,7 +85,7 @@ export function bindSegs(root, onChange) {
 
 // ── 내 정보(기기에만 저장) ──────────────────────────────────────
 const KEY = 'coach.profile.v1';
-const DEFAULT = { sex: 'U', heightCm: 170, hand: 'R', level: 'mid' };
+const DEFAULT = { sex: 'U', heightCm: 170, hand: 'R', level: 'mid', backhand: '2h', stance: 'platform' };
 /** 저장된 값은 그대로 믿지 않는다: 허용 목록·숫자 범위로 다시 맞춘다(화면에 그대로 끼워 넣어도 안전하게). */
 export function cleanProfile(raw) {
   const r = raw && typeof raw === 'object' ? raw : {};
@@ -95,6 +95,8 @@ export function cleanProfile(raw) {
     heightCm: Number.isFinite(h) && h >= 120 && h <= 220 ? Math.round(h) : DEFAULT.heightCm,
     hand: r.hand === 'L' ? 'L' : 'R',
     level: ['beg', 'mid', 'adv'].includes(r.level) ? r.level : DEFAULT.level,
+    backhand: r.backhand === '1h' ? '1h' : '2h',                       // 한손 / 양손 백핸드
+    stance: r.stance === 'pinpoint' ? 'pinpoint' : 'platform',         // 서브 자세: 플랫폼(두 발 그대로) / 핀포인트(뒷발을 끌어 모음)
   };
 }
 export function loadProfile() {
