@@ -1,4 +1,4 @@
-// 스윙 코치 — 화면 흐름: 영상 고르기 → (전체 영상이면 사람 고르기) → 분석 → 결과·선수 대조군·조언 → 공유.
+// 스윙 코치 — 화면 흐름: 영상 고르기(여러 개 가능) → 사람 찾기(여러 명이면 한 명 고르기) → 스윙 찾기 → 종합 판단 → 샷별 결과·선수 대조군·조언 → 공유.
 // 영상은 기기 안에서만 다룬다. 서버로 보내는 것은 없다.
 import * as Pose from './pose.js';
 import * as Track from './track.js';
@@ -8,15 +8,17 @@ import { cleanFrames } from './clean.js';
 import { detectSwings, mainSwing, withContact, withStroke, wristSpeed } from './swing.js';
 import { swingMetrics } from './metrics.js';
 import { advise, matchReference } from './advice.js';
-import * as Phys from './physics.js';
-import { serveCalculator, renderPhysicsView } from './physview.js';
+import * as Reach from './reach.js';
+import { summarize, countText, spreadText, baseTitle, dropServePrep } from './summary.js';
+import { serveHeightCard, groundHeightCard, renderPhysicsView } from './physview.js';
 import { adviceFigure } from './figures.js';
-import { $, $$, esc, show, currentView, initNav, onLeave, toast, sheet, seg, bindSegs, loadProfile, saveProfile, hasProfile, loadMyRefs, saveMyRefs } from './ui.js';
+import { $, $$, esc, show, currentView, initNav, navState, setNavTag, onLeave, toast, sheet, seg, bindSegs, loadProfile, saveProfile, hasProfile, loadMyRefs, saveMyRefs } from './ui.js';
 
 const video = $('#video');
 const S = {
-  profile: loadProfile(), ref: null, mode: 'swing', file: null, meta: null, url: null, fps: 30,
-  opt: { stroke: 'auto', serveType: 'flat', speed: 'auto', result: null, t0: 0, t1: 0 },
+  profile: loadProfile(), ref: null, vids: [], cur: -1, meta: null, fps: 30,     // vids = 고른 영상들, cur = 지금 <video> 에 올라 있는 영상 번호
+  gen: 0,                                                         // 영상 묶음 번호(영상을 새로 고를 때마다 +1). 옛 묶음의 화면·작업을 가려낸다
+  opt: { serveType: 'flat', speed: 'auto' },
   abort: null, job: 0, shot: null, session: null, from: 'home', afterBack: null,
 };
 const STROKE = { serve: '서브', forehand: '포핸드', backhand: '백핸드' };
@@ -30,12 +32,14 @@ const REF_PHASE = { serve: { trophy: 'trophy', load: 'trophy', contact: 'contact
 // ── 시작 ────────────────────────────────────────────────────────
 let jobSeq = 0;
 const newJob = () => { S.job = ++jobSeq; return S.job; };
-initNav((from, to) => {
+initNav((from, to, g) => {
   if (from === 'working') { newJob(); if (S.abort) S.abort.abort(); wakeOff(); }    // 진행 중에 뒤로 가면 그 작업은 버린다
   // 보여 줄 것이 남아 있지 않은 화면(다른 영상을 골라 지워진 결과 등)으로는 가지 않고 처음 화면으로
-  const gone = to === 'working' || (to === 'result' && !S.shot) || (to === 'session' && !S.session) || ((to === 'setup' || to === 'people') && !S.meta);
+  const stale = g !== undefined && g !== S.gen && ['setup', 'people', 'result', 'session'].includes(to);   // 다른 영상을 고르기 전의 화면
+  const gone = stale || to === 'working' || (to === 'result' && !S.shot) || (to === 'session' && !S.session) || ((to === 'setup' || to === 'people') && !S.vids.length);
   show(gone ? 'home' : to, { push: false });
   if (!gone && to === 'session') { renderSession(); thumbs(); }      // 샷 화면에서 임팩트·종류를 고쳤을 수 있으니 목록을 다시 그린다
+  if (!gone && to === 'result') { const sh = S.shot; useVideo(sh.vid).then((ok) => { if (ok && S.shot === sh && currentView() === 'result') paintMoment(); }).catch(() => {}); }   // 그 샷의 영상이 올라 있게
   if (S.afterBack) { const f = S.afterBack; S.afterBack = null; f(); }
 });
 
@@ -50,8 +54,7 @@ fetch('/static/coach/data/reference.json').then((r) => (r.ok ? r.json() : null))
   if (ref) $('#refInfo').textContent = `선수 사진 ${ref.used}장의 자세를 기준으로 견줍니다(위키미디어 공용, 자유 이용 허가 사진).`;
 }).catch(() => {});
 
-$('#fileSwing').addEventListener('change', (e) => pickFile('swing', e.target));
-$('#fileFull').addEventListener('change', (e) => pickFile('full', e.target));
+$('#fileAny').addEventListener('change', (e) => pickFiles(e.target));
 for (const b of $$('[data-go]')) b.addEventListener('click', () => { if (b.dataset.go === 'physics') renderPhysicsView($('#v-physics'), S.profile); show(b.dataset.go); });
 $('#profileBtn').addEventListener('click', () => profileSheet());
 $('#cancel').addEventListener('click', () => { if (S.abort) S.abort.abort(); });   // 작업 번호는 그대로 — 작업 쪽에서 앞 화면으로 돌아간다
@@ -80,58 +83,106 @@ function profileSheet(after) {
 }
 
 // ── 영상 고르기 ─────────────────────────────────────────────────
-async function pickFile(mode, input) {
-  const file = input.files && input.files[0];
+// 영상은 한 개든 여러 개든 한 번에 고른다. 스윙 한 번짜리인지 경기 전체인지는 묻지 않고 알아서 본다.
+const MAX_VIDS = 8, SHORT_SEC = 25, MAX_SHOTS = 60;                // 샷마다 자세 프레임을 들고 있으므로 휴대폰 메모리를 위해 개수를 막는다
+async function pickFiles(input) {
+  const picked = [...(input.files || [])];
   input.value = '';
-  if (!file) return;
+  if (!picked.length) return;
+  const files = picked.slice(0, MAX_VIDS);
   const job = newJob();
   if (S.abort) S.abort.abort();
-  const oldUrl = S.url;
-  S.mode = mode; S.file = file; S.shot = null; S.session = null; thumbSeq++;
-  let meta;
-  try {
-    meta = await Pose.openVideo(video, file);
-  } catch (e) { if (!isAbort(e)) toast(e.message, 4000); return; }
-  if (job !== S.job) { URL.revokeObjectURL(meta.url); return; }
-  if (oldUrl) URL.revokeObjectURL(oldUrl);
-  S.meta = meta; S.url = meta.url;
-  if (!(S.meta.duration > 0.3) || !S.meta.width) { toast('영상 길이를 읽을 수 없어요. 다른 영상으로 해 보세요.', 4000); return; }
-  S.opt = { stroke: 'auto', serveType: 'flat', speed: 'auto', result: null, t0: 0, t1: S.meta.duration };
+  thumbSeq++;
+  const vids = [], bad = [];
+  let loaded = -1;                                                // 지금 <video> 에 올라 있는 새 영상의 번호(마지막으로 연 파일이 실패했으면 -1)
+  // 영상 열기는 한 번에 하나씩(샷 사진 그리기 등 다른 열기와 겹치지 않게 같은 줄에 선다)
+  const opening = vidChain.then(async () => {
+    S.cur = -1;                                                   // 이제부터 <video> 에는 새로 고른 파일이 올라간다
+    for (const file of files) {
+      loaded = -1;
+      let meta;
+      try { meta = await Pose.openVideo(video, file); } catch (e) { if (isAbort(e)) return false; bad.push(file.name); continue; }
+      if (job !== S.job) { URL.revokeObjectURL(meta.url); return false; }
+      if (!(meta.duration > 0.3) || !meta.width) { URL.revokeObjectURL(meta.url); bad.push(file.name); continue; }
+      vids.push({ file, url: meta.url, meta, t0: 0, t1: meta.duration, people: [], person: null, single: true, pick: 0 });
+      loaded = vids.length - 1;
+    }
+    return true;
+  });
+  vidChain = opening.catch(() => false);
+  let ok = false;
+  try { ok = await opening; } catch (_) { ok = false; }
+  if (!ok || job !== S.job) { for (const v of vids) URL.revokeObjectURL(v.url); return; }
+  if (!vids.length) { toast('영상을 열 수 없어요. 다른 영상으로 해 보세요.', 4000); return; }   // 앞서 본 결과는 그대로 둔다
+  const old = S.vids;
+  S.shot = null; S.session = null;
+  S.vids = vids; S.gen++; setNavTag(S.gen);
+  S.cur = loaded; S.meta = vids[Math.max(0, loaded)].meta;
+  for (const v of old) URL.revokeObjectURL(v.url);
+  S.opt = { serveType: 'flat', speed: 'auto' };
+  if (loaded < 0) { try { await useVideo(0); } catch (_) { /* 미리보기만 비게 된다. 분석할 때 다시 연다 */ } }
+  if (job !== S.job) return;
+  if (bad.length) toast(`열 수 없는 영상 ${bad.length}개는 뺐어요`, 3500);
+  else if (picked.length > MAX_VIDS) toast(`한 번에 ${MAX_VIDS}개까지 봅니다`, 3500);
   const go = () => renderSetup();
   if (!hasProfile()) profileSheet(go); else go();
 }
 
-async function renderSetup() {
-  const d = S.meta.duration, el = $('#v-setup');
-  const long = S.mode === 'swing' && d > 25;
-  el.innerHTML = `<p class="eyebrow">${S.mode === 'swing' ? '스윙 영상' : '전체 영상'}</p>
-    <h2 style="margin-top:4px">${S.mode === 'swing' ? '어떤 스윙인가요?' : '어디부터 어디까지 볼까요?'}</h2>
-    <div class="stage"><canvas id="preview"></canvas><span class="tag num">${fmtTime(d)} · ${S.meta.width}×${S.meta.height}</span></div>
-    ${S.mode === 'swing' ? `
-      ${long ? `<div class="callout">영상이 길어요. 여러 번 치는 영상이면 처음 화면의 <b>전체 영상</b>으로 넣어 주세요. 여기서는 ${d > 40 ? '앞 40초 안에서 ' : ''}가장 빠른 스윙 하나만 봅니다.</div>` : ''}
-      <div class="field"><div class="label">종류</div>${seg('stroke', [['auto', '알아서'], ['serve', '서브'], ['forehand', '포핸드'], ['backhand', '백핸드']], S.opt.stroke)}</div>
-      <div class="field" id="fServe"><div class="label">서브라면 어떤 서브</div>${seg('serveType', [['flat', '플랫'], ['slice', '슬라이스'], ['kick', '킥(스핀)']], S.opt.serveType)}</div>
-      <div class="field"><div class="label">영상 속도</div>${seg('speed', [['auto', '알아서'], ['1', '일반'], ['4', '슬로모션'], ['8', '아주 느린 슬로모션']], S.opt.speed)}</div>`
-    : `<div class="field"><div class="label">시작 <b class="num" id="t0v">${fmtTime(0)}</b></div><input type="range" id="t0" min="0" max="${d}" step="${d > 30 ? 0.5 : 0.1}" value="0" aria-label="시작 시각"></div>
-      <div class="field"><div class="label">끝 <b class="num" id="t1v">${fmtTime(d)}</b></div><input type="range" id="t1" min="0" max="${d}" step="${d > 30 ? 0.5 : 0.1}" value="${d}" aria-label="끝 시각"></div>
-      <p class="small muted" style="margin-top:8px" id="spanNote"></p>`}
-    <div class="btns"><button class="btn" id="go">${S.mode === 'swing' ? '분석 시작' : '사람 찾기'}</button></div>
+/**
+ * i 번째 영상을 <video> 에 올린다(이미 올라 있으면 그대로). 화면 여러 곳이 같은 <video> 를 쓰므로 한 번에 하나씩만 바꾼다.
+ * 기다리는 사이 다른 영상 묶음을 골랐으면 아무것도 하지 않고 false 를 돌려준다 — 부른 쪽은 false 면 그만둔다.
+ */
+let vidChain = Promise.resolve();
+function useVideo(i, gen = S.gen) {
+  const run = vidChain.then(async () => {
+    const v = S.vids[i];
+    if (gen !== S.gen || !v) return false;
+    if (S.cur !== i) { S.cur = -1; await Pose.openVideo(video, v.url); if (gen !== S.gen) return false; S.cur = i; }
+    S.meta = v.meta;
+    small.height = Math.round(320 * v.meta.height / v.meta.width);
+    return true;
+  });
+  vidChain = run.catch(() => false);
+  return run;
+}
+
+function renderSetup() {
+  const el = $('#v-setup'), vids = S.vids, one = vids.length === 1 ? vids[0] : null;
+  const total = () => vids.reduce((s, v) => s + (v.t1 - v.t0), 0);
+  const trim = one && one.meta.duration > 60, d = one ? one.meta.duration : 0;
+  el.innerHTML = `<p class="eyebrow">영상 ${vids.length}개 · 모두 ${fmtTime(vids.reduce((s, v) => s + v.meta.duration, 0))}</p>
+    <h2 style="margin-top:4px">이 영상을 분석할게요</h2>
+    <div class="stage"><canvas id="preview"></canvas><span class="tag num">${vids.length > 1 ? `영상 ${S.cur + 1} · ` : ''}${fmtTime(S.meta.duration)} · ${S.meta.width}×${S.meta.height}</span></div>
+    ${vids.length > 1 ? `<ol class="vlist">${vids.map((v, i) => `<li><b>영상 ${i + 1}</b><span class="num">${fmtTime(v.meta.duration)}</span></li>`).join('')}</ol>` : ''}
+    <ol class="steps" style="margin-top:20px">
+      <li>스윙을 알아서 찾습니다<span>서브·포핸드·백핸드를 가려내고, 스윙 한 번짜리 영상도 그대로 됩니다.</span></li>
+      <li>여러 사람이 나오면 한 명을 고릅니다<span>단식·복식 영상에서는 누구를 볼지 물어보고, 그 사람만 끝까지 따라갑니다.</span></li>
+      <li>모두 모아 종합해서 알려 드립니다<span>${vids.length > 1 ? `영상 ${vids.length}개에서 찾은 스윙을 한데 모아` : '찾은 스윙을 모아'} 되풀이되는 것부터 짚습니다.</span></li>
+    </ol>
+    ${trim ? `<div class="field"><div class="label">시작 <b class="num" id="t0v">${fmtTime(0)}</b></div><input type="range" id="t0" min="0" max="${d}" step="${d > 30 ? 0.5 : 0.1}" value="0" aria-label="시작 시각"></div>
+      <div class="field"><div class="label">끝 <b class="num" id="t1v">${fmtTime(d)}</b></div><input type="range" id="t1" min="0" max="${d}" step="${d > 30 ? 0.5 : 0.1}" value="${d}" aria-label="끝 시각"></div>` : ''}
+    <p class="small muted" style="margin-top:12px" id="spanNote"></p>
+    <details class="more"><summary>슬로모션으로 찍은 영상인가요?</summary>
+      <div style="margin-top:10px">${seg('speed', [['auto', '알아서'], ['1', '일반'], ['4', '슬로모션'], ['8', '아주 느린 슬로모션']], S.opt.speed)}</div>
+      <p class="small muted" style="margin-top:8px">${SHORT_SEC}초보다 짧은 영상에만 적용됩니다. 보통은 '알아서'로 두면 됩니다.</p></details>
+    <div class="btns"><button class="btn" id="go">분석 시작</button></div>
     <p class="small muted" style="margin-top:12px">치는 손: ${S.profile.hand === 'L' ? '왼손' : '오른손'} · 키 ${S.profile.heightCm}cm · <button id="editPf" style="text-decoration:underline">바꾸기</button></p>`;
   show('setup');
-  bindSegs(el, (k, v) => { S.opt[k] = v; if (k === 'stroke') $('#fServe', el).hidden = v === 'forehand' || v === 'backhand'; });
+  bindSegs(el, (k, v) => { S.opt[k] = v; });
   $('#editPf', el).addEventListener('click', () => profileSheet(() => renderSetup()));
-  $('#go', el).addEventListener('click', () => (S.mode === 'swing' ? runSwing() : findPeople()));
-  if (S.mode === 'full') {
-    const note = () => {
-      const span = S.opt.t1 - S.opt.t0;
-      $('#spanNote', el).textContent = span > 600 ? `${fmtTime(span)} 분량입니다. 10분이 넘으면 오래 걸려요(휴대폰에서 영상 길이의 절반쯤).` : `${fmtTime(span)} 분량을 봅니다.`;
-    };
+  $('#go', el).addEventListener('click', () => runAll());
+  const note = () => {
+    const span = total();
+    $('#spanNote', el).textContent = span > 600 ? `${fmtTime(span)} 분량입니다. 10분이 넘으면 오래 걸려요(휴대폰에서 영상 길이의 절반쯤). 화면을 켜 둔 채 기다려 주세요.`
+      : span > SHORT_SEC ? `${fmtTime(span)} 분량을 봅니다. 긴 영상은 먼저 빠르게 훑어 스윙을 찾은 뒤 그 장면만 자세히 봅니다.` : '';
+  };
+  if (trim) {
     const minSpan = Math.min(2, d);                              // 짧은 영상에서도 0 ≤ 시작 < 끝 ≤ 길이
-    $('#t0', el).addEventListener('input', (e) => { S.opt.t0 = G.clamp(Number(e.target.value), 0, Math.max(0, S.opt.t1 - minSpan)); e.target.value = S.opt.t0; $('#t0v', el).textContent = fmtTime(S.opt.t0); note(); drawPreview(S.opt.t0); });
-    $('#t1', el).addEventListener('input', (e) => { S.opt.t1 = G.clamp(Number(e.target.value), Math.min(d, S.opt.t0 + minSpan), d); e.target.value = S.opt.t1; $('#t1v', el).textContent = fmtTime(S.opt.t1); note(); drawPreview(S.opt.t1); });
-    note();
+    $('#t0', el).addEventListener('input', (e) => { one.t0 = G.clamp(Number(e.target.value), 0, Math.max(0, one.t1 - minSpan)); e.target.value = one.t0; $('#t0v', el).textContent = fmtTime(one.t0); note(); drawPreview(one.t0); });
+    $('#t1', el).addEventListener('input', (e) => { one.t1 = G.clamp(Number(e.target.value), Math.min(d, one.t0 + minSpan), d); e.target.value = one.t1; $('#t1v', el).textContent = fmtTime(one.t1); note(); drawPreview(one.t1); });
   }
-  drawPreview(Math.min(d / 2, 1));
+  note();
+  drawPreview(Math.min(S.meta.duration / 2, 1));
 }
 let previewBusy = false;
 async function drawPreview(t) {
@@ -155,12 +206,13 @@ function working(title, sub) {
   wakeOn();
   return S.abort.signal;
 }
+const setWork = (title, sub = '') => { $('#workTitle').textContent = title; $('#workSub').textContent = sub; };
 /** 진행 화면에서 다른 화면으로(뒤로 가기 기록을 그 화면으로 바꾼다). 이미 다른 작업·화면으로 넘어갔으면 아무것도 하지 않는다. */
 function leaveWorking(job, view) {
   if (job !== S.job || currentView() !== 'working') return false;
   wakeOff();
   show(view, { push: false });
-  history.replaceState({ v: view }, '', view === 'home' ? location.pathname : `#${view}`);
+  history.replaceState(navState(view), '', view === 'home' ? location.pathname : `#${view}`);
   return true;
 }
 function progress(p) {
@@ -183,34 +235,28 @@ function fail(job, msg) {
 }
 const isAbort = (e) => e && e.name === 'AbortError';
 const sfOpt = () => (S.opt.speed === 'auto' ? undefined : Number(S.opt.speed));
+const vidTag = (i) => (S.vids.length > 1 ? `영상 ${i + 1}` : '');
 
-// ── 스윙 영상 분석 ──────────────────────────────────────────────
-async function runSwing() {
-  const signal = working('자세 인식 엔진을 불러오는 중', '처음 한 번은 조금 걸립니다(약 25MB).');
-  const job = S.job;
+// ── 분석: 사람 찾기 → (여러 명이면 고르기) → 영상마다 스윙 찾기 → 종합 ─────────
+const small = document.createElement('canvas');
+small.width = 320;
+const smallCtx = small.getContext('2d', { willReadFrequently: true });
+
+async function runAll() {
+  const signal = working('영상 속 사람을 찾는 중', '여러 장면을 살펴봅니다.');
+  const job = S.job, vids = S.vids;
   try {
-    await Pose.seek(video, S.meta.duration / 2);
-    const pl = await Pose.getPose({ model: 'full', poses: 3, probe: video });
-    if (job !== S.job) return;
-    $('#workTitle').textContent = '영상을 한 장씩 읽는 중';
-    $('#workSub').textContent = '휴대폰 안에서만 분석합니다.';
-    S.fps = await Pose.measureFps(video);
-    const d = Math.min(S.meta.duration, 40);
-    const step = Math.max(1 / S.fps, d / 700);
-    const raw = await Pose.extract(video, pl, { t0: 0, t1: d, step, signal, pick: Pose.sticky(), onProgress: (p) => { if (job === S.job) progress(p * 0.95); } });
-    if (job !== S.job) return;
-    const frames = cleanFrames(raw.filter(G.validPose), S.meta.width / S.meta.height);
-    if (frames.length < 10) { fail(job, '영상에서 사람을 찾지 못했어요.'); return; }
-    const swing = mainSwing(frames, { hand: S.profile.hand, stroke: S.opt.stroke === 'auto' ? undefined : S.opt.stroke, sf: sfOpt() });
-    if (!swing) { fail(job, '스윙 동작을 찾지 못했어요. 휘두르는 장면 앞뒤로 1~2초씩 여유 있게 찍힌 영상이 좋아요.'); return; }
-    progress(1);
-    // 치는 손 설정이 반대인지: 반대 손목이 훨씬 빨리 움직였으면 알려 준다(투핸드는 두 손이 같이 움직이니 제외)
-    const other = S.profile.hand === 'L' ? 'R' : 'L';
-    const handWarn = !swing.twoHanded && Math.max(...wristSpeed(frames, other)) > 1.4 * Math.max(...wristSpeed(frames, S.profile.hand));
-    S.shot = { frames, swing, step, moment: 'contact', refIdx: 0, overlay: false, handWarn };
-    S.from = 'setup';
-    renderResult();
-    leaveWorking(job, 'result');
+    for (let i = 0; i < vids.length; i++) {
+      if (job !== S.job) return;
+      if (!(await useVideo(i))) return;
+      if (vids.length > 1) setWork(`영상 속 사람을 찾는 중 (${i + 1}/${vids.length})`, '여러 장면을 살펴봅니다.');
+      const found = await findPeopleIn(vids[i], signal, (p) => { if (job === S.job) progress((i + p) / vids.length); });
+      if (job !== S.job) return;
+      Object.assign(vids[i], { people: found.people, single: found.single, person: found.people[0] || null, pick: 0 });
+    }
+    if (!vids.some((v) => v.person)) { fail(job, '영상에서 사람을 찾지 못했어요.'); return; }
+    if (vids.some((v) => !v.single)) { renderPeople(); leaveWorking(job, 'people'); return; }     // 여러 명이 나오는 영상이 있으면 누구를 볼지 묻는다
+    await analyzeAll(job, signal);
   } catch (e) {
     if (isAbort(e)) { backFromWorking(job); return; }
     console.error(e);
@@ -218,9 +264,202 @@ async function runSwing() {
   }
 }
 
+/** 영상 한 편에서 사람을 찾는다: 12군데를 살펴 같은 사람끼리 묶고, 고를 수 있는 사람과 '한 사람 영상인지'를 돌려준다 */
+async function findPeopleIn(v, signal, onProgress) {
+  await Pose.seek(video, (v.t0 + v.t1) / 2);
+  const pl = await Pose.getPose({ model: 'lite', poses: 4, probe: video });
+  const obs = [], n = 12;
+  let seen = 0;
+  for (let i = 0; i < n; i++) {
+    if (signal.aborted) throw new DOMException('aborted', 'AbortError');
+    const t = v.t0 + (v.t1 - v.t0) * (i + 0.5) / n;
+    if (await Pose.seek(video, t)) {
+      const poses = Pose.detect(pl, video);
+      const colors = Track.readColors(smallCtx, video, poses);
+      let any = false;
+      poses.forEach((p, j) => { if (colors[j]) { obs.push({ t, lm: p.lm, color: colors[j], vis: Track.poseVis(p.lm), ratio: Track.bodyRatio(p.lm, v.meta.width / v.meta.height) }); any = true; } });
+      if (any) seen++;
+    }
+    onProgress((i + 1) / n);
+  }
+  const groups = Track.groupPeople(obs);
+  console.debug('[coach] 사람 후보:', groups.map((g) => `${g.name} ${g.count}번 크기 ${g.size.toFixed(2)} 또렷함 ${g.vis.toFixed(2)} 다리÷몸통 ${g.ratio.toFixed(2)}`).join(' · '));
+  const found = Track.mainPeople(groups, seen);
+  if (!found.single) {                                            // 고르는 화면에 쓸 사진은 이 영상이 올라 있는 지금 만들어 둔다
+    for (const p of found.people) {
+      const ok = await Pose.seek(video, p.sample.t);
+      p.thumb = document.createElement('canvas');
+      cropPerson(p.thumb, ok ? video : null, p.sample.lm, v.meta.width, v.meta.height, { hand: null, color: Draw.COLORS.me });
+    }
+  }
+  return found;
+}
+
+function renderPeople() {
+  const el = $('#v-people'), vids = S.vids;
+  const ask = vids.map((v, i) => ({ v, i })).filter(({ v }) => !v.single);
+  let prev = null;                                                // 앞 영상에서 고른 사람과 옷 색이 가장 가까운 사람을 미리 골라 둔다
+  for (const { v } of ask) {
+    v.pick = 0;
+    if (prev) { let bd = Infinity; v.people.forEach((p, j) => { const dd = Track.colorDist(p.color, prev); if (dd < bd) { bd = dd; v.pick = j; } }); }
+    prev = v.people[v.pick].color;
+  }
+  const alike = (v) => v.people.some((p, i) => v.people.some((q, j) => j > i && Track.colorDist(p.color, q.color) < 0.3));
+  el.innerHTML = `<p class="eyebrow">여러 사람이 나오는 영상</p><h2 style="margin-top:4px">누구를 볼까요?</h2>
+    <p class="lead" style="font-size:15px">고른 한 사람만 웃옷 색으로 끝까지 따라가며 봅니다.</p>
+    ${ask.map(({ v, i }) => `<div class="pgroup">${vids.length > 1 ? `<h3>영상 ${i + 1} <span class="muted num" style="font-weight:500">${fmtTime(v.meta.duration)}</span></h3>` : ''}
+      ${alike(v) ? '<div class="callout">옷 색이 비슷한 사람이 있어요. 두 사람이 섞여 분석될 수 있으니, 결과의 샷 사진을 확인해 주세요.</div>' : ''}
+      <div class="people">${v.people.map((p, j) => `<button class="person" data-v="${i}" data-p="${j}" aria-pressed="${j === v.pick}"><canvas></canvas><span><i style="background:rgb(${p.color.map(Math.round).join(',')})"></i>${esc(p.name)} 옷</span></button>`).join('')}</div></div>`).join('')}
+    <div class="btns"><button class="btn" id="goAll">이 사람 분석</button></div>`;
+  for (const b of $$('.person', el)) {
+    const v = vids[Number(b.dataset.v)], p = v.people[Number(b.dataset.p)], c = $('canvas', b);
+    if (p.thumb) { c.width = p.thumb.width; c.height = p.thumb.height; c.getContext('2d').drawImage(p.thumb, 0, 0); }
+    b.addEventListener('click', () => { v.pick = Number(b.dataset.p); for (const x of $$(`.person[data-v="${b.dataset.v}"]`, el)) x.setAttribute('aria-pressed', String(x === b)); });
+  }
+  $('#goAll', el).addEventListener('click', async () => {
+    for (const { v } of ask) v.person = v.people[v.pick];
+    const signal = working('영상을 읽는 중', '휴대폰 안에서만 분석합니다.');
+    const job = S.job;
+    try { await analyzeAll(job, signal); } catch (e) {
+      if (isAbort(e)) { backFromWorking(job); return; }
+      console.error(e); fail(job, '분석 중 문제가 생겼어요.');
+    }
+  });
+}
+
+/** 샷 하나: 잰 값과 조언까지 붙여 둔다 */
+function makeShot(frames, swing, step, vid, extra = {}) {
+  const meta = S.vids[vid].meta;
+  const shot = { frames, swing, step, vid, moment: 'contact', refIdx: 0, overlay: false, ...extra };
+  shot.m = swingMetrics(frames, swing, meta.width, meta.height);
+  shot.a = advise(shot.m, ctxFor(shot));
+  return shot;
+}
+
+async function analyzeAll(job, signal) {
+  const vids = S.vids, shots = [], notes = [];
+  const total = vids.reduce((s, v) => s + (v.person ? v.t1 - v.t0 : 0), 0) || 1;
+  let done = 0;
+  setWork('자세 인식 엔진을 불러오는 중', '처음 한 번은 조금 걸립니다(약 25MB).');
+  for (let i = 0; i < vids.length; i++) {
+    if (job !== S.job) return;
+    const v = vids[i], span = v.t1 - v.t0, tag = vidTag(i), head = tag ? `${tag}: ` : '';
+    if (!v.person) { notes.push(`${head}사람을 찾지 못했어요.`); continue; }
+    if (!(await useVideo(i))) return;
+    const o = { signal, job, label: tag ? `${tag}/${vids.length} · ` : '', onP: (p) => { if (job === S.job) progress((done + span * Math.min(1, p)) / total); } };
+    const got = span <= SHORT_SEC ? await analyzeShort(v, i, o) : await analyzeLong(v, i, o);
+    if (job !== S.job) return;
+    if (!got.shots.length) notes.push(`${head}${got.why || '스윙 장면을 찾지 못했어요.'}`);
+    if (got.partial != null) notes.push(`${head}영상을 끝까지 읽지 못하고 ${fmtTime(got.partial)} 지점까지만 봤어요(화면이 꺼졌거나 재생이 멈춘 경우). 화면을 켜 둔 채 다시 해 보세요.`);
+    shots.push(...dropServePrep(got.shots));                  // 서브 준비 동작이 스트로크로 잡힌 것은 뺀다
+    done += span;
+    if (shots.length >= MAX_SHOTS) {
+      shots.length = MAX_SHOTS;
+      if (i < vids.length - 1) notes.push(`스윙이 많아 앞의 ${MAX_SHOTS}개까지만 봤어요. 나머지 영상은 따로 올려 주세요.`);
+      break;
+    }
+  }
+  if (job !== S.job) return;
+  progress(1);
+  if (!shots.length) { fail(job, (notes[0] || '스윙 동작을 찾지 못했어요.').replace(/^영상 \d+: /, '')); return; }
+  const chosen = vids.find((v) => !v.single && v.person);
+  if (shots.length === 1) {                                       // 스윙이 하나뿐이면 그 스윙을 바로 자세히 보여 준다
+    if (!(await useVideo(shots[0].vid)) || job !== S.job) return;
+    S.session = null; S.shot = shots[0]; S.shot.extra = notes; S.from = 'setup';
+    renderResult();
+    leaveWorking(job, 'result');
+    return;
+  }
+  S.session = { shots, notes, who: chosen ? `${chosen.person.name} 옷` : null };
+  renderSession();
+  if (leaveWorking(job, 'session')) thumbs();
+}
+
+/** 짧은 영상(25초 이하): 모든 장면을 한 장씩 읽어 스윙을 찾는다. 슬로모션도 여기서 알아본다. */
+async function analyzeShort(v, i, { signal, job, label, onP }) {
+  await Pose.seek(video, (v.t0 + v.t1) / 2);
+  const pl = await Pose.getPose({ model: 'full', poses: v.single ? 3 : 4, probe: video });
+  if (job !== S.job) return { shots: [] };
+  setWork(`${label}영상을 한 장씩 읽는 중`, '휴대폰 안에서만 분석합니다.');
+  S.fps = await Pose.measureFps(video);
+  const d = Math.min(v.t1 - v.t0, 40);
+  const step = Math.max(1 / S.fps, d / 700);
+  const st = { color: v.person.color.slice(), sizeRef: v.person.size };
+  // 찾아 둔 그 사람의 옷 색·크기에서 따라가기를 시작한다. 한 사람 영상은 색을 못 읽은 화면에서도 방금 있던 자리의 사람을 이어서 본다.
+  const follow = v.single ? Track.pickSingle : Track.pickTarget;
+  const pick = (poses, t) => follow(poses, Track.readColors(smallCtx, video, poses), st, t);
+  const raw = await Pose.extract(video, pl, { t0: v.t0, t1: v.t0 + d, step, signal, pick, onProgress: (p) => onP(p * 0.97) });
+  if (job !== S.job) return { shots: [] };
+  const frames = cleanFrames(raw.filter(G.validPose), v.meta.width / v.meta.height);
+  if (frames.length < 10) return { shots: [], why: '영상에서 사람을 찾지 못했어요.' };
+  const opts = { hand: S.profile.hand, sf: sfOpt() };
+  const all = detectSwings(frames, opts);
+  console.debug(`[coach] ${label}짧은 영상: 스윙 후보 ${all.length}개`, all.map((x) => `${x.tc.toFixed(1)}초 ${x.stroke} 속도 ${x.peak.toFixed(1)}${x.suspect ? ' (준비 동작)' : ''}${x.uncertain ? ' (종류 불확실)' : ''}`).join(' · '));
+  let swings = all.filter((s) => !s.suspect);
+  if (!swings.length) { const one = mainSwing(frames, opts); if (one) swings = [one]; }
+  if (!swings.length) return { shots: [], why: '스윙 동작을 찾지 못했어요. 휘두르는 장면 앞뒤로 1~2초씩 여유 있게 찍힌 영상이 좋아요.' };
+  // 치는 손 설정이 반대인지: 반대 손목이 훨씬 빨리 움직였으면 알려 준다(투핸드는 두 손이 같이 움직이니 제외)
+  const other = S.profile.hand === 'L' ? 'R' : 'L';
+  const handWarn = swings.length === 1 && !swings[0].twoHanded && Math.max(...wristSpeed(frames, other)) > 1.4 * Math.max(...wristSpeed(frames, S.profile.hand));
+  return { shots: swings.map((sw) => makeShot(frames, sw, step, i, { handWarn })) };
+}
+
+/** 긴 영상: 먼저 가벼운 모델로 빠르게 훑어 스윙 시각을 찾고, 그 장면만 정밀 모델로 다시 읽는다. */
+async function analyzeLong(v, i, { signal, job, label, onP }) {
+  const aspect = v.meta.width / v.meta.height, person = v.person;
+  setWork(`${label}영상 전체를 훑는 중`, '스윙하는 장면을 찾고 있어요.');
+  const lite = await Pose.getPose({ model: 'lite', poses: 4 });
+  if (job !== S.job) return { shots: [] };
+  const st = { color: person.color.slice(), sizeRef: person.size };
+  const follow = v.single ? Track.pickSingle : Track.pickTarget;
+  const pick = (poses, t) => follow(poses, Track.readColors(smallCtx, video, poses), st, t);
+  // 긴 영상에서도 메모리가 늘지 않게: 30초쯤 모이면 그 구간에서 스윙 시각만 뽑고 프레임은 버린다(끝 3초는 다음 구간과 겹친다)
+  let buf = [];
+  const cands = [];
+  const flush = (final) => {
+    if (buf.length < 10) { if (final) buf = []; return; }
+    const end = buf[buf.length - 1].t;
+    const found = detectSwings(cleanFrames(buf.filter(G.validPose), aspect), { hand: S.profile.hand, sf: 1 });
+    for (const c of found) {
+      if (c.suspect) continue;                                    // 테이크백만 한 동작은 샷으로 치지 않는다
+      if (!final && c.tc > end - 2) continue;                     // 구간 끝에 걸친 스윙은 다음 구간에서 온전히 본다
+      if (!cands.some((x) => Math.abs(x.tc - c.tc) < 0.6)) cands.push({ tc: c.tc, peak: c.peak });
+    }
+    buf = final ? [] : buf.filter((f) => f.t > end - 3);
+  };
+  const reached = await Pose.scan(video, lite, { t0: v.t0, t1: v.t1, rate: 2, pick, signal,
+    sink: (f) => { buf.push(f); if (f.t - buf[0].t > 30) flush(false); },
+    onProgress: (p) => onP(p * 0.55) });
+  if (job !== S.job) return { shots: [] };
+  flush(true);
+  console.debug(`[coach] ${label}훑기 끝: 스윙 후보 ${cands.length}개`, cands.map((c) => c.tc.toFixed(1)).join(' '));
+  const partial = reached < v.t1 - 3 ? reached : null;
+  if (!cands.length) return { shots: [], partial, why: '스윙 장면을 찾지 못했어요. 고른 사람이 화면에 작게 나오면 잘 안 잡힙니다.' };
+  cands.sort((a, b) => b.peak - a.peak);
+  const top = cands.slice(0, 18).sort((a, b) => a.tc - b.tc);
+  setWork(`${label}스윙 ${top.length}개를 자세히 보는 중`, cands.length > top.length ? `찾은 ${cands.length}개 중 가장 빠른 ${top.length}개를 봅니다.` : '');
+  S.fps = await Pose.measureFps(video);
+  const full = await Pose.getPose({ model: 'full', poses: 3 });
+  const shots = [];
+  for (let k = 0; k < top.length; k++) {
+    if (job !== S.job) return { shots: [] };
+    const c = top[k], st2 = { color: person.color.slice(), sizeRef: person.size };   // 처음 고른 색에서 다시 시작(훑는 동안 색이 딴 사람 쪽으로 흘렀을 수 있다)
+    const step = 1 / Math.min(S.fps, 60);
+    const raw = await Pose.extract(video, full, { t0: Math.max(v.t0, c.tc - 1.5), t1: Math.min(v.t1, c.tc + 0.8), step, signal,
+      pick: (poses, t) => follow(poses, Track.readColors(smallCtx, video, poses), st2, t),
+      onProgress: (p) => onP(0.55 + 0.45 * (k + p) / top.length) });
+    const fr = cleanFrames(raw.filter(G.validPose), aspect);
+    const sw = fr.length >= 10 ? mainSwing(fr, { hand: S.profile.hand, sf: 1 }) : null;
+    console.debug(`[coach] ${c.tc.toFixed(1)}초: 읽은 프레임 ${raw.length} → 다듬은 뒤 ${fr.length} → ${sw ? sw.stroke : '스윙 못 찾음'}`);
+    if (!sw || sw.suspect) continue;
+    shots.push(makeShot(fr, sw, step, i));
+  }
+  return { shots, partial, why: shots.length ? null : '스윙을 자세히 읽지 못했어요.' };
+}
+
 // ── 결과 화면 ───────────────────────────────────────────────────
 function ctxFor(shot) {
-  return { ref: S.ref, sex: S.profile.sex, heightCm: S.profile.heightCm, level: S.profile.level, serveType: S.opt.serveType, result: shot.result || null };
+  return { ref: S.ref, sex: S.profile.sex, heightCm: S.profile.heightCm, level: S.profile.level, serveType: shot.serveType || S.opt.serveType, result: shot.result || null };
 }
 function refsFor(shot, m, moment) {
   const family = m.stroke === 'serve' ? 'serve' : 'ground';
@@ -236,9 +475,11 @@ function refsFor(shot, m, moment) {
 
 function renderResult() {
   const shot = S.shot, el = $('#v-result');
-  const m = swingMetrics(shot.frames, shot.swing, S.meta.width, S.meta.height);
+  const vm = (S.vids[shot.vid] || {}).meta || S.meta;
+  const m = swingMetrics(shot.frames, shot.swing, vm.width, vm.height);
   const a = advise(m, ctxFor(shot));
   shot.m = m; shot.a = a;
+  const stype = shot.serveType || S.opt.serveType;
   const family = m.stroke === 'serve' ? 'serve' : 'ground';
   const moments = MOMENTS[family].filter(([k]) => shot.swing.keys[k] != null);
   if (!moments.some(([k]) => k === shot.moment)) shot.moment = 'contact';
@@ -263,6 +504,7 @@ function renderResult() {
     ${a.score != null && a.good.length ? `<div class="sec"><h3>잘하고 있는 것</h3><div class="chips">${[...new Set(a.good.map((g) => g.label))].map((l) => `<span class="chip good">${esc(l)}</span>`).join('')}</div></div>` : ''}
     ${shot.handWarn ? `<div class="callout">반대쪽 손이 더 빠르게 움직였어요. 치는 손이 ${S.profile.hand === 'L' ? '오른손' : '왼손'}이라면 처음 화면의 <b>내 정보</b>에서 바꾸고 다시 분석해 주세요.</div>` : ''}
     ${a.notes.map((n) => `<div class="callout info">${esc(n)}</div>`).join('')}
+    ${(shot.extra || []).map((n) => `<div class="callout">${esc(n)}</div>`).join('')}
 
     <div class="sec"><h3>이 공은 어떻게 됐나요?</h3><p class="small muted" style="margin:4px 0 10px">알려 주시면 라켓 면까지 묶어서 말씀드려요.</p>
       ${seg('result', [['good', '잘 들어감'], ['net', '네트'], ['long', '길게 아웃'], ...(family === 'ground' ? [['wide', '옆으로'], ['short', '짧음']] : [])], shot.result || '')}
@@ -271,7 +513,10 @@ function renderResult() {
     <div class="sec"><h3>잰 값</h3><dl class="kv">${measures(m).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
     <div class="sec"><h3>종류가 다르게 잡혔나요?</h3><p class="small muted" style="margin:4px 0 10px">바꾸면 그 종류로 다시 봅니다.</p>
       ${seg('kind', [['serve', '서브'], ['forehand', '포핸드'], ['backhand', '백핸드']], m.stroke)}</div>
-    ${m.stroke === 'serve' ? `${serveStyle(m)}<div class="sec"><h2>내 타점에서 들어가는 각도</h2><div id="physHere"></div></div>` : ''}
+    ${m.stroke === 'serve' ? `<div class="sec"><h3>어떤 서브였나요?</h3><p class="small muted" style="margin:4px 0 10px">종류에 따라 맞는 타점 높이와 자리가 다릅니다.</p>
+      ${seg('stype', [['flat', '플랫'], ['slice', '슬라이스'], ['kick', '킥(스핀)']], stype)}</div>
+      <div class="sec"><h2>내 타점 높이</h2><div id="physHere"></div></div>${serveStyle(m)}` : ''}
+    ${m.stroke !== 'serve' ? '<div class="sec"><h2>내 타점</h2><div id="physHere"></div></div>' : ''}
     <div class="btns">
       <button class="btn" id="shareShot" ${a.score == null ? 'disabled' : ''}>결과 공유</button>
       <button class="btn ghost sm" id="saveRef">이 스윙을 내 기준 자세로 저장</button>
@@ -287,6 +532,7 @@ function renderResult() {
     renderResult();
   });
   bindSegs(el, (k, v) => {
+    if (k === 'stype') { shot.serveType = v; const y = window.scrollY; renderResult(); window.scrollTo(0, y); return; }   // 서브 종류를 바꾸면 그 종류의 기준으로 다시 본다
     if (k === 'kind') {                                        // 종류를 바로잡으면 그 종류로 다시 분석
       if (v === shot.swing.stroke) return;
       const again = withStroke(shot.frames, shot.swing, v);
@@ -297,32 +543,23 @@ function renderResult() {
   $('#shareShot', el).addEventListener('click', () => shareShot());
   $('#saveRef', el).addEventListener('click', () => saveAsRef());
   const again = $('#another', el);
-  if (again) again.addEventListener('click', () => { show('home', { push: false }); history.replaceState({ v: 'home' }, '', location.pathname); });
+  if (again) again.addEventListener('click', () => { show('home', { push: false }); history.replaceState(navState('home'), '', location.pathname); });
   if (m.stroke === 'serve') {
-    let hBall = NaN;
-    try { if (m.wristHeightGround > 0) hBall = Phys.ballContactHeight({ wristHeightM: m.wristHeightGround * S.profile.heightCm / 100, stroke: 'serve' }).mid; } catch (_) { hBall = NaN; }
-    const measured = hBall >= 2.0 && hBall <= 3.1;               // 범위를 벗어난 값은 '영상에서 잰 값'이라고 하지 않는다
-    serveCalculator($('#physHere', el), { height: measured ? Math.round(hBall * 20) / 20 : Math.round((S.profile.heightCm / 100) * 1.45 * 20) / 20, fixed: measured,
-      type: S.opt.serveType, hand: S.profile.hand, speed: S.profile.level === 'adv' ? 150 : S.profile.level === 'beg' ? 100 : 125 });
+    serveHeightCard($('#physHere', el), { heightCm: S.profile.heightCm, wristRatio: m.wristHeightGround > 0 ? m.wristHeightGround : null, jump: m.jump, type: stype, hand: S.profile.hand, level: S.profile.level });
+  } else {
+    groundHeightCard($('#physHere', el), { heightCm: S.profile.heightCm, wristRatio: m.wristHeightGround, front: m.view === 'side' ? m.contactFront : NaN,
+      kind: m.stroke === 'forehand' ? 'forehand' : m.twoHanded ? 'backhand2' : 'backhand1', level: S.profile.level });
   }
   paintMoment();
 }
 
-/** 서브: 내 스탠스와 같은 방식을 쓰는 선수, 서브 종류별 토스·타점 요령 */
+/** 서브: 내 스탠스와 같은 방식을 쓰는 선수 */
 function serveStyle(m) {
-  const lefty = S.profile.hand === 'L', R = lefty ? '왼쪽' : '오른쪽', L = lefty ? '오른쪽' : '왼쪽';
   const stance = {
     platform: ['플랫폼 스탠스', '뒷발을 그대로 둔 채 치는 방식입니다. 균형 잡기 쉽고 풋폴트가 적어 동호인에게 권하는 방식이에요.', '같은 방식: 페더러 · 조코비치 · 샘프러스'],
     pinpoint: ['핀포인트 스탠스', '뒷발을 앞발 옆으로 끌어와 위로 솟는 방식입니다. 높이 뛰기 좋지만 타이밍과 균형이 더 어렵습니다. 끌어온 뒷발이 앞발을 지나치지 않게 하세요.', '같은 방식: 즈베레프 · 알카라스 · 메드베데프 · 세레나 윌리엄스 · 시비옹테크 · 시너(2023년 말부터)'],
   }[m.stanceType];
-  const type = {
-    flat: ['플랫', `토스는 치는 어깨 앞, 시계로 12~1시 방향에 코트 안쪽으로. 세 가지 서브 중 가장 앞에서 맞습니다.`],
-    slice: ['슬라이스', `토스를 플랫보다 조금 더 ${R}에 올리고, 공의 ${R} 옆면을 깎듯이 칩니다. 타점 높이는 플랫과 같습니다.`],
-    kick: ['킥(스핀)', `토스를 머리 위에(플랫보다 20cm쯤 ${L}, 15~20cm 몸 쪽). 아래에서 위로 쓸어 올립니다. 타점 높이는 플랫과 같아도 됩니다.`],
-  }[S.opt.serveType] || null;
-  return `<div class="sec"><h3>서브 방식</h3>
-    ${stance ? `<div class="pattern"><b>${stance[0]}로 보입니다</b><span>${stance[1]}</span><span style="margin-top:6px">${stance[2]}</span></div>` : ''}
-    ${type ? `<div class="pattern"><b>${type[0]} 서브의 토스와 타점</b><span>${type[1]}</span></div>` : ''}</div>`;
+  return stance ? `<div class="sec"><h3>서브 방식</h3><div class="pattern"><b>${stance[0]}로 보입니다</b><span>${stance[1]}</span><span style="margin-top:6px">${stance[2]}</span></div></div>` : '';
 }
 
 /** 조언에 붙이는 그림 한 칸(맞는 그림이 없으면 빈 문자열) */
@@ -334,9 +571,16 @@ function figBox(it, m) {
 function measures(m) {
   const h = S.profile.heightCm, c = m.phases.contact || {}, out = [];
   const cmv = (x) => `${Math.round(x * h)}cm`;
-  if (Number.isFinite(m.contactFront)) out.push(['타점(손목) — 골반보다 앞', cmv(m.contactFront)]);
-  if (m.stroke === 'serve' && Number.isFinite(m.contactFrontFoot)) out.push(['타점(손목) — 앞발보다 앞', cmv(m.contactFrontFoot)]);
-  if (Number.isFinite(m.wristHeightGround)) out.push(['임팩트 때 손목 높이', cmv(m.wristHeightGround)]);
+  const ahead = (x) => `${Math.abs(Math.round(x * h))}cm ${x >= 0 ? '앞' : '뒤'}`;
+  if (Number.isFinite(m.contactFront)) out.push(['타점 — 골반보다', ahead(m.contactFront)]);
+  if (m.stroke === 'serve' && Number.isFinite(m.contactFrontFoot)) out.push(['타점 — 앞발보다', ahead(m.contactFrontFoot)]);
+  if (Number.isFinite(m.wristHeightGround) && m.wristHeightGround > 0) {
+    if (m.stroke === 'serve') {                                   // 서브: 리치와 견줘서
+      const sc = Reach.serveContact(m.wristHeightGround, h);
+      out.push(['내 리치', `약 ${sc.reach}cm (키 ${h}cm)`]);
+      if (sc.ball >= 0.85 * sc.reach && sc.ball <= sc.reach + 45) out.push(['타점 높이(손목으로 어림)', `약 ${sc.ball}cm · ${sc.text}`]);
+    } else out.push(['타점 높이(손목으로 어림)', `${Reach.bodyLevel(m.wristHeightGround)} · 약 ${cmv(m.wristHeightGround)}`]);   // 스트로크: 몸의 어느 높이인지
+  }
   if (Number.isFinite(m.kneeBend)) out.push(['무릎 굽힘(가장 깊을 때)', `${Math.round(m.kneeBend)}°`]);
   if (Number.isFinite(c.elbowHit)) out.push(['임팩트 때 팔꿈치', `${Math.round(c.elbowHit)}°`]);
   if (m.stroke === 'serve') {
@@ -501,162 +745,70 @@ function saveAsRef() {
   });
 }
 
-// ── 전체 영상: 사람 고르기 ──────────────────────────────────────
-const small = document.createElement('canvas');
-small.width = 320;
-const smallCtx = small.getContext('2d', { willReadFrequently: true });
-
-async function findPeople() {
-  const signal = working('영상 속 사람을 찾는 중', '여러 장면을 살펴봅니다.');
-  const job = S.job;
-  try {
-    small.height = Math.round(320 * S.meta.height / S.meta.width);
-    await Pose.seek(video, (S.opt.t0 + S.opt.t1) / 2);
-    const pl = await Pose.getPose({ model: 'lite', poses: 4, probe: video });
-    const obs = [], n = 12;
-    for (let i = 0; i < n; i++) {
-      if (signal.aborted) throw new DOMException('aborted', 'AbortError');
-      if (job !== S.job) return;
-      const t = S.opt.t0 + (S.opt.t1 - S.opt.t0) * (i + 0.5) / n;
-      if (!(await Pose.seek(video, t))) continue;
-      const poses = Pose.detect(pl, video);
-      const colors = Track.readColors(smallCtx, video, poses);
-      poses.forEach((p, j) => { if (colors[j]) obs.push({ t, lm: p.lm, color: colors[j] }); });
-      progress((i + 1) / n);
-    }
-    if (job !== S.job) return;
-    const people = Track.groupPeople(obs).slice(0, 6);
-    if (!people.length) { fail(job, '영상에서 사람을 찾지 못했어요.'); return; }
-    await renderPeople(people, job);
-    leaveWorking(job, 'people');
-  } catch (e) {
-    if (isAbort(e)) { backFromWorking(job); return; }
-    console.error(e); fail(job, '사람을 찾는 중 문제가 생겼어요.');
-  }
-}
-
-async function renderPeople(people, job) {
-  const el = $('#v-people');
-  let chosen = 0;
-  // 옷 색이 비슷한 사람이 둘 이상이면 섞일 수 있다고 미리 알린다
-  const alike = people.some((p, i) => people.some((q, j) => j > i && Track.colorDist(p.color, q.color) < 0.3));
-  el.innerHTML = `<p class="eyebrow">전체 영상</p><h2 style="margin-top:4px">누구를 볼까요?</h2><p class="lead" style="font-size:15px">웃옷 색으로 그 사람만 끝까지 따라갑니다.</p>
-    ${alike ? '<div class="callout">옷 색이 비슷한 사람이 있어요. 두 사람이 섞여 분석될 수 있으니, 결과의 샷 사진을 확인해 주세요.</div>' : ''}
-    <div class="people">${people.map((p, i) => `<button class="person" data-p="${i}" aria-pressed="${i === 0}"><canvas></canvas><span><i style="background:rgb(${p.color.map(Math.round).join(',')})"></i>${esc(p.name)} 옷</span></button>`).join('')}</div>
-    <div class="btns"><button class="btn" id="goFull">이 사람 분석</button></div>`;
-  const cvs = $$('.person canvas', el);
-  for (let i = 0; i < people.length; i++) {
-    if (job !== S.job) return;
-    const ok = await Pose.seek(video, people[i].sample.t);
-    cropPerson(cvs[i], ok ? video : null, people[i].sample.lm, S.meta.width, S.meta.height, { hand: null, color: Draw.COLORS.me });
-  }
-  for (const b of $$('.person', el)) b.addEventListener('click', () => { chosen = Number(b.dataset.p); for (const x of $$('.person', el)) x.setAttribute('aria-pressed', String(x === b)); });
-  $('#goFull', el).addEventListener('click', () => runFull(people[chosen]));
-}
-
-// ── 전체 영상 분석 ──────────────────────────────────────────────
-async function runFull(person) {
-  const signal = working('영상 전체를 훑는 중', '스윙하는 장면을 찾고 있어요.');
-  const job = S.job;
-  const aspect = S.meta.width / S.meta.height;
-  try {
-    const lite = await Pose.getPose({ model: 'lite', poses: 4 });
-    if (job !== S.job) return;
-    const st = { color: person.color.slice(), sizeRef: person.size };
-    const pick = (poses, t) => Track.pickTarget(poses, Track.readColors(smallCtx, video, poses), st, t);
-    // 긴 영상에서도 메모리가 늘지 않게: 30초쯤 모이면 그 구간에서 스윙 시각만 뽑고 프레임은 버린다(끝 3초는 다음 구간과 겹친다)
-    let buf = [];
-    const cands = [];
-    const flush = (final) => {
-      if (buf.length < 10) { if (final) buf = []; return; }
-      const end = buf[buf.length - 1].t;
-      const found = detectSwings(cleanFrames(buf.filter(G.validPose), aspect), { hand: S.profile.hand, sf: 1 });
-      for (const c of found) {
-        if (c.suspect) continue;                                    // 테이크백만 한 동작은 샷으로 치지 않는다
-        if (!final && c.tc > end - 2) continue;                   // 구간 끝에 걸친 스윙은 다음 구간에서 온전히 본다
-        if (!cands.some((x) => Math.abs(x.tc - c.tc) < 0.6)) cands.push({ tc: c.tc, peak: c.peak });
-      }
-      buf = final ? [] : buf.filter((f) => f.t > end - 3);
-    };
-    const reached = await Pose.scan(video, lite, { t0: S.opt.t0, t1: S.opt.t1, rate: 2, pick, signal,
-      sink: (f) => { buf.push(f); if (f.t - buf[0].t > 30) flush(false); },
-      onProgress: (p) => { if (job === S.job) progress(p * 0.55); } });
-    if (job !== S.job) return;
-    flush(true);
-    console.debug(`[coach] 훑기 끝: 스윙 후보 ${cands.length}개`, cands.map((c) => c.tc.toFixed(1)).join(' '));
-    if (!cands.length) { fail(job, '스윙 장면을 찾지 못했어요. 고른 사람이 화면에 작게 나오면 잘 안 잡힙니다.'); return; }
-    cands.sort((a, b) => b.peak - a.peak);
-    const top = cands.slice(0, 18).sort((a, b) => a.tc - b.tc);
-    $('#workTitle').textContent = `스윙 ${top.length}개를 자세히 보는 중`;
-    $('#workSub').textContent = cands.length > top.length ? `찾은 ${cands.length}개 중 가장 빠른 ${top.length}개를 봅니다.` : '';
-    S.fps = await Pose.measureFps(video);
-    const full = await Pose.getPose({ model: 'full', poses: 3 });
-    const shots = [];
-    for (let i = 0; i < top.length; i++) {
-      if (job !== S.job) return;
-      const c = top[i], st2 = { color: person.color.slice(), sizeRef: person.size };   // 처음 고른 색에서 다시 시작(훑는 동안 색이 딴 사람 쪽으로 흘렀을 수 있다)
-      const step = 1 / Math.min(S.fps, 60);
-      const raw = await Pose.extract(video, full, { t0: Math.max(S.opt.t0, c.tc - 1.5), t1: Math.min(S.opt.t1, c.tc + 0.8), step, signal,
-        pick: (poses, t) => Track.pickTarget(poses, Track.readColors(smallCtx, video, poses), st2, t),
-        onProgress: (p) => { if (job === S.job) progress(0.55 + 0.45 * (i + p) / top.length); } });
-      const fr = cleanFrames(raw.filter(G.validPose), aspect);
-      const sw = fr.length >= 10 ? mainSwing(fr, { hand: S.profile.hand, sf: 1 }) : null;
-      console.debug(`[coach] ${c.tc.toFixed(1)}초: 읽은 프레임 ${raw.length} → 다듬은 뒤 ${fr.length} → ${sw ? sw.stroke : '스윙 못 찾음'}`);
-      if (!sw || sw.suspect) continue;
-      const m = swingMetrics(fr, sw, S.meta.width, S.meta.height);
-      const a = advise(m, ctxFor({}));
-      shots.push({ frames: fr, swing: sw, step, m, a, moment: 'contact', refIdx: 0, overlay: false });
-    }
-    if (job !== S.job) return;
-    if (!shots.length) { fail(job, '스윙을 자세히 읽지 못했어요.'); return; }
-    S.session = { person, shots, partial: reached < S.opt.t1 - 3 ? reached : null };
-    renderSession();
-    if (leaveWorking(job, 'session')) thumbs();
-  } catch (e) {
-    if (isAbort(e)) { backFromWorking(job); return; }
-    console.error(e); fail(job, '분석 중 문제가 생겼어요.');
-  }
-}
-
+// ── 종합 판단: 찾은 스윙을 모두 모아(영상 여러 개 포함) 되풀이되는 것부터 짚는다 ─────────
 function renderSession() {
-  const el = $('#v-session'), { shots, person } = S.session;
-  const kinds = ['serve', 'forehand', 'backhand'].filter((k) => shots.some((s) => s.m.stroke === k));
-  const block = (kind) => {
-    const list = shots.filter((s) => s.m.stroke === kind);
-    const rated = list.filter((s) => s.a.score != null);
-    const clear = rated.filter((s) => s.m.vis >= 0.6);
-    const ranked = (clear.length >= 2 ? clear : rated).slice().sort((a, b) => b.a.score - a.a.score);
-    const best = ranked.slice(0, Math.min(2, Math.ceil(ranked.length / 2)));
-    const worst = ranked.length > best.length ? ranked.slice(-Math.min(2, ranked.length - best.length)).reverse() : [];
-    // 되풀이되는 문제: 같은 조언이 몇 개의 샷에서 나왔나
-    const counts = {};
-    for (const s of list) for (const it of s.a.items) (counts[it.id] ||= { n: 0, it }).n++;
-    const patterns = Object.values(counts).filter((c) => c.n >= Math.max(2, Math.ceil(list.length * 0.4))).sort((a, b) => b.n - a.n).slice(0, 3);
-    const row = (s, cls) => `<button class="shot ${cls}" data-i="${shots.indexOf(s)}"><canvas width="144" height="108"></canvas>
-      <span><b>${esc(s.a.items[0] ? s.a.items[0].title : '자세가 안정적이에요')}</b><span class="num">${fmtTime(s.swing.tc)} 지점${s.m.vis < 0.5 ? ' · 화면 흐림' : ''}</span></span><em>${s.a.score ?? '—'}</em></button>`;
-    return `<div class="sec"><h2>${STROKE[kind]} <span class="muted num" style="font-size:15px;font-weight:600">${list.length}개</span></h2>
-      ${patterns.map((p) => `<div class="pattern"><b>${esc(p.it.title.replace(/ — .*/, ''))}</b><span>${list.length}개 중 ${p.n}개에서 · ${esc(p.it.cue)}</span></div>`).join('') || '<div class="pattern"><b>되풀이되는 문제는 보이지 않아요</b><span>샷마다 다른 점만 아래에서 확인하세요.</span></div>'}
-      ${best.length ? `<h3 style="margin-top:18px">잘 친 샷</h3><div class="shots">${best.map((s) => row(s, 'best')).join('')}</div>` : ''}
-      ${worst.length ? `<h3 style="margin-top:18px">아쉬운 샷</h3><div class="shots">${worst.map((s) => row(s, 'worst')).join('')}</div>` : ''}</div>`;
+  const el = $('#v-session'), { shots, notes, who } = S.session;
+  const sum = summarize(shots), H = S.profile.heightCm;
+  const when = (s) => `${vidTag(s.vid) ? `${vidTag(s.vid)} · ` : ''}${fmtTime(s.swing.tc)} 지점`;
+  const row = (i, cls = '') => {
+    const s = shots[i];
+    return `<button class="shot ${cls}" data-i="${i}"><canvas width="144" height="108"></canvas>
+      <span><b>${esc(s.a.items[0] ? baseTitle(s.a.items[0].title) : '자세가 안정적이에요')}</b><span class="num">${when(s)}${s.m.vis < 0.5 ? ' · 화면 흐림' : ''}</span></span><em>${s.a.score ?? '—'}</em></button>`;
   };
-  el.innerHTML = `<p class="eyebrow">${esc(person.name)} 옷 · 스윙 ${shots.length}개</p><h1 style="margin-top:4px">샷 모아 보기</h1>
-    <p class="lead" style="font-size:15px">공이 들어갔는지는 영상만으로 알 수 없어서, 자세 점수로 고른 샷입니다. 샷을 누르면 자세히 봅니다.</p>
-    ${S.session.partial != null ? `<div class="callout">영상을 끝까지 읽지 못하고 ${fmtTime(S.session.partial)} 지점까지만 봤어요(화면이 꺼졌거나 재생이 멈춘 경우). 화면을 켜 둔 채 다시 해 보세요.</div>` : ''}
-    ${kinds.map(block).join('')}
-    <div class="sec"><h3>찾은 스윙 모두</h3><div class="shots">${shots.map((s, i) => `<button class="shot" data-i="${i}"><canvas width="144" height="108"></canvas><span><b>${esc(strokeName(s.m))}</b><span class="num">${fmtTime(s.swing.tc)} 지점</span></span><em>${s.a.score ?? '—'}</em></button>`).join('')}</div></div>`;
-  for (const b of $$('.shot', el)) b.addEventListener('click', () => { thumbSeq++; S.shot = shots[Number(b.dataset.i)]; S.from = 'session'; renderResult(); show('result'); });
+  const figFor = (p) => figBox(p.item, shots[p.shot].m);
+  const first = sum.priorities[0], rest = sum.priorities.slice(1);
+  const block = (b) => {
+    const sp = spreadText(b, H);
+    return `<div class="sec"><h2>${b.label} <span class="muted num" style="font-size:15px;font-weight:600">${b.n}개${b.avg != null ? ` · 평균 ${b.avg}점` : ''}</span></h2>
+      ${sp ? `<p class="small muted" style="margin-top:6px">${esc(sp)}</p>` : ''}
+      ${b.patterns.slice(0, 3).map((p) => `<div class="pattern"><b>${esc(p.title)}</b><span>${p.of > 1 ? `${p.of}개 중 ${p.n}개에서 · ` : ''}${esc(p.cue)}</span></div>`).join('')
+        || `<div class="pattern"><b>되풀이되는 문제는 보이지 않아요</b><span>${b.n > 1 ? '샷마다 다른 점만 아래에서 확인하세요.' : '아래 샷을 눌러 자세히 보세요.'}</span></div>`}
+      ${b.best.length ? `<h3 style="margin-top:18px">${b.worst.length ? '잘 친 샷' : '찾은 샷'}</h3><div class="shots">${b.best.map((i) => row(i, b.worst.length ? 'best' : '')).join('')}</div>` : ''}
+      ${b.worst.length ? `<h3 style="margin-top:18px">아쉬운 샷</h3><div class="shots">${b.worst.map((i) => row(i, 'worst')).join('')}</div>` : ''}</div>`;
+  };
+  el.innerHTML = `<p class="eyebrow">${who ? `${esc(who)} · ` : ''}${sum.videos > 1 ? `영상 ${sum.videos}개 · ` : ''}스윙 ${shots.length}개</p><h1 style="margin-top:4px">종합 판단</h1>
+    <p class="lead" style="font-size:15px">${esc(sum.kinds.map((b) => `${b.label} ${b.n}개`).join(' · '))}를 찾았어요. 한 번 나온 것보다 되풀이되는 것을 먼저 짚습니다.</p>
+    ${sum.score == null ? '<div class="callout" style="margin-top:20px"><b>점수를 매기기 어려운 영상이에요.</b><br>팔다리가 또렷하게 보이지 않았습니다. 몸 전체가 크게, 밝게 나오게 찍어 보세요.</div>'
+      : `<div class="score">${Draw.ring(sum.score)}<div><div class="grade">${esc(sum.grade)}</div><p>${sum.scored < shots.length ? `또렷하게 보인 스윙 ${sum.scored}개` : `스윙 ${sum.scored}개`}의 자세 점수 평균 (실력 점수가 아니에요)</p></div></div>`}
+    ${first ? `<div class="first"><div class="k">가장 먼저 이것 하나 · ${esc(countText(first))}</div><h3>${esc(first.title)}</h3>${figFor(first)}<p class="cue">${esc(first.cue)}</p><p class="why">${esc(first.why)}</p></div>`
+      : (sum.score != null ? '<div class="first"><div class="k">좋아요</div><h3>되풀이되는 문제가 보이지 않아요</h3><p class="cue">지금 자세를 유지하면서, 아래 아쉬운 샷만 한 번씩 확인해 보세요.</p></div>' : '')}
+    ${rest.map((p) => `<details class="adv"><summary><span class="dot"></span><span><span class="t">${esc(p.title)}</span><span class="m">${esc(countText(p))}</span></span></summary>
+      <div class="body">${figFor(p)}<b>이렇게 해 보세요</b>${esc(p.cue)}<br><br><b>왜 중요한가요</b>${esc(p.why)}</div></details>`).join('')}
+    ${sum.strengths.length ? `<div class="sec"><h3>꾸준히 잘하고 있는 것</h3><div class="chips">${sum.strengths.slice(0, 8).map((g) => `<span class="chip good">${esc(sum.kinds.length > 1 ? `${g.kindLabel} · ` : '')}${esc(g.label)}</span>`).join('')}</div></div>` : ''}
+    ${notes.map((n) => `<div class="callout">${esc(n)}</div>`).join('')}
+    ${sum.kinds.map(block).join('')}
+    <div class="sec"><h3>찾은 스윙 모두</h3><p class="small muted" style="margin:4px 0 0">공이 들어갔는지는 영상만으로 알 수 없어서 자세 점수로 봅니다. 샷을 누르면 자세히 봅니다.</p>
+      <div class="shots">${shots.map((s, i) => `<button class="shot" data-i="${i}"><canvas width="144" height="108"></canvas><span><b>${esc(strokeName(s.m))}</b><span class="num">${when(s)}</span></span><em>${s.a.score ?? '—'}</em></button>`).join('')}</div></div>
+    <div class="btns"><button class="btn ghost sm" id="another2">다른 영상 분석</button></div>`;
+  for (const b of $$('.shot', el)) b.addEventListener('click', async () => {
+    thumbSeq++;
+    const sess = S.session, sh = shots[Number(b.dataset.i)];
+    let ok = false;
+    try { ok = await useVideo(sh.vid); } catch (_) { ok = false; }
+    if (S.session !== sess || currentView() !== 'session') return;       // 기다리는 사이 다른 화면·다른 영상으로 넘어갔다
+    if (!ok) { toast('영상을 다시 열지 못했어요'); return; }
+    S.shot = sh; S.from = 'session'; renderResult(); show('result');
+  });
+  $('#another2', el).addEventListener('click', () => { show('home', { push: false }); history.replaceState(navState('home'), '', location.pathname); });
 }
 let thumbSeq = 0;
-/** 샷 목록의 작은 사진들. 샷 모아 보기 화면이 떠 있을 때만, 한 장씩 차례로 그린다(다른 화면으로 가면 멈추고, 돌아오면 다시 한다). */
+/** 샷 목록의 작은 사진들. 종합 화면이 떠 있을 때만, 한 장씩 차례로 그린다(다른 화면으로 가면 멈추고, 돌아오면 다시 한다). */
 async function thumbs() {
   if (!S.session) return;
   const seq = ++thumbSeq, shots = S.session.shots;
-  for (const b of $$('#v-session .shot')) {
-    if (seq !== thumbSeq || currentView() !== 'session') return;
+  const alive = () => seq === thumbSeq && currentView() === 'session';
+  // 영상을 바꿔 여는 횟수를 줄이려고 영상별로 모아서 그린다
+  const btns = $$('#v-session .shot').sort((a, b) => shots[Number(a.dataset.i)].vid - shots[Number(b.dataset.i)].vid);
+  for (const b of btns) {
+    if (!alive()) return;
     const sh = shots[Number(b.dataset.i)], c = $('canvas', b);
     if (c.dataset.done) continue;
+    let opened = false;
+    try { opened = await useVideo(sh.vid); } catch (_) { opened = false; }
+    if (!alive()) return;
+    if (!opened) continue;
     const ok = await Pose.seek(video, sh.swing.keys.contact);
-    if (seq !== thumbSeq || currentView() !== 'session') return;
+    if (!alive()) return;
     const x = c.getContext('2d');
     if (ok) x.drawImage(video, 0, 0, c.width, c.height);
     Draw.skeleton(x, G.poseAt(sh.frames, sh.swing.keys.contact).lm, c.width, c.height, { width: 2, hand: S.profile.hand });

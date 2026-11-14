@@ -62,13 +62,14 @@ export function detect(pl, source) {
 
 let openToken = 0;
 /**
- * 영상 파일을 <video> 로 열어 길이·크기를 안다. 열 수 없는 형식이거나 20초 안에 준비되지 않으면 오류.
+ * 영상 파일(또는 이미 만들어 둔 주소)을 <video> 로 열어 길이·크기를 안다. 열 수 없는 형식이거나 20초 안에 준비되지 않으면 오류.
  * 연달아 고르면 앞의 것은 '취소됨'으로 끝난다(뒤의 영상 이벤트를 앞의 것이 가로채지 않게).
  */
 export function openVideo(video, file) {
   const token = ++openToken;
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
+    const own = typeof file !== 'string';                        // 문자열이면 이미 만들어 둔 주소(여러 영상을 오갈 때)
+    const url = own ? URL.createObjectURL(file) : file;
     let settled = false;
     const end = (err) => {
       if (settled) return;
@@ -76,7 +77,7 @@ export function openVideo(video, file) {
       clearTimeout(timer); clearInterval(poll);
       for (const ev of ['loadeddata', 'canplay', 'loadedmetadata']) video.removeEventListener(ev, check);
       video.removeEventListener('error', onErr);
-      if (err) { URL.revokeObjectURL(url); reject(err); return; }
+      if (err) { if (own) URL.revokeObjectURL(url); reject(err); return; }
       const info = { url, duration: video.duration, width: video.videoWidth, height: video.videoHeight };
       // 아이폰 사파리는 한 번도 재생하지 않은 영상을 캔버스에 그리지 못할 때가 있다 → 소리 없이 잠깐 재생했다 멈춘다(실패해도 그대로 진행)
       let done = false;

@@ -132,6 +132,7 @@ input[type=range]{width:100%;accent-color:var(--ball);height:32px}
 .phys{margin-top:12px;padding:16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
 .phys .big{display:flex;align-items:baseline;gap:8px;margin-top:4px}
 .phys .big b{font-size:40px;font-weight:800;letter-spacing:-.04em;color:var(--ball);font-variant-numeric:tabular-nums}
+.phys .big span{font-size:16px;color:var(--ink-2)}
 .phys svg.court{width:100%;height:auto;margin-top:12px}
 .bars{display:grid;gap:8px;margin-top:14px}
 .bars div{display:grid;grid-template-columns:88px 1fr 52px;align-items:center;gap:10px;font-size:13px;color:var(--ink-2)}
@@ -176,6 +177,19 @@ ol.steps li{position:relative;padding:12px 0 12px 40px;border-bottom:1px solid v
 ol.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:12px;width:26px;height:26px;border-radius:50%;background:var(--surface-2);font-size:13px;font-weight:800;text-align:center;line-height:26px;color:var(--ball)}
 ol.steps li span{display:block;font-size:13px;color:var(--ink-3)}
 @media (prefers-reduced-motion:no-preference){ .spin{animation:spin 1s linear infinite;transform-origin:50% 50%} @keyframes spin{to{transform:rotate(360deg)}} }
+/* 고른 영상 목록 · 사람 고르기(영상별) · 접어 둔 선택 · 높이 그림 */
+.vlist{margin-top:12px;padding:0;list-style:none;display:grid;gap:6px}
+.vlist li{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:var(--r-sm);background:var(--surface);font-size:14px}
+.vlist li span{color:var(--ink-3)}
+.pgroup{margin-top:24px}
+.pgroup h3{font-size:16px;font-weight:700}
+details.more{margin-top:18px;padding:12px 14px;border-radius:var(--r-sm);background:var(--surface)}
+details.more summary{font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer}
+.reachfig{width:100%;height:auto;margin-top:12px;font-family:var(--font)}
+.pattern.sel{box-shadow:inset 0 0 0 2px var(--ball)}
+.pattern span.num,.pattern b span{display:inline;margin-top:0;font-size:inherit;color:inherit}
+.pattern b .hl,.hl{color:var(--ball)}
+.bars.gap div{grid-template-columns:64px 1fr 108px}
 /* 아래 탭: 코트 오픈 ↔ 스윙 코치. 처음 화면에서만 보인다(분석 중·결과 화면에서는 '뒤로'로 돌아온다) */
 .tabs{display:none;position:fixed;left:50%;bottom:0;z-index:30;transform:translateX(-50%);grid-template-columns:1fr 1fr;width:100%;max-width:520px;
   padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--line);background:rgba(11,18,16,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}

@@ -55,6 +55,21 @@ export function colorDist(a, b) {
 const center = (lm) => [(lm[11][0] + lm[12][0] + lm[23][0] + lm[24][0]) / 4, (lm[11][1] + lm[12][1] + lm[23][1] + lm[24][1]) / 4];
 const height = (lm) => { let lo = 9, hi = -9; for (const k of lm) { if (k[1] < lo) lo = k[1]; if (k[1] > hi) hi = k[1]; } return hi - lo; };
 
+const MIN_PERSON_VIS = 0.8;
+/** 몸통·다리 관절이 또렷하게 보이는 정도(0~1). 배경을 사람으로 잘못 본 뼈대는 이 값이 낮다. */
+export function poseVis(lm) {
+  const idx = [11, 12, 23, 24, 25, 26, 27, 28];
+  return idx.reduce((s, i) => s + (lm[i] && Number.isFinite(lm[i][3]) ? lm[i][3] : 0), 0) / idx.length;
+}
+/** 사람다운 몸 비례인지: 몸통(어깨–골반)에 견줘 다리·전체 길이가 터무니없지 않은지 */
+export function bodyRatio(lm, aspect = 1) {
+  const P = (i) => [lm[i][0] * aspect, lm[i][1]];
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const torso = d(mid(P(11), P(12)), mid(P(23), P(24)));
+  const leg = (d(P(23), P(25)) + d(P(25), P(27)) + d(P(24), P(26)) + d(P(26), P(28))) / 2;
+  return torso > 1e-6 ? leg / torso : Infinity;
+}
+
 /**
  * 영상 여러 군데에서 본 사람들(obs = [{t, lm, color}])을 '같은 사람끼리' 묶는다. 색이 비슷하고 화면 크기가 비슷하면 같은 사람.
  * 돌려주는 것: [{ color, name, count, size, sample:{t,lm} }] — 많이 나온 순.
@@ -63,6 +78,7 @@ export function groupPeople(obs) {
   const groups = [];
   for (const o of obs) {
     if (!o.color) continue;
+    if (Number.isFinite(o.vis) && o.vis < MIN_PERSON_VIS) continue;    // 배경을 사람으로 잘못 본 뼈대(관절이 흐릿하게 잡힌다)는 버린다
     const size = height(o.lm);
     let best = null, bd = 0.27;
     for (const g of groups) {
@@ -70,14 +86,37 @@ export function groupPeople(obs) {
       const d = colorDist(o.color, g.color) + Math.abs(Math.log(size / g.size)) * 0.04;   // 같은 사람도 멀리·가까이 오간다
       if (d < bd) { bd = d; best = g; }
     }
-    if (!best) { groups.push({ color: o.color.slice(), count: 1, size, sample: o, sizeBest: size, times: new Set([o.t]) }); continue; }
+    const vis = Number.isFinite(o.vis) ? o.vis : 1, ratio = Number.isFinite(o.ratio) ? o.ratio : 1.7;
+    if (!best) { groups.push({ color: o.color.slice(), count: 1, size, vis, ratio, sample: o, sizeBest: size, times: new Set([o.t]) }); continue; }
     best.count++; best.times.add(o.t);
+    best.vis += (vis - best.vis) / best.count; best.ratio += (ratio - best.ratio) / best.count;
     best.color = best.color.map((c, i) => c + (o.color[i] - c) / best.count);
     best.size += (size - best.size) / best.count;
-    if (size > best.sizeBest) { best.sizeBest = size; best.sample = o; }      // 가장 크게 나온 장면을 대표 사진으로
+    const q = (x, sz) => (Number.isFinite(x.vis) ? x.vis : 1) * Math.sqrt(sz);
+    if (q(o, size) > q(best.sample, best.sizeBest)) { best.sizeBest = size; best.sample = o; }   // 또렷하고 크게 나온 장면을 대표 사진으로
   }
   groups.sort((a, b) => b.count * b.size - a.count * a.size);
   return groups.map(({ times, ...g }) => ({ ...g, name: colorName(g.color) }));
+}
+
+/**
+ * 고를 수 있는 사람들과 '한 사람 영상인지'. groups = groupPeople 결과(많이 나온 순), seen = 사람이 보인 화면 수.
+ *  · 살펴본 화면의 1/4 이상(적어도 2번)에 나온 사람만 센다 — 잠깐 지나간 사람은 뺀다.
+ *    카메라가 움직여 아무도 그만큼 나오지 않으면 2번 이상, 그래도 없으면 본 사람 모두를 후보로 둔다.
+ *  · 주인공이 대부분의 화면(60% 이상)에 크게(화면 높이의 45% 이상) 나오고 나머지가 그 절반도 안 되면 한 사람 영상으로 본다 — 뒤 코트·구경하는 사람.
+ *  · 경기 영상처럼 모두 작게 나오거나 누구도 계속 나오지 않으면, 크기와 상관없이 고르게 한다.
+ */
+export function mainPeople(groups, seen) {
+  if (!groups.length) return { people: [], single: true };
+  const need = Math.max(2, Math.ceil(seen * 0.25));
+  let people = groups.filter((g) => g.count >= need);
+  if (!people.length) people = groups.filter((g) => g.count >= 2);
+  if (!people.length) people = groups.slice(0, 4);
+  const main = people[0];
+  const dominant = main.size >= 0.45 && main.count >= 0.6 * seen;
+  const others = people.slice(1).filter((g) => !dominant || g.size >= 0.5 * main.size);
+  people = [main, ...others].slice(0, 6);
+  return { people, single: people.length === 1 };
 }
 
 /**
@@ -102,6 +141,21 @@ export function pickTarget(poses, colors, state, t) {
     state.pos = center(poses[best].lm); state.size = height(poses[best].lm); state.t = t;
     state.color = state.color.map((c, i) => c * 0.97 + colors[best][i] * 0.03);  // 조명이 서서히 바뀌는 것을 따라간다
   }
+  return best;
+}
+
+/**
+ * 한 사람 영상의 따라가기: 옷 색으로 찾되, 색을 못 읽었거나 조명이 달라져 못 찾으면
+ * 방금 있던 자리에서 가장 가까운 사람을, 그것도 없고 화면에 한 명뿐이면 그 사람을 본다.
+ * (처음부터 '가장 큰 사람'을 잡지 않는다 — 앞을 지나가는 사람이 대상이 되는 것을 막는다.)
+ */
+export function pickSingle(poses, colors, state, t) {
+  const j = pickTarget(poses, colors, state, t);
+  if (j >= 0 || !poses.length) return j;
+  let best = -1, bd = 0.22;
+  if (state.pos) poses.forEach((p, i) => { const c = center(p.lm), d = Math.hypot(c[0] - state.pos[0], c[1] - state.pos[1]); if (d < bd) { bd = d; best = i; } });
+  if (best < 0 && poses.length === 1) best = 0;
+  if (best >= 0) { state.pos = center(poses[best].lm); state.size = height(poses[best].lm); state.t = t; }
   return best;
 }
 

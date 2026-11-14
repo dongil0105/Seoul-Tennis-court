@@ -15,7 +15,7 @@
 <link rel="manifest" href="/coach/manifest.webmanifest">
 <link rel="icon" href="/static/coach/icon-192.png">
 <link rel="apple-touch-icon" href="/static/coach/icon-192.png">
-<link rel="stylesheet" href="/static/coach/coach.css?v=4">
+<link rel="stylesheet" href="/static/coach/coach.css?v=5">
 </head>
 <body class="tabs-on">
 <div class="app" id="app">
@@ -30,21 +30,17 @@
   <!-- 처음 화면 -->
   <main class="view" id="v-home">
     <h1>영상 하나로 받는<br>스윙 조언</h1>
-    <p class="lead">선수 자세와 나란히 보고, 한 번에 하나씩 고칩니다.</p>
+    <p class="lead">영상을 올리면 스윙을 찾아 종합해서, 한 번에 하나씩 고칩니다.</p>
     <div class="choices">
       <label class="choice primary">
-        <b>스윙 영상</b><span>서브·포핸드·백핸드 한 번을 찍은 짧은 영상</span>
+        <b>영상 올리기</b><span>한 개든 여러 개든 한 번에. 서브·포핸드·백핸드를 알아서 찾아 종합해서 알려 드려요</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        <input type="file" accept="video/*" id="fileSwing" aria-label="스윙 영상 고르기">
-      </label>
-      <label class="choice">
-        <b>전체 영상</b><span>랠리·경기 영상에서 한 사람을 골라 잘 친 샷과 아쉬운 샷을 찾습니다</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        <input type="file" accept="video/*" id="fileFull" aria-label="전체 영상 고르기">
+        <input type="file" accept="video/*" multiple id="fileAny" aria-label="영상 고르기(여러 개 가능)">
       </label>
     </div>
+    <p class="small muted" style="margin-top:10px">스윙 한 번짜리도, 랠리·경기 전체도 됩니다. 여러 사람이 나오면 누구를 볼지 물어봅니다.</p>
     <div class="row2">
-      <button class="tile" data-go="physics"><b>서브가 들어가는 각도</b><span>타점 높이·속도·회전별 여유</span></button>
+      <button class="tile" data-go="physics"><b>내 키로 보는 타점 높이</b><span>리치와 서브 종류별 높이</span></button>
       <button class="tile" data-go="guide"><b>촬영 방법</b><span>이렇게 찍으면 정확해요</span></button>
     </div>
     <div class="note">
@@ -97,6 +93,6 @@
   <a class="tab" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3" width="15" height="18" rx="1.5"/><path d="M4.5 12h15M8 3v18M16 3v18M8 7.5h8M8 16.5h8"/></svg><span>코트 오픈</span></a>
   <a class="tab on" aria-current="page" href="/coach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="14.6" cy="8.6" rx="4.6" ry="6" transform="rotate(38 14.6 8.6)"/><path d="M10.9 13.3 5 20.5"/><circle cx="5.6" cy="6.4" r="1.7"/></svg><span>스윙 코치</span></a>
 </nav>
-<script type="module" src="/static/coach/js/app.js?v=4"></script>
+<script type="module" src="/static/coach/js/app.js?v=5"></script>
 </body>
 </html>

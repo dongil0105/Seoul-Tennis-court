@@ -25,6 +25,7 @@ def test_coach_page_served():
     assert r.status_code == 200
     assert "스윙 코치" in r.text
     assert 'type="file"' in r.text and 'accept="video/*"' in r.text      # 휴대폰 갤러리에서 영상 고르기
+    assert r.text.count('type="file"') == 1 and ' multiple ' in r.text    # 영상 올리기는 하나, 여러 개를 한 번에 고를 수 있다
     assert "capture=" not in r.text                                       # capture 를 붙이면 갤러리 대신 카메라만 뜬다
     assert r.headers["cache-control"] == "no-cache"
 
