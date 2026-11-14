@@ -8,6 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 
 from app.collectors.link_registry import seed_links
 from app.db import get_session, init_db
@@ -58,4 +59,7 @@ async def static_cache_headers(request, call_next):
     return response
 
 
-app.mount("/static", StaticFiles(directory=Path(__file__).resolve().parent / "static"), name="static")
+_STATIC = Path(__file__).resolve().parent / "static"
+# 스윙 코치 파일은 압축해서 보낸다(자세 인식 엔진 wasm 이 15MB → 약 4MB). 기존 화면이 쓰는 /static 은 그대로 둔다.
+app.mount("/static/coach", GZipMiddleware(StaticFiles(directory=_STATIC / "coach"), minimum_size=2048, compresslevel=5), name="coach-static")
+app.mount("/static", StaticFiles(directory=_STATIC), name="static")

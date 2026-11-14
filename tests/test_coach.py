@@ -78,8 +78,13 @@ def test_main_app_serves_coach_with_cache_headers():
     r = c.get("/static/coach/vendor/tasks-vision/VERSION")
     assert r.status_code == 200 and "immutable" in r.headers["cache-control"]
     assert c.get("/static/coach/js/geom.js").headers["cache-control"] == "no-cache"
+    # 큰 파일은 압축해서 보낸다(받는 쪽이 gzip 을 받겠다고 했을 때)
+    wasm = c.get("/static/coach/vendor/tasks-vision/wasm/vision_wasm_internal.js", headers={"Accept-Encoding": "gzip"})
+    assert wasm.status_code == 200 and wasm.headers.get("content-encoding") == "gzip" and "immutable" in wasm.headers["cache-control"]
     home = c.get("/")
     assert home.status_code == 200 and "코트 오픈" in home.text
+    icon = c.get("/static/icon-192.png")                              # 기존 화면의 정적 파일은 그대로
+    assert icon.status_code == 200 and "content-encoding" not in icon.headers
     assert "cache-control" not in {k.lower() for k in c.get("/static/sw.js").headers} or "immutable" not in c.get("/static/sw.js").headers["cache-control"]
 
 
