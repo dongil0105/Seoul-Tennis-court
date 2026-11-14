@@ -25,9 +25,12 @@ const S = {
 };
 const STROKE = { serve: '서브', forehand: '포핸드', backhand: '백핸드' };
 const strokeName = (m) => (m.sub === 'smash' ? '스매시' : m.sub === 'volley' ? `${STROKE[m.stroke]} 발리` : m.stroke === 'backhand' ? (m.twoHanded ? '투핸드 백핸드' : '원핸드 백핸드') : STROKE[m.stroke]);
+// 국면(보는 순서대로): 포핸드·백핸드 = 준비(스플릿) → 테이크백 → 임팩트 → 피니시, 서브 = 준비 → 토스 → 트로피 → 임팩트 → 피니시,
+// 발리 = 준비(스플릿) → 임팩트 → 피니시. ('무릎 굽힘'은 서브에서 따로 보는 순간이다.)
 const MOMENTS = {
-  serve: [['trophy', '트로피'], ['contact', '임팩트'], ['finish', '피니시'], ['load', '무릎 굽힘'], ['toss', '토스']],
-  ground: [['backswing', '백스윙'], ['contact', '임팩트'], ['finish', '피니시'], ['ready', '준비']],
+  serve: [['start', '준비'], ['toss', '토스'], ['trophy', '트로피'], ['contact', '임팩트'], ['finish', '피니시'], ['load', '무릎 굽힘']],
+  ground: [['ready', '준비(스플릿)'], ['backswing', '테이크백'], ['contact', '임팩트'], ['finish', '피니시']],
+  volley: [['ready', '준비(스플릿)'], ['contact', '임팩트'], ['finish', '피니시']],
 };
 const REF_PHASE = { serve: { trophy: 'trophy', load: 'trophy', contact: 'contact' }, ground: { backswing: 'backswing', contact: 'contact', finish: 'finish' } };
 
@@ -51,7 +54,9 @@ async function wakeOn() { try { if ('wakeLock' in navigator && !wake) wake = awa
 function wakeOff() { try { if (wake) wake.release(); } catch (_) { /* 무시 */ } wake = null; }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && currentView() === 'working') wakeOn(); });
 onLeave((from) => { if (from === 'result') video.pause(); });
-fetch('/static/coach/data/stroke_model.json').then((r) => (r.ok ? r.json() : null)).then((mdl) => { if (mdl && Array.isArray(mdl.W) && mdl.n_feat === mdl.mean.length) S.model = mdl; }).catch(() => {});
+// 학습한 분류기 모델. 분석은 이걸 받은 뒤에 시작한다(받지 못하면 규칙으로만 간다).
+const modelReady = fetch('/static/coach/data/stroke_model.json').then((r) => (r.ok ? r.json() : null))
+  .then((mdl) => { S.model = mdl && Array.isArray(mdl.W) && Array.isArray(mdl.mean) && mdl.n_feat === mdl.mean.length ? mdl : null; }).catch(() => { S.model = null; });
 fetch('/static/coach/data/reference.json').then((r) => (r.ok ? r.json() : null)).then((ref) => {
   S.ref = ref;
   if (ref) $('#refInfo').textContent = `선수 사진 ${ref.used}장의 자세를 기준으로 견줍니다(위키미디어 공용, 자유 이용 허가 사진).`;
@@ -355,6 +360,8 @@ function makeShot(frames, swing, step, vid, extra = {}) {
 }
 
 async function analyzeAll(job, signal) {
+  await Promise.race([modelReady, new Promise((done) => setTimeout(done, 4000))]);     // 분류기 모델을 기다린다(늦으면 4초 뒤 규칙으로)
+  if (job !== S.job) return;
   const vids = S.vids, shots = [], notes = [];
   const total = vids.reduce((s, v) => s + (v.person ? v.t1 - v.t0 : 0), 0) || 1;
   let done = 0;
@@ -439,7 +446,6 @@ async function analyzeLong(v, i, { signal, job, label, onP }) {
     const end = buf[buf.length - 1].t;
     const found = detectSwings(cleanFrames(buf.filter(G.validPose), aspect), { hand: S.profile.hand, sf: 1, backhand: S.profile.backhand });
     for (const c of found) {
-      if (c.suspect) continue;                                    // 테이크백만 한 동작은 샷으로 치지 않는다
       if (!final && c.tc > end - 2) continue;                     // 구간 끝에 걸친 스윙은 다음 구간에서 온전히 본다
       if (!cands.some((x) => Math.abs(x.tc - c.tc) < 0.6)) cands.push({ tc: c.tc, peak: c.peak });
     }
@@ -500,7 +506,7 @@ function renderResult() {
   shot.speed = shotSpeed(shot, { heightCm: S.profile.heightCm, serveType: shot.serveType || S.opt.serveType, cal: loadSpeedCal() });   // '잰 값' 목록에 쓰려고 먼저 계산
   const stype = shot.serveType || S.opt.serveType;
   const family = m.stroke === 'serve' ? 'serve' : 'ground';
-  const moments = MOMENTS[family].filter(([k]) => shot.swing.keys[k] != null);
+  const moments = MOMENTS[m.sub === 'volley' ? 'volley' : family].filter(([k]) => shot.swing.keys[k] != null);
   if (!moments.some(([k]) => k === shot.moment)) shot.moment = 'contact';
   const first = a.items[0], rest = a.items.slice(1);
   const errCm = Math.round(m.posErr * S.profile.heightCm);
@@ -539,7 +545,7 @@ function renderResult() {
     ${m.stroke !== 'serve' ? '<div class="sec"><h2>공 속도 <span class="muted" style="font-size:15px;font-weight:600">예측</span></h2><div id="speedHere"></div></div><div class="sec"><h2>내 타점</h2><div id="physHere"></div></div>' : ''}
     <div class="btns">
       <button class="btn" id="shareShot" ${a.score == null ? 'disabled' : ''}>결과 공유</button>
-      <button class="btn ghost sm" id="saveRef">이 스윙을 내 기준 자세로 저장</button>
+      ${m.sub ? '' : '<button class="btn ghost sm" id="saveRef">이 스윙을 내 기준 자세로 저장</button>'}
       ${S.session ? '' : '<button class="btn ghost sm" id="another">다른 영상 분석</button>'}
       <button class="btn ghost sm" id="diagShot">분석이 틀렸나요? 진단 파일 저장</button>
     </div>`;
@@ -563,7 +569,7 @@ function renderResult() {
     }
     if (k !== 'result') return; shot.result = v; const r = advise(m, ctxFor(shot)); $('#resultNote', el).innerHTML = r.resultNote ? `<div class="callout">${esc(r.resultNote)}</div>` : (v === 'good' ? '<div class="callout info">좋아요. 이 스윙의 느낌을 기억해 두세요.</div>' : ''); });
   $('#shareShot', el).addEventListener('click', () => shareShot());
-  $('#saveRef', el).addEventListener('click', () => saveAsRef());
+  if ($('#saveRef', el)) $('#saveRef', el).addEventListener('click', () => saveAsRef());
   $('#diagShot', el).addEventListener('click', () => diagSheet(S.session ? S.session.shots : [shot]));
   const again = $('#another', el);
   if (again) again.addEventListener('click', () => { show('home', { push: false }); history.replaceState(navState('home'), '', location.pathname); });

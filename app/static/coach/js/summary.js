@@ -19,7 +19,7 @@ export const baseTitle = (t) => String(t || '').replace(/\s+—\s+.*$/, '');
  * 같은 영상에서 서브 임팩트 3초 전부터 1.2초 뒤까지는 같은 사람이 다른 스트로크를 칠 수 없다(슬로모션이면 그만큼 늘려 본다).
  */
 export function dropServePrep(shots) {
-  const serves = shots.filter((s) => s.m.stroke === 'serve');
+  const serves = shots.filter((s) => s.m.stroke === 'serve' && s.m.sub !== 'smash');      // 기준은 서브만(스매시 앞뒤의 발리는 진짜 샷이다)
   if (!serves.length) return shots;
   return shots.filter((s) => !serves.some((v) => {
     if (v === s) return false;

@@ -166,6 +166,11 @@ test('서브 준비 동작이 스트로크로 잡힌 것은 뺀다', () => {
   // 속도가 비슷한 머리 위 스윙이 이어지면(스매시 연습) 둘 다 남는다. 3초보다 떨어져 있어도 남는다
   assert.equal(dropServePrep([ov(7.2, 9.5, 'smash'), ov(9.6, 10.4, 'smash')]).length, 2);
   assert.equal(dropServePrep([ov(2.0, 5.0), ov(9.6, 10.4)]).length, 2);
+  // 스매시는 기준이 아니다: 발리 → 스매시 → 발리가 이어져도 모두 남는다
+  const vol = (tc) => ({ vid: 0, m: { stroke: 'forehand', sub: 'volley' }, swing: { tc, sf: 1, peak: 5 } });
+  assert.equal(dropServePrep([vol(4), ov(5, 8, 'smash'), vol(6)]).length, 3);
+  // 진짜 서브 앞뒤의 스트로크는 여전히 뺀다
+  assert.deepEqual(dropServePrep([vol(4), ov(5, 8), vol(5.8)]).map((s) => s.swing.tc), [5]);
 });
 
 test('방향이 반대인 문제는 한데 합치지 않는다(늦은 타점 / 너무 앞선 타점)', () => {

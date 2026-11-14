@@ -226,6 +226,7 @@ export function advise(m, ctxIn = {}) {
     if (hit && table[`${ctx.result}Default`]) resultNote += ' ' + table[`${ctx.result}Default`];
   }
   if (items.some((it) => /cm/.test(it.title))) notes.push('cm 값은 손목 기준 예측입니다. 영상 간격에서 오는 오차 말고도 자세 인식 오차가 몇 cm 더 있습니다.');
+  if (m.sub) return { score: null, grade: '평가 불가', unratedWhy, items: [], good: [], resultNote: null, notes: [] };   // 포핸드·백핸드·서브의 조언은 발리·스매시에 맞지 않는다
   return { score, grade, unratedWhy, items, good, resultNote, notes };
 }
 

@@ -41,6 +41,13 @@ def lr(C=1.0):
     return make_pipeline(StandardScaler(), LogisticRegression(C=C, max_iter=3000))
 
 
+def export(m, n_feat, extra):
+    sc, clf = m.named_steps["standardscaler"], m.named_steps["logisticregression"]
+    return {"kind": "stroke-logreg", "v": 1, "classes": [str(c) for c in clf.classes_], "n_feat": int(n_feat),
+            "mean": [round(float(v), 5) for v in sc.mean_], "scale": [round(float(v), 5) for v in sc.scale_],
+            "W": [[round(float(v), 4) for v in row] for row in clf.coef_], "b": [round(float(v), 4) for v in clf.intercept_], **extra}
+
+
 def report(name, y, p):
     acc = float(np.mean(y == p))
     g = float(np.mean(np.array([GROUP3[a] for a in y]) == np.array([GROUP3[a] for a in p])))
@@ -53,6 +60,7 @@ def main():
     ap.add_argument("feats")
     ap.add_argument("--out")
     ap.add_argument("--C", type=float, default=0.3)
+    ap.add_argument("--folds-out", help="실제 영상의 사람 단위 5겹마다 모델을 따로 내보낼 폴더(앱의 판단 방식 그대로 재는 데 쓴다: eval_thetis.mjs)")
     a = ap.parse_args()
     rows, X, y, who, src = load(a.feats)
     T, M = src == "thetis", src == "mocap"
@@ -81,11 +89,20 @@ def main():
     print("\n[3] 둘 다로 학습 — 실제 영상의 사람 단위 5겹 검증(모션캡처는 늘 학습에)")
     pred2 = np.empty(T.sum(), dtype=object)
     wM = np.full(M.sum(), 0.25)                       # 모션캡처는 같은 스윙을 네 방향에서 본 것이라 한 줄의 무게를 1/4 로
-    for tr, te in GroupKFold(5).split(XT, yT, wT):
+    fold_of = {}
+    for k, (tr, te) in enumerate(GroupKFold(5).split(XT, yT, wT)):
         Xtr, ytr = np.vstack([XT[tr], X[M]]), np.concatenate([yT[tr], y[M]])
         sw = np.concatenate([np.ones(len(tr)), wM])
-        m = lr(a.C); m.fit(Xtr, ytr, logisticregression__sample_weight=sw)
+        m = lr(a.C); m.fit(Xtr, ytr, standardscaler__sample_weight=sw, logisticregression__sample_weight=sw)
         pred2[te] = m.predict(XT[te])
+        if a.folds_out:                                  # 이 겹의 시험 대상(사람)을 보지 않고 배운 모델
+            import os
+            os.makedirs(a.folds_out, exist_ok=True)
+            json.dump(export(m, X.shape[1], {}), open(os.path.join(a.folds_out, f"fold{k}.json"), "w", encoding="utf-8"), separators=(",", ":"))
+            for w in set(wT[te]):
+                fold_of[str(w)] = k
+    if a.folds_out:
+        json.dump(fold_of, open(os.path.join(a.folds_out, "folds.json"), "w", encoding="utf-8"))
     acc, g = report("로지스틱", yT, pred2)
     classes = sorted(set(y))
     print("  혼동표(행 = 정답, 열 = 부른 종류):", " ".join(classes))
@@ -101,7 +118,7 @@ def main():
     for tr, te in GroupKFold(5).split(XM, yM, wMo):
         Xtr, ytr = np.vstack([XT, XM[tr]]), np.concatenate([yT, yM[tr]])
         sw = np.concatenate([np.ones(T.sum()), np.full(len(tr), 0.25)])
-        m = lr(a.C); m.fit(Xtr, ytr, logisticregression__sample_weight=sw)
+        m = lr(a.C); m.fit(Xtr, ytr, standardscaler__sample_weight=sw, logisticregression__sample_weight=sw)
         pred3[te] = m.predict(XM[te])
     report("로지스틱", yM, pred3)
     print(f"  지금 규칙(모션캡처, 3묶음): {np.mean(rule[M] == g3[M]):.1%}")
@@ -112,13 +129,10 @@ def main():
     if a.out:
         sw = np.concatenate([np.ones(T.sum()), wM])
         Xall, yall = np.vstack([XT, X[M]]), np.concatenate([yT, y[M]])
-        m = lr(a.C); m.fit(Xall, yall, logisticregression__sample_weight=sw)
-        sc, clf = m.named_steps["standardscaler"], m.named_steps["logisticregression"]
-        model = {"kind": "stroke-logreg", "v": 1, "classes": [str(c) for c in clf.classes_], "n_feat": int(X.shape[1]),
-                 "mean": [round(float(v), 5) for v in sc.mean_], "scale": [round(float(v), 5) for v in sc.scale_],
-                 "W": [[round(float(v), 4) for v in row] for row in clf.coef_], "b": [round(float(v), 4) for v in clf.intercept_],
-                 "trained": {"thetis": int(T.sum()), "mocap": int(M.sum()), "people": len(set(who)), "cv_thetis_6class": round(acc, 3), "cv_thetis_3group": round(g, 3)},
-                 "source": "THETIS (Gourgari et al. 2013) 영상에서 뽑은 자세 + Tennis-MoCap (Pulgarin-Giraldo et al. 2017, CC BY-SA 3.0). 원본 자료는 싣지 않는다."}
+        m = lr(a.C); m.fit(Xall, yall, standardscaler__sample_weight=sw, logisticregression__sample_weight=sw)
+        model = export(m, X.shape[1], {
+            "trained": {"thetis": int(T.sum()), "mocap": int(M.sum()), "people": len(set(who)), "cv_thetis_6class": round(acc, 3), "cv_thetis_3group": round(g, 3)},
+            "source": "THETIS (Gourgari et al. 2013) 영상에서 뽑은 자세 + Tennis-MoCap (Pulgarin-Giraldo et al. 2017, CC BY-SA 3.0). 원본 자료는 싣지 않는다."})
         json.dump(model, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
         print(f"\n모델 저장: {a.out} ({len(json.dumps(model)) // 1024}KB)")
 

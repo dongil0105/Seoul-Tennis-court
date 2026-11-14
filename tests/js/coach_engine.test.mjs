@@ -468,3 +468,50 @@ test('학습한 분류기: 모델 파일이 엔진과 맞고, 확률을 내며, 
   const fl = swingFeatures(mirror.map((f, i) => ({ t: fr[i].t, ...f })), fr[sw0.ip].t, 'L', sw0.h);
   assert.ok(feat.every((x, i) => Math.abs(x - fl[i]) < 1e-6), '왼손잡이 특징이 오른손잡이와 같다');
 });
+
+// 원하는 확률을 내는 가짜 분류기(가중치 0, 절편 = 로그 확률). 종류 순서: 백핸드·백핸드 발리·포핸드·포핸드 발리·서브·스매시
+function fakeModel(p) {
+  const classes = ['backhand', 'bvolley', 'forehand', 'fvolley', 'serve', 'smash'];
+  const n = 107;
+  return { classes, n_feat: n, mean: new Array(n).fill(0), scale: new Array(n).fill(1), W: classes.map(() => new Array(n).fill(0)), b: classes.map((c) => Math.log(Math.max(1e-9, p[c] || 0))) };
+}
+
+test('분류기와 규칙이 다를 때: 분류기가 확실하면 따르고, 흐리면 규칙을 따르되 불확실로 남긴다', () => {
+  const fr = forehand();                                           // 규칙으로는 포핸드
+  assert.equal(mainSwing(fr, { hand: 'R' }).stroke, 'forehand');
+  // 분류기가 백핸드라고 확신(0.9) → 백핸드
+  const over = mainSwing(fr, { hand: 'R', model: fakeModel({ backhand: 0.9, forehand: 0.1 }) });
+  assert.equal(over.stroke, 'backhand'); assert.equal(over.by, 'model'); assert.equal(over.sub, null);
+  // 분류기가 흐리다(가장 높은 묶음 0.50 < 0.55) → 규칙(포핸드)을 따르고, 세부 종류를 붙이지 않고, 불확실로 남긴다
+  const weak = mainSwing(fr, { hand: 'R', model: fakeModel({ backhand: 0.5, serve: 0.45, fvolley: 0.04, forehand: 0.01 }) });
+  assert.equal(weak.stroke, 'forehand'); assert.notEqual(weak.by, 'model');
+  assert.equal(weak.sub, null, '확신이 낮으면 발리라고 하지 않는다');
+  assert.equal(weak.uncertain, true);
+  // 세부 종류: 고른 묶음이 확실하고 그 안에서 발리·스매시가 뚜렷할 때만
+  assert.equal(mainSwing(fr, { hand: 'R', model: fakeModel({ fvolley: 0.8, forehand: 0.15, backhand: 0.05 }) }).sub, 'volley');
+  assert.equal(mainSwing(fr, { hand: 'R', model: fakeModel({ fvolley: 0.5, forehand: 0.45, backhand: 0.05 }) }).sub, null);
+  const sm = mainSwing(serve(), { hand: 'R', model: fakeModel({ smash: 0.8, serve: 0.15, forehand: 0.05 }) });
+  assert.equal(sm.stroke, 'serve'); assert.equal(sm.sub, 'smash');
+  // 양손 백핸드라고 알려 줬고 두 손이 붙어 있었으면, 분류기가 포핸드라고 해도 백핸드(발리라고 하지도 않는다)
+  const glued = fr.map((f) => { const w = f.w.map((p) => p.slice()), lm = f.lm.map((p) => p.slice()); for (const [a, b] of [[15, 16], [17, 18], [19, 20], [21, 22]]) { w[a] = [w[b][0] + 0.06, w[b][1], w[b][2], 1]; lm[a] = [lm[b][0] + 0.012, lm[b][1], lm[b][2], 1]; } return { t: f.t, w, lm }; });
+  const g = mainSwing(glued, { hand: 'R', backhand: '2h', model: fakeModel({ forehand: 0.7, bvolley: 0.3 }) });
+  assert.equal(g.stroke, 'backhand'); assert.equal(g.by, 'hands'); assert.equal(g.sub, null);
+  // 사용자가 바로잡아도 엔진이 처음 부른 종류(auto·autoSub)는 남는다(진단 파일의 정답 비교용)
+  const first = mainSwing(fr, { hand: 'R', model: fakeModel({ fvolley: 0.8, forehand: 0.15, backhand: 0.05 }) });
+  const fixed = withStroke(fr, first, 'backhand', null);
+  assert.deepEqual([fixed.stroke, fixed.sub, fixed.auto, fixed.autoSub], ['backhand', null, 'forehand', 'volley']);
+  const moved = withContact(fr, fixed, fixed.tc + 0.02);
+  assert.deepEqual([moved.stroke, moved.sub, moved.auto, moved.autoSub], ['backhand', null, 'forehand', 'volley']);
+});
+
+test('테이크백만 한 동작은 분류기가 백핸드라고 해도 의심으로 둔다', () => {
+  const fr = [];
+  for (let i = 0; i < 150; i++) {
+    const t = i / 60, back = ease((t - 1.0) / 0.2);
+    fr.push({ t, ...figure({ wrist: [0.25 - 0.8 * back, -0.15 - 0.1 * back, -0.25 + 0.1 * back], yaw: 60 - 70 * back, knee: 20 * back }) });
+  }
+  for (const model of [null, fakeModel({ backhand: 0.9, forehand: 0.1 }), fakeModel({ bvolley: 0.9, forehand: 0.1 })]) {
+    const sw = mainSwing(fr, { hand: 'R', model });
+    if (sw) assert.equal(sw.suspect, true, `분류기 ${model ? '있음' : '없음'}`);
+  }
+});

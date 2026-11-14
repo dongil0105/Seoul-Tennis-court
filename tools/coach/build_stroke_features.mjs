@@ -45,10 +45,10 @@ for (const c of clips) {
   const hand = handOf(c.who), h = bodyScale(fr);
   if (!Number.isFinite(h)) continue;
   const all = detectSwings(fr, { hand, backhand: c.cls === 'backhand2hands' ? '2h' : '1h' });
-  let tp, det = true, rule = null;
-  if (all.length) { const real = all.filter((s) => !s.suspect); const s = (real.length ? real : all).reduce((a, b) => (b.peak > a.peak ? b : a)); tp = fr[s.ip].t; rule = s.stroke; }
+  let tp, det = true, rule = null, sf = 1;
+  if (all.length) { const real = all.filter((s) => !s.suspect); const s = (real.length ? real : all).reduce((a, b) => (b.peak > a.peak ? b : a)); tp = fr[s.ip].t; rule = s.stroke; sf = s.sf; }
   else { const v = wristSpeed(fr, hand); let bi = 0; for (let i = 1; i < v.length; i++) if (v[i] > v[bi]) bi = i; tp = fr[bi].t; det = false; nodet++; }
-  put({ src: 'thetis', who: 'T' + c.who, label: LABEL[c.cls], cls: c.cls, det, rule, x: r4(swingFeatures(fr, tp, hand, h)) });
+  put({ src: 'thetis', who: 'T' + c.who, label: LABEL[c.cls], cls: c.cls, det, rule, x: r4(swingFeatures(fr, tp, hand, h, sf)) });      // 앱과 같은 슬로모션 배수로
   n1++;
 }
 console.error(`THETIS ${n1}개(스윙을 못 찾아 가장 빠른 순간을 쓴 것 ${nodet}개)`);
@@ -85,9 +85,11 @@ for (const [f, hp, , , k] of rows) {
     const h = bodyScale(clean);
     const close = clean.filter((x) => G.dist(x.w[15], x.w[16]) < 0.13 * h).length / clean.length;
     const label = kind === 'bh' ? (close > 0.35 ? 'bh2' : 'bh1') : kind;
-    const sw = detectSwings(clean, { hand, backhand: label === 'bh2' ? '2h' : '1h' });       // 스윙 시각은 깨끗한 자료에서 잡는다
-    const noisy = shake(clean);
-    for (const s of sw) { put({ src: 'mocap', who: 'M' + who(f), label, cls: kind, det: true, rule: s.stroke, yaw, hp: Number(hp), x: r4(swingFeatures(noisy, clean[s.ip].t, hand, h)) }); n2++; }
+    // 앱과 같은 길로: 흔들린 자료 → 다듬기 → 스윙 찾기 → 특징(시각·키·슬로모션 배수 모두 흔들린 자료에서 잡은 것)
+    const noisy = cleanFrames(shake(clean), 16 / 9);
+    const hn = bodyScale(noisy);
+    const sw = detectSwings(noisy, { hand, backhand: label === 'bh2' ? '2h' : '1h' });
+    for (const s of sw) { put({ src: 'mocap', who: 'M' + who(f), label, cls: kind, det: true, rule: s.stroke, yaw, hp: Number(hp), x: r4(swingFeatures(noisy, noisy[s.ip].t, hand, hn, s.sf)) }); n2++; }
   }
 }
 console.error(`모션캡처 ${n2}개(카메라 4방향)`);

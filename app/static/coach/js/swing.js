@@ -112,7 +112,7 @@ export function detectSwings(frames, opts = {}) {
   // 서브 바로 앞(1.4초 안)에 잡힌 다른 스윙은 서브의 준비 동작(팔을 뒤로 돌려 올리는 것)이다 → 뺀다.
   // 준비 동작(토스·테이크백)이 머리 위 동작(서브·스매시)으로 잡히기도 한다: 서브 3초 안쪽 앞에 있고 손목 속도가 그 서브의 0.8배에 못 미치면 뺀다
   // (스매시 연습처럼 진짜 머리 위 스윙이 이어질 때는 속도가 비슷해서 남는다).
-  const prepOf = (a, b) => b !== a && b.stroke === 'serve' && b.tc > a.tc && (a.stroke !== 'serve' ? b.tc - a.tc < 1.4 * sf : b.tc - a.tc < 3 * sf && a.peak < 0.8 * b.peak);
+  const prepOf = (a, b) => b !== a && b.stroke === 'serve' && b.sub !== 'smash' && b.tc > a.tc && (a.stroke !== 'serve' ? b.tc - a.tc < 1.4 * sf : b.tc - a.tc < 3 * sf && a.peak < 0.8 * b.peak);
   return out.filter((a) => !out.some((b) => prepOf(a, b)));
 }
 
@@ -159,23 +159,27 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   if (auto !== 'serve' && glued) { auto = 'backhand'; by = 'hands'; }
   // 학습한 분류기: 실제 영상(THETIS)과 모션캡처(Tennis-MoCap)의 스윙으로 배운 것. 포핸드쪽/백핸드쪽/머리 위를 가르는 정확도가
   // 규칙보다 높다(실제 영상 62 → 86%, 모션캡처 87 → 95%, 사람 단위 검증). 확신이 낮으면(0.55 미만) 규칙을 따른다.
-  let sub = null, ml = null;
+  let sub = null, ml = null, unsure = false;
   if (model && !stroke) {
     const P = predictStroke(model, swingFeatures(frames, tp, hand, h, sf)).prob;
     const pf = P.forehand + P.fvolley, pb = P.backhand + P.bvolley, po = P.serve + P.smash, top = Math.max(pf, pb, po);
+    const modelKind = po === top ? 'serve' : pf === top ? 'forehand' : 'backhand';
     ml = { pf, pb, po, volley: P.fvolley + P.bvolley, smash: P.smash };
     if (glued && po < 0.8) { auto = 'backhand'; by = 'hands'; }
-    else if (top >= 0.55) { auto = po === top ? 'serve' : pf === top ? 'forehand' : 'backhand'; by = 'model'; }
-    // 세부 종류: 같은 묶음 안에서 발리·스매시일 가능성이 뚜렷이 높을 때만(틀리면 사용자가 바로잡는다)
-    if (auto === 'serve' && P.smash >= 0.7 * po) sub = 'smash';
-    else if (auto === 'forehand' && P.fvolley >= 0.7 * pf) sub = 'volley';
-    else if (auto === 'backhand' && !glued && P.bvolley >= 0.7 * pb) sub = 'volley';
+    else if (top >= 0.55) { auto = modelKind; by = 'model'; }
+    else if (modelKind !== auto) unsure = true;                // 분류기도 흐리고 규칙과도 엇갈린다
+    // 세부 종류: 분류기가 고른 묶음이 확실하고(0.55 이상) 그 안에서 발리·스매시 쪽이 뚜렷이 높을 때만(틀리면 사용자가 바로잡는다)
+    if (by === 'model' || (by === 'hands' && pb >= 0.55)) {
+      if (auto === 'serve' && P.smash >= 0.7 * po) sub = 'smash';
+      else if (auto === 'forehand' && P.fvolley >= 0.7 * pf) sub = 'volley';
+      else if (auto === 'backhand' && !glued && P.bvolley >= 0.7 * pb) sub = 'volley';
+    }
   }
   if (stroke) sub = subFixed || null;                          // 사용자가 종류를 바로잡았으면 세부 종류도 그대로 따른다
   const kind = stroke || auto;
   // 양손 여부: 알려 줬으면 그대로(백핸드일 때만), 아니면 임팩트 전 0.25초 동안 두 손이 계속 붙어 있었나로 추측
   const twoHanded = bh ? kind === 'backhand' && bh === '2h' : kind !== 'serve' && together >= 0.6;
-  const uncertain = !stroke && auto !== 'serve' && by === 'side' && Math.abs(side) < 0.02;      // 휘두른 방향도 흐리고 손 위치도 가운데일 때만
+  const uncertain = !stroke && (unsure || (auto !== 'serve' && by === 'side' && Math.abs(side) < 0.02));      // 휘두른 방향도 흐리고 손 위치도 가운데일 때, 또는 분류기와 규칙이 엇갈릴 때
 
   // ② 임팩트 시각(예측): 서브는 손목이 골반 기준 가장 높은 순간, 스트로크는 손목이 가장 빠른 순간 바로 뒤
   const wrUp = (i) => -W(i, S.hit.wr)[1];                     // 골반 중심 기준 손목 높이(머리를 숙여도 안 변한다)
@@ -261,8 +265,8 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
     suspect = !(fwdChest >= 0.05) && !(acrossBody >= 0.08);
     // 포핸드 테이크백(손이 앞에서 치는 쪽 뒤로 간다)은 몸 기준으로는 백핸드 스윙과 같은 방향이다. 다른 점은 얼굴이 향한 쪽:
     // 백핸드는 보는 쪽으로 손이 나가고(모션캡처 실측 가운데값 +0.03~+0.09, 하위 5% -0.13~-0.31), 테이크백은 보는 쪽 반대로 간다.
-    // 그래서 '휘두른 방향'만으로 백핸드라고 본 것 중 손이 보는 쪽 반대로 크게 간 것은 의심한다(두 손이 붙어 있던 양손 백핸드는 빼고).
-    if (!stroke && kind === 'backhand' && by === 'sweep' && gazeGo < -0.35) suspect = true;
+    // 그래서 백핸드라고 본 것 중(규칙이든 분류기든) 손이 보는 쪽 반대로 크게 간 것은 의심한다(두 손이 붙어 있던 양손 백핸드는 빼고).
+    if (!stroke && kind === 'backhand' && by !== 'hands' && gazeGo < -0.35) suspect = true;
   }
 
   // ⑥ 팔다리가 얼마나 잘 보였나(정확도가 아니라 '보인 정도')
