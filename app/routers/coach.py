@@ -2,13 +2,25 @@
 
 분석은 모두 휴대폰 브라우저 안에서 돈다(자세 인식 wasm + 순수 JS). 서버는 화면 파일만 내려 준다.
 영상은 서버로 오지 않는다. 화면 파일은 app/static/coach/ 아래에 있다.
+
+공개 범위: settings.coach_private 가 true 면 열쇠를 넣은 기기에서만 열린다.
+  · 열쇠를 넣는 법: /coach?k=<열쇠> 주소를 한 번 열거나, 잠금 화면에서 열쇠 코드를 넣는다 → 그 기기에 쿠키로 기억한다.
+  · 열쇠가 없는 기기: /coach 는 '준비 중' 화면, /static/coach 의 파일은 404, 코트 오픈 화면의 스윙 코치 탭은 보이지 않는다.
+  · 열쇠 자체는 저장소에 없다(SHA-256 만 설정에 있다).
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
+import os
 from pathlib import Path
+from urllib.parse import parse_qs
 
-from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.staticfiles import StaticFiles
+
+from app.config import settings
 
 router = APIRouter()
 
@@ -31,10 +43,95 @@ CSP = "; ".join([
     "frame-ancestors 'none'",
 ])
 
+# ── 공개 범위(열쇠) ─────────────────────────────────────────────
+COOKIE = "coach_key"
+COOKIE_AGE = 400 * 24 * 3600                       # 브라우저가 허용하는 가장 긴 기간(약 13개월). 스윙 코치를 열 때마다 다시 늘린다.
+OPEN_STATIC = {"icon-192.png", "icon-512.png"}     # 잠겨 있어도 내주는 파일(앱 아이콘뿐)
+
+
+def normalize_key(key: object) -> str:
+    """열쇠를 견주기 좋게 다듬는다: 영문·숫자만, 대문자로(줄표·빈칸은 있어도 없어도 된다)."""
+    return "".join(ch for ch in str(key or "").upper() if ch.isascii() and ch.isalnum())[:64]
+
+
+def key_ok(key: object) -> bool:
+    k = normalize_key(key)
+    want = (settings.coach_key_sha256 or "").strip().lower()
+    if not k or len(want) != 64:                   # 해시가 잘못 설정돼 있으면 아무도 못 연다(열리는 쪽으로 틀리지 않는다)
+        return False
+    return hmac.compare_digest(hashlib.sha256(k.encode()).hexdigest(), want)
+
+
+def allowed(request: Request) -> bool:
+    """이 요청을 보낸 기기가 스윙 코치를 볼 수 있는가."""
+    if not settings.coach_private:
+        return True
+    return key_ok(request.cookies.get(COOKIE))
+
+
+def _remember(response: Response, request: Request, key: object) -> None:
+    """이 기기에 열쇠를 기억시킨다(자바스크립트가 읽지 못하는 쿠키, https 에서만 보낸다)."""
+    proto = request.headers.get("x-forwarded-proto", request.url.scheme).split(",")[0].strip()
+    response.set_cookie(COOKIE, normalize_key(key), max_age=COOKIE_AGE, path="/", httponly=True,
+                        secure=proto == "https", samesite="lax")
+
+
+_LOCK_HEADERS = {"Cache-Control": "no-store", "Content-Security-Policy": CSP, "Referrer-Policy": "no-referrer",
+                 "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow"}
+
+
+def _lock_page(wrong: bool = False) -> HTMLResponse:
+    """열쇠가 없는 기기에 보여 주는 화면. 스윙 코치의 내용은 아무것도 담지 않는다."""
+    note = '<p class="err" role="alert">코드가 맞지 않아요. 다시 확인해 주세요.</p>' if wrong else ""
+    html = f"""<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#0B1210">
+<title>스윙 코치 — 준비 중</title>
+<style>
+*{{box-sizing:border-box}}
+body{{margin:0;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:#0B1210;color:#F3F6F4;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",sans-serif}}
+main{{width:100%;max-width:360px}}
+h1{{margin:0 0 8px;font-size:24px;line-height:1.3;letter-spacing:-.02em}}
+p{{margin:0;color:#B6C2BC}}
+a.back{{display:flex;align-items:center;justify-content:center;height:52px;margin-top:28px;border-radius:14px;
+  background:#D4F250;color:#0B1210;font-weight:700;text-decoration:none}}
+details{{margin-top:20px;border-top:1px solid rgba(255,255,255,.09);padding-top:16px}}
+summary{{color:#84918B;font-size:14px;cursor:pointer}}
+form{{display:flex;gap:8px;margin-top:12px}}
+input{{flex:1;min-width:0;height:48px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.16);
+  background:#121B18;color:#F3F6F4;font:inherit;letter-spacing:.04em}}
+button{{height:48px;padding:0 18px;border:0;border-radius:12px;background:#18231F;color:#F3F6F4;font:inherit;font-weight:600}}
+.err{{margin-top:12px;color:#FF9A8A;font-size:14px}}
+</style></head>
+<body><main>
+<h1>스윙 코치는 준비 중이에요</h1>
+<p>아직 다듬는 중이라 공개하지 않았어요. 완성되면 여기에서 열립니다.</p>
+<a class="back" href="/">코트 오픈으로 가기</a>
+<details{' open' if wrong else ''}><summary>열쇠 코드가 있어요</summary>
+<form method="post" action="/coach/unlock">
+<input name="key" type="password" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="열쇠 코드" placeholder="열쇠 코드" required>
+<button type="submit">열기</button></form>{note}</details>
+</main></body></html>"""
+    return HTMLResponse(html, status_code=403, headers=_LOCK_HEADERS)
+
+
+def _unlocked(request: Request, key: object) -> RedirectResponse:
+    """열쇠가 맞았다: 이 기기에 기억시키고 /coach 로 보낸다(주소 줄에 열쇠가 남지 않게)."""
+    res = RedirectResponse("/coach", status_code=303, headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"})
+    _remember(res, request, key)
+    return res
+
 
 @router.get("/coach", response_class=HTMLResponse)
 @router.get("/coach/", response_class=HTMLResponse, include_in_schema=False)
-def coach() -> HTMLResponse:
+def coach(request: Request, k: str | None = None) -> Response:
+    if settings.coach_private:
+        if k is not None:                                   # /coach?k=<열쇠> — 내 기기에서 한 번 여는 주소
+            return _unlocked(request, k) if key_ok(k) else _lock_page(wrong=True)
+        if not allowed(request):
+            return _lock_page()
     try:
         html = (_DIR / "index.html").read_text(encoding="utf-8")
     except OSError:
@@ -44,8 +141,23 @@ def coach() -> HTMLResponse:
             status_code=503,
         )
     # 화면 파일은 자주 바뀌니 매번 확인하게 한다(큰 파일은 /static 에서 따로 캐시)
-    return HTMLResponse(html, headers={"Cache-Control": "no-cache", "Content-Security-Policy": CSP,
-                                       "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff"})
+    res = HTMLResponse(html, headers={"Cache-Control": "no-cache", "Content-Security-Policy": CSP,
+                                      "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff"})
+    if settings.coach_private:
+        res.headers["Cache-Control"] = "private, no-cache"
+        res.headers["X-Robots-Tag"] = "noindex, nofollow"
+        _remember(res, request, request.cookies.get(COOKIE))   # 열 때마다 기억하는 기간을 다시 늘린다
+    return res
+
+
+@router.post("/coach/unlock", include_in_schema=False)
+async def coach_unlock(request: Request) -> Response:
+    """잠금 화면에서 열쇠 코드를 넣었을 때."""
+    if not settings.coach_private:
+        return RedirectResponse("/coach", status_code=303)
+    body = (await request.body())[:2048].decode("utf-8", "replace")
+    key = (parse_qs(body).get("key") or [""])[0]
+    return _unlocked(request, key) if key_ok(key) else _lock_page(wrong=True)
 
 
 @router.get("/coach/manifest.webmanifest", include_in_schema=False)
@@ -71,6 +183,31 @@ def coach_manifest() -> JSONResponse:
              "icons": [{"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png"}]},
         ],
     }, media_type="application/manifest+json")
+
+
+# ── 정적 파일 ───────────────────────────────────────────────────
+class CoachStatic(StaticFiles):
+    """스윙 코치 파일(/static/coach). 비공개일 때는 열쇠가 있는 기기에만 내준다(앱 아이콘은 빼고)."""
+
+    async def get_response(self, path: str, scope) -> Response:
+        if settings.coach_private and not allowed(Request(scope)):
+            full, _ = self.lookup_path(path)               # 주소를 어떻게 썼든 '실제로 내줄 파일'을 보고 판단한다
+            rel = os.path.relpath(full, os.path.realpath(_DIR)).replace(os.sep, "/") if full else ""
+            if rel not in OPEN_STATIC:
+                raise HTTPException(status_code=404)
+        return await super().get_response(path, scope)
+
+
+class SiteStatic(StaticFiles):
+    """기존 /static. 스윙 코치 폴더는 여기로 내주지 않는다(/static//coach/… 처럼 주소를 비틀어 잠금을 돌아가지 못하게)."""
+
+    def lookup_path(self, path: str):
+        full, st = super().lookup_path(path)
+        if full:
+            coach_dir = os.path.realpath(_DIR)
+            if os.path.commonpath([os.path.realpath(full), coach_dir]) == coach_dir:
+                return "", None
+        return full, st
 
 
 def cache_header_for(path: str) -> str | None:

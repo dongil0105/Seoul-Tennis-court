@@ -1,23 +1,66 @@
-"""스윙 코치(/coach) 화면 경로·파일 구성 테스트. 서버는 화면 파일만 내려 준다(영상은 서버로 오지 않는다)."""
+"""스윙 코치(/coach) 화면 경로·파일 구성·공개 범위 테스트. 서버는 화면 파일만 내려 준다(영상은 서버로 오지 않는다)."""
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import json
 from pathlib import Path
 
+import pytest
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 
+from app.config import Settings, settings
 from app.routers import coach
 
 STATIC = Path(coach.__file__).resolve().parent.parent / "static"
 
+KEY = "TEST2-KEY34-ABCDE-FGH56"          # 테스트용 열쇠(실제 열쇠가 아니다)
+KEY_HASH = hashlib.sha256(coach.normalize_key(KEY).encode()).hexdigest()
 
-def _client() -> TestClient:
+
+@pytest.fixture(autouse=True)
+def _private_with_test_key(monkeypatch):
+    """모든 테스트는 '비공개 + 테스트용 열쇠'에서 시작한다. 공개 상태를 보는 테스트만 따로 바꾼다."""
+    monkeypatch.setattr(settings, "coach_private", True)
+    monkeypatch.setattr(settings, "coach_key_sha256", KEY_HASH)
+
+
+def _app() -> FastAPI:
     app = FastAPI()
     app.include_router(coach.router)
-    app.mount("/static", StaticFiles(directory=STATIC), name="static")
-    return TestClient(app)
+    app.mount("/static/coach", coach.CoachStatic(directory=STATIC / "coach"), name="coach-static")
+    app.mount("/static", coach.SiteStatic(directory=STATIC), name="static")
+    return app
+
+
+def _client(unlocked: bool = True) -> TestClient:
+    """unlocked=True 면 열쇠를 넣은 기기(내 기기), False 면 다른 사람의 기기."""
+    c = TestClient(_app())
+    if unlocked:
+        c.cookies.set(coach.COOKIE, coach.normalize_key(KEY))
+    return c
+
+
+def _raw_status(app, path: str, cookie: str | None = None) -> int:
+    """주소를 다듬지 않고 그대로 보낸다(테스트 클라이언트가 ./ 나 ../ 를 정리해 버리지 않게)."""
+    headers = [(b"host", b"testserver")]
+    if cookie:
+        headers.append((b"cookie", f"{coach.COOKIE}={cookie}".encode()))
+    scope = {"type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1", "method": "GET", "scheme": "http",
+             "path": path, "raw_path": path.encode(), "query_string": b"", "root_path": "", "headers": headers,
+             "server": ("testserver", 80), "client": ("testclient", 50000)}
+    status: list[int] = []
+
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(message):
+        if message["type"] == "http.response.start":
+            status.append(message["status"])
+
+    asyncio.run(app(scope, receive, send))
+    return status[0]
 
 
 def test_coach_page_served():
@@ -27,7 +70,8 @@ def test_coach_page_served():
     assert 'type="file"' in r.text and 'accept="video/*"' in r.text      # 휴대폰 갤러리에서 영상 고르기
     assert r.text.count('type="file"') == 1 and ' multiple ' in r.text    # 영상 올리기는 하나, 여러 개를 한 번에 고를 수 있다
     assert "capture=" not in r.text                                       # capture 를 붙이면 갤러리 대신 카메라만 뜬다
-    assert r.headers["cache-control"] == "no-cache"
+    assert r.headers["cache-control"] == "private, no-cache"              # 비공개: 중간에서 보관하지 않는다
+    assert "noindex" in r.headers["x-robots-tag"]
 
 
 def test_manifest_scope():
@@ -77,6 +121,7 @@ def test_main_app_serves_coach_with_cache_headers():
     from app.main import app as main_app
 
     c = TestClient(main_app)          # lifespan(스케줄러·외부 호출)은 돌리지 않는다
+    c.cookies.set(coach.COOKIE, coach.normalize_key(KEY))          # 내 기기
     assert c.get("/coach").status_code == 200
     r = c.get("/static/coach/vendor/tasks-vision/VERSION")
     assert r.status_code == 200 and "immutable" in r.headers["cache-control"]
@@ -115,25 +160,28 @@ def _tab_links(html: str) -> dict[str, bool]:
     return {m.group(2): 'aria-current="page"' in m.group(1) for m in re.finditer(r'<a class="tab([^>]*?) href="([^"]+)"', nav.group(1))}
 
 
-def test_tabs_link_both_screens():
-    """코트 오픈과 스윙 코치가 아래 탭으로 서로 이어진다(한 앱처럼)."""
+def _site() -> FastAPI:
+    """코트 오픈 + 스윙 코치 + 설치 파일(manifest)"""
     from app.routers import dashboard, push
 
     app = FastAPI()
     app.include_router(dashboard.router)
     app.include_router(coach.router)
     app.include_router(push.router)
-    c = TestClient(app)
+    return app
+
+
+def test_tabs_link_both_screens():
+    """내 기기에서는 코트 오픈과 스윙 코치가 아래 탭으로 서로 이어진다(한 앱처럼)."""
+    c = TestClient(_site())
+    c.cookies.set(coach.COOKIE, coach.normalize_key(KEY))
     court = _tab_links(c.get("/").text)
     swing = _tab_links(c.get("/coach").text)
     assert court == {"/": True, "/coach": False}           # 코트 오픈 화면: 코트 오픈 탭이 켜져 있다
     assert swing == {"/": False, "/coach": True}           # 스윙 코치 화면: 스윙 코치 탭이 켜져 있다
     m = c.get("/manifest.webmanifest").json()
     assert m["scope"] == "/" and m["start_url"] == "/?source=pwa"          # 이미 설치한 앱이 그대로 이어지게 바꾸지 않는다
-    assert [s["url"] for s in m["shortcuts"]] == ["/coach"]
-    for s in m["shortcuts"]:
-        for icon in s["icons"]:
-            assert (STATIC / icon["src"].removeprefix("/static/")).is_file()
+    assert m["shortcuts"] == []                            # 비공개인 동안에는 스윙 코치 바로가기를 넣지 않는다(이 파일은 모두에게 같다)
 
 
 def test_served_files_are_committed():
@@ -151,3 +199,125 @@ def test_served_files_are_committed():
     assert not missing, f"저장소에 없는 파일: {missing}"
     ignored = subprocess.run(["git", "check-ignore", "app/static/coach/data/reference.json"], cwd=root, capture_output=True, text=True)
     assert ignored.returncode != 0, "기준 데이터가 .gitignore 에 걸린다"
+
+
+# ── 공개 범위: 지금은 열쇠를 넣은 기기(내 컴퓨터·휴대폰)에서만 열린다 ─────────────────
+def test_private_is_the_default():
+    """완성하기 전까지는 비공개가 기본이다. 열쇠 자체는 저장소에 없고 해시만 있다."""
+    assert Settings.model_fields["coach_private"].default is True
+    h = Settings.model_fields["coach_key_sha256"].default
+    assert len(h) == 64 and all(ch in "0123456789abcdef" for ch in h)
+
+
+def test_locked_page_shows_nothing_of_the_app():
+    r = _client(unlocked=False).get("/coach")
+    assert r.status_code == 403
+    assert "준비 중" in r.text
+    for leak in ('type="file"', "/static/coach/js/app.js", "coach.css", "영상", "분석"):
+        assert leak not in r.text, leak
+    assert r.headers["cache-control"] == "no-store" and "noindex" in r.headers["x-robots-tag"]
+    assert "set-cookie" not in r.headers
+    assert _client(unlocked=False).get("/coach/").status_code == 403
+
+
+def test_locked_static_files_are_not_served():
+    """열쇠가 없는 기기에는 스윙 코치 파일을 내주지 않는다. 주소를 비틀어도 마찬가지다."""
+    from app.main import app as main_app
+
+    c = TestClient(main_app)
+    for path in ("/static/coach/index.html", "/static/coach/js/app.js", "/static/coach/js/speed.js", "/static/coach/coach.css",
+                 "/static/coach/data/reference.json", "/static/coach/vendor/tasks-vision/VERSION", "/static/coach/"):
+        assert c.get(path).status_code == 404, path
+    twisted = ("/static//coach/js/app.js", "/static/./coach/js/app.js", "/static/x/../coach/js/app.js", "/static/coach/../coach/js/app.js",
+               "/static/coach/icon-192.png/../js/app.js", "/static/coach//js/app.js", "/static/../static/coach/js/app.js",
+               "/static/coach/js/../../coach/index.html", "/static//coach/index.html")
+    for path in twisted:
+        assert _raw_status(main_app, path) != 200, path
+        assert _raw_status(_app(), path) != 200, path
+    # 앱 아이콘과 설치 파일은 내준다(스윙 코치의 내용이 아니다)
+    assert c.get("/static/coach/icon-192.png").status_code == 200
+    assert c.get("/static/coach/icon-512.png").status_code == 200
+    assert c.get("/coach/manifest.webmanifest").status_code == 200
+    # 기존 화면의 파일은 그대로
+    assert c.get("/static/icon-192.png").status_code == 200
+    # 내 기기에서는 같은 주소가 열린다
+    mine = coach.normalize_key(KEY)
+    assert _raw_status(main_app, "/static/coach/js/app.js", cookie=mine) == 200
+    assert _raw_status(main_app, "/static//coach/js/app.js", cookie=mine) != 200      # 비튼 주소는 누구에게도 내주지 않는다
+
+
+def test_unlock_with_link_remembers_this_device():
+    c = _client(unlocked=False)
+    r = c.get("/coach?k=test2-key34-abcde-fgh56", follow_redirects=False)       # 소문자·줄표가 있어도 된다
+    assert r.status_code == 303 and r.headers["location"] == "/coach"           # 주소 줄에 열쇠가 남지 않는다
+    cookie = r.headers["set-cookie"]
+    assert cookie.startswith(f"{coach.COOKIE}=") and "HttpOnly" in cookie and "samesite=lax" in cookie.lower()
+    assert "Max-Age=" in cookie and "Secure" not in cookie                      # 테스트는 http 라 Secure 가 붙지 않는다
+    assert c.get("/coach").status_code == 200                                   # 이 기기에서는 이제 열린다
+    assert c.get("/static/coach/js/app.js").status_code == 200
+    # https(배포 환경: 프록시가 X-Forwarded-Proto 를 붙인다)에서는 Secure 쿠키
+    r = _client(unlocked=False).get(f"/coach?k={KEY}", headers={"X-Forwarded-Proto": "https"}, follow_redirects=False)
+    assert "Secure" in r.headers["set-cookie"]
+
+
+def test_unlock_with_code_form():
+    c = _client(unlocked=False)
+    r = c.post("/coach/unlock", data={"key": KEY}, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/coach" and coach.COOKIE in r.headers["set-cookie"]
+    assert c.get("/coach").status_code == 200
+
+
+def test_wrong_key_stays_locked():
+    c = _client(unlocked=False)
+    for r in (c.get("/coach?k=WRONG-KEY", follow_redirects=False), c.get("/coach?k=", follow_redirects=False),
+              c.post("/coach/unlock", data={"key": "nope"}, follow_redirects=False), c.post("/coach/unlock", content=b"", follow_redirects=False)):
+        assert r.status_code == 403 and "코드가 맞지 않아요" in r.text
+        assert "set-cookie" not in r.headers
+    assert c.get("/coach").status_code == 403
+    bad = _client(unlocked=False)
+    bad.cookies.set(coach.COOKIE, "WRONGWRONGWRONG")
+    assert bad.get("/coach").status_code == 403 and bad.get("/static/coach/js/app.js").status_code == 404
+
+
+def test_broken_key_setting_locks_everyone_out(monkeypatch):
+    """해시 설정이 비었거나 잘못됐으면 아무도 못 연다(열리는 쪽으로 틀리지 않는다)."""
+    for broken in ("", "abc", None):
+        monkeypatch.setattr(settings, "coach_key_sha256", broken)
+        assert _client().get("/coach").status_code == 403
+        assert _client(unlocked=False).get("/coach?k=", follow_redirects=False).status_code == 403
+
+
+def test_court_page_hides_coach_from_others():
+    """코트 오픈 화면: 다른 사람에게는 스윙 코치로 가는 탭이 없다. 화면의 나머지는 그대로다."""
+    others = TestClient(_site()).get("/")
+    assert others.status_code == 200 and "코트 오픈" in others.text
+    assert '<nav class="tabs"' not in others.text and 'href="/coach"' not in others.text
+    assert ".app{padding-bottom:0}" in others.text                  # 탭 줄 자리의 여백도 없앤다
+    assert others.headers["cache-control"] == "private, no-cache"
+    mine = TestClient(_site())
+    mine.cookies.set(coach.COOKIE, coach.normalize_key(KEY))
+    page = mine.get("/").text
+    assert _tab_links(page) == {"/": True, "/coach": False}
+    assert len(page) > len(others.text)
+    # 탭을 뺀 것 말고는 같은 화면이다
+    from app.routers import dashboard
+    assert dashboard.without_coach(page) == others.text
+
+
+def test_public_mode_opens_for_everyone(monkeypatch):
+    """완성해서 공개로 바꾸면(coach_private=false) 열쇠 없이 예전처럼 열린다."""
+    monkeypatch.setattr(settings, "coach_private", False)
+    c = _client(unlocked=False)
+    r = c.get("/coach")
+    assert r.status_code == 200 and 'type="file"' in r.text
+    assert r.headers["cache-control"] == "no-cache" and "set-cookie" not in r.headers
+    assert c.get("/static/coach/js/app.js").status_code == 200
+    assert c.get("/coach?k=anything", follow_redirects=False).status_code == 200
+    assert c.post("/coach/unlock", data={"key": "x"}, follow_redirects=False).status_code == 303
+    site = TestClient(_site())
+    assert _tab_links(site.get("/").text) == {"/": True, "/coach": False}
+    m = site.get("/manifest.webmanifest").json()
+    assert [s["url"] for s in m["shortcuts"]] == ["/coach"]
+    for s in m["shortcuts"]:
+        for icon in s["icons"]:
+            assert (STATIC / icon["src"].removeprefix("/static/")).is_file()
