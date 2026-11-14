@@ -233,3 +233,48 @@ test('키는 영상 전체에서 하나로 고정한다', () => {
   const h = bodyScale(forehand({ fps: 30 }));
   assert.ok(h > 1.2 && h < 2.2, `키 ${h}`);
 });
+
+// ── 교차 검토(Codex)에서 나온 것들 ───────────────────────────────
+test('잰 것이 부족하면 점수를 내지 않는다(못 잰 것을 좋다고 하지 않는다)', () => {
+  const none = advise({ stroke: 'forehand', view: 'unknown', twoHanded: false, sf: 1, vis: 0.9, conf: 0.9, posErr: 0.05, phases: {} }, {});
+  assert.equal(none.score, null);
+  assert.equal(none.grade, '평가 불가');
+  assert.ok(none.unratedWhy);
+  const blurry = advise({ stroke: 'forehand', view: 'side', twoHanded: false, sf: 1, vis: 0.2, conf: 0.2, posErr: 0.05, contactFront: 0.2, kneeBend: 40,
+    chestAtBackswing: 100, chestAtContact: 20, headFront: 0.02, headMove: 0.02, wristHeightGround: 0.55, phases: { contact: { elbowHit: 130 }, finish: { wristSide: -0.2 } } }, {});
+  assert.equal(blurry.score, null);
+});
+
+test('위치 오차가 큰 영상에서는 몇 cm 인지 말하지 않는다', () => {
+  const base = { stroke: 'forehand', view: 'side', twoHanded: false, sf: 1, vis: 0.9, conf: 0.9, contactFront: -0.25, kneeBend: 40, chestAtBackswing: 100, chestAtContact: 20,
+    headFront: 0.02, headMove: 0.02, wristHeightGround: 0.55, phases: { contact: { elbowHit: 130 }, finish: { wristSide: -0.2 } } };
+  const sharp = advise({ ...base, posErr: 0.02 }, { heightCm: 175 }).items.find((i) => i.id === 'fh_contact_front');
+  const coarse = advise({ ...base, posErr: 0.12 }, { heightCm: 175 }).items.find((i) => i.id === 'fh_contact_front');
+  assert.match(sharp.title, /약 \d+cm/);
+  assert.ok(coarse && !/\d+cm/.test(coarse.title), coarse && coarse.title);
+});
+
+test('왼손잡이에게 왼손·오른손을 박아서 말하지 않는다', () => {
+  const m = { stroke: 'forehand', view: 'side', twoHanded: false, sf: 1, vis: 0.9, conf: 0.9, posErr: 0.02, contactFront: 0.2, kneeBend: 40, chestAtBackswing: 30, chestAtContact: 20,
+    headFront: 0.02, headMove: 0.02, wristHeightGround: 0.55, phases: { contact: { elbowHit: 130 }, finish: { wristSide: -0.2 } } };
+  const turn = advise(m, {}).items.find((i) => i.id === 'fh_turn');
+  assert.ok(turn);
+  assert.ok(!/왼손|오른손|왼쪽 어깨|오른쪽 어깨/.test(turn.cue), turn.cue);
+});
+
+test('같은 화면에 같이 나온 같은 색 옷 두 사람은 따로 묶는다', () => {
+  const P = (x) => figure({ wrist: [0.2, -0.2, -0.2] }).lm.map((k) => [k[0] + x, k[1], k[2], k[3]]);
+  const groups = Track.groupPeople([
+    { t: 1, lm: P(-0.2), color: [200, 30, 40] }, { t: 1, lm: P(0.2), color: [198, 32, 42] },      // 같은 순간, 같은 색
+    { t: 2, lm: P(-0.2), color: [201, 31, 41] },
+  ]);
+  assert.equal(groups.length, 2);
+});
+
+test('백핸드 대조군은 원핸드·투핸드가 같은 표본을 먼저 고른다', () => {
+  const pose = figure({ wrist: [0.4, -0.3, -0.2], yaw: 80 });
+  const mk = (id, twoHanded) => ({ id, stroke: 'backhand', phase: 'contact', feat: G.poseFeature(pose), sex: 'U', legs: true, twoHanded });
+  const ref = { samples: [mk('one', false), mk('two', true)] };
+  assert.equal(matchReference(ref, 'backhand', 'contact', pose, { twoHanded: true })[0].sample.id, 'two');
+  assert.equal(matchReference(ref, 'backhand', 'contact', pose, { twoHanded: false })[0].sample.id, 'one');
+});
