@@ -6,6 +6,10 @@ export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&a
 // ── 화면 바꾸기 ─────────────────────────────────────────────────
 const VIEWS = ['home', 'setup', 'people', 'working', 'result', 'session', 'physics', 'guide'];
 let current = 'home';
+// 뒤로 가기 기록마다 '어느 영상 묶음을 볼 때의 화면인지'를 적어 둔다. 다른 영상을 고른 뒤 옛 화면으로 돌아가지 않게.
+let navTag = 0;
+export function setNavTag(t) { navTag = t; }
+export const navState = (v) => ({ v, g: navTag });
 const leaveHooks = [];
 export function onLeave(fn) { leaveHooks.push(fn); }
 export function show(name, { push = true } = {}) {
@@ -16,17 +20,17 @@ export function show(name, { push = true } = {}) {
   $('#brand').hidden = name !== 'home' && name !== 'working';
   $('#profileBtn').hidden = name !== 'home';
   document.body.classList.toggle('tabs-on', name === 'home');     // 아래 탭(코트 오픈 ↔ 스윙 코치)은 처음 화면에서만
-  if (push) history.pushState({ v: name }, '', name === 'home' ? location.pathname : `#${name}`);
+  if (push) history.pushState(navState(name), '', name === 'home' ? location.pathname : `#${name}`);
   window.scrollTo(0, 0);
   const head = $(`#v-${name} h1, #v-${name} h2`);                  // 화면이 바뀐 것을 화면 읽기가 알게 제목으로 초점을 옮긴다
   if (head) { head.tabIndex = -1; head.focus({ preventScroll: true }); }
 }
 export const currentView = () => current;
 export function initNav(onBack) {
-  history.replaceState({ v: 'home' }, '', location.pathname);
+  history.replaceState(navState('home'), '', location.pathname);
   window.addEventListener('popstate', (e) => {
     const v = (e.state && e.state.v) || 'home';
-    onBack(current, v);
+    onBack(current, v, e.state ? e.state.g : undefined);
   });
   $('#back').addEventListener('click', () => history.back());
 }

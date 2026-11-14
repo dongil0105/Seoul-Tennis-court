@@ -6,6 +6,7 @@
 //  · 길이는 cm 로("15cm 더 앞에서"), 각도는 느낌으로("ㄴ자", "의자에 반쯤 앉듯").
 //  · 라켓 면은 직접 보지 못한다. 결과(네트·아웃)를 알려 주면 몸에서 잰 것과 묶어 면 조언을 한다.
 import { featureDistance, poseFeature, mirrorPose } from './geom.js';
+import { serveContact, bodyLevel } from './reach.js';
 
 const r5 = (x) => Math.max(5, Math.round(x / 5) * 5);
 const cm = (ratio, ctx) => r5(Math.abs(ratio) * ctx.heightCm);
@@ -47,8 +48,8 @@ const SERVE = [
     low: () => ({ title: '정면을 보고 서서 팔로만 치고 있어요', why: '몸통을 감았다 풀어야 힘이 실립니다.', cue: '옆으로 서서, 토스할 때 등이 상대에게 살짝 보이게 어깨를 돌리세요.' }) },
   { id: 'serve_contact_height', phase: 'contact', label: '타점 높이', unit: 'h', sev: 3,
     get: (m) => m.wristHeightGround, range: (c) => ({ lo: c.level === 'adv' ? 1.14 : 1.08, hi: 9 }),
-    low: (v, b, c) => ({ title: `타점이 낮아요 — 약 ${cm(b.lo + 0.04 - v, c)}cm 더 높은 곳에서 맞히세요`, why: '타점이 낮으면 네트를 넘길 수 있는 각도가 급격히 좁아집니다(아래 "들어가는 각도" 참고).',
-      cue: '공이 떨어지기를 기다리지 말고, 가장 높은 곳으로 올라가서 팔을 다 편 채 맞히세요.', you: `손목 ${Math.round(v * c.heightCm)}cm` }) },
+    low: (v, b, c) => ({ title: `타점이 낮아요 — 약 ${cm(b.lo + 0.04 - v, c)}cm 더 높은 곳에서 맞히세요`, why: '타점이 낮으면 공이 네트 위로 지나갈 수 있는 틈이 급격히 좁아집니다(아래 "내 타점 높이" 참고).',
+      cue: '공이 떨어지기를 기다리지 말고, 가장 높은 곳으로 올라가서 팔을 다 편 채 맞히세요.', you: serveContact(v, c.heightCm).text }) },   // '리치보다 12cm 낮음'
   { id: 'serve_contact_elbow', phase: 'contact', label: '임팩트 팔꿈치', unit: '°', sev: 2,
     get: (m) => P(m, 'contact').elbowHit, range: () => ({ lo: 138, hi: 181 }),
     low: (v) => ({ title: '맞는 순간 팔꿈치가 굽어 있어요', why: '팔이 굽으면 타점이 낮아지고 공에 힘이 덜 실립니다.', cue: '맞는 순간 팔꿈치를 다 펴세요. 손이 가장 높은 곳에서 공을 만난다는 느낌으로.', you: `${deg0(v)}°` }) },
@@ -83,7 +84,7 @@ const groundCommon = (S, opt) => [
       : { title: '무릎을 펴고 서서 치고 있어요', why: '다리를 못 쓰면 라켓 속도가 크게 떨어지고 높낮이 조절이 안 됩니다.', cue: '치기 전에 의자에 살짝 앉듯 굽혔다가, 일어나면서 치세요.', you: `${deg0(v)}°` }) },
   { id: `${S}_high_ball`, phase: 'contact', label: '타점 높이', unit: 'h', sev: 2,
     get: (m) => (Number.isFinite(m.wristHeightLo) ? m.wristHeightLo : m.wristHeightGround), range: () => ({ lo: -9, hi: opt.highBall }),
-    high: (v, b, c) => ({ title: '어깨 위 높은 공을 억지로 쳤어요', why: '높은 타점에서는 라켓 속도가 떨어지고 면 조절이 어렵습니다.', cue: opt.highCue, you: `손목 ${Math.round(v * c.heightCm)}cm` }) },
+    high: (v, b, c) => ({ title: '어깨 위 높은 공을 억지로 쳤어요', why: '높은 타점에서는 라켓 속도가 떨어지고 면 조절이 어렵습니다.', cue: opt.highCue, you: `${bodyLevel(v)}(${Math.round(v * c.heightCm)}cm)` }) },
   { id: `${S}_turn`, phase: 'backswing', label: '어깨 턴', unit: '°', sev: 3,
     get: (m) => (Number.isFinite(m.chestAtBackswingHi) ? m.chestAtBackswingHi : m.chestAtBackswing), range: () => ({ lo: opt.turn, hi: 181 }),
     low: (v) => ({ title: '어깨 턴이 부족해요 — 팔로만 치고 있어요', why: '몸통을 돌렸다 풀어야 힘이 실리고 타점도 앞으로 나옵니다.', cue: opt.turnCue, you: `${deg0(v)}°` }) },
