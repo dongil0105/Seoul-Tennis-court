@@ -453,7 +453,7 @@ async function analyzeLong(v, i, { signal, job, label, onP }) {
     const sw = fr.length >= 10 ? mainSwing(fr, { hand: S.profile.hand, sf: 1 }) : null;
     console.debug(`[coach] ${c.tc.toFixed(1)}초: 읽은 프레임 ${raw.length} → 다듬은 뒤 ${fr.length} → ${sw ? sw.stroke : '스윙 못 찾음'}`);
     if (!sw || sw.suspect) continue;
-    shots.push(makeShot(fr, sw, step, i, { sfGiven: sfOpt() === 1, sfIgnored: sfOpt() > 1 }));   // 긴 영상은 일반 속도로 보고 분석한다(공 속도 어림이 이 표시를 본다)
+    shots.push(makeShot(fr, sw, step, i, { sfGiven: sfOpt() === 1, sfIgnored: sfOpt() > 1 }));   // 긴 영상은 일반 속도로 보고 분석한다(공 속도 예측이 이 표시를 본다)
   }
   return { shots, partial, why: shots.length ? null : '스윙을 자세히 읽지 못했어요.' };
 }
@@ -517,9 +517,9 @@ function renderResult() {
       ${seg('kind', [['serve', '서브'], ['forehand', '포핸드'], ['backhand', '백핸드']], m.stroke)}</div>
     ${m.stroke === 'serve' ? `<div class="sec"><h3>어떤 서브였나요?</h3><p class="small muted" style="margin:4px 0 10px">종류에 따라 맞는 타점 높이와 자리가 다릅니다.</p>
       ${seg('stype', [['flat', '플랫'], ['slice', '슬라이스'], ['kick', '킥(스핀)']], stype)}</div>
-      <div class="sec"><h2>공 속도 <span class="muted" style="font-size:15px;font-weight:600">어림</span></h2><div id="speedHere"></div></div>
+      <div class="sec"><h2>공 속도 <span class="muted" style="font-size:15px;font-weight:600">예측</span></h2><div id="speedHere"></div></div>
       <div class="sec"><h2>내 타점 높이</h2><div id="physHere"></div></div>${serveStyle(m)}` : ''}
-    ${m.stroke !== 'serve' ? '<div class="sec"><h2>공 속도 <span class="muted" style="font-size:15px;font-weight:600">어림</span></h2><div id="speedHere"></div></div><div class="sec"><h2>내 타점</h2><div id="physHere"></div></div>' : ''}
+    ${m.stroke !== 'serve' ? '<div class="sec"><h2>공 속도 <span class="muted" style="font-size:15px;font-weight:600">예측</span></h2><div id="speedHere"></div></div><div class="sec"><h2>내 타점</h2><div id="physHere"></div></div>' : ''}
     <div class="btns">
       <button class="btn" id="shareShot" ${a.score == null ? 'disabled' : ''}>결과 공유</button>
       <button class="btn ghost sm" id="saveRef">이 스윙을 내 기준 자세로 저장</button>
@@ -547,7 +547,7 @@ function renderResult() {
   $('#saveRef', el).addEventListener('click', () => saveAsRef());
   const again = $('#another', el);
   if (again) again.addEventListener('click', () => { show('home', { push: false }); history.replaceState(navState('home'), '', location.pathname); });
-  const sp = shot.speed;                                          // 손목 속도로 어림한 공 속도(위에서 계산)
+  const sp = shot.speed;                                          // 손목 속도로 예측한 공 속도(위에서 계산)
   speedCard($('#speedHere', el), sp, m.stroke, { onCal: sp.ok ? () => calSheet(sp, m.stroke) : null,
     onClear: !sp.ok && loadSpeedCal()[m.stroke] !== 1 ? () => setCal(m.stroke, 1, '맞춘 값을 지웠어요') : null });   // 맞춘 값 때문에 숫자가 안 나올 때도 지울 수 있게
   if (m.stroke === 'serve') {
@@ -586,7 +586,7 @@ function calSheet(est, stroke) {
     <div class="btns"><button class="btn" id="calSave">맞추기</button>${loadSpeedCal()[stroke] !== 1 ? '<button class="btn ghost sm" id="calClear">맞춘 값 지우기</button>' : ''}</div>`, (el, close) => {
     $('#calSave', el).addEventListener('click', () => {
       const f = calibration(est, Number($('#calV', el).value));
-      if (!f) { toast(`${what}에서 나올 수 있는 속도이면서, 어림값의 절반~2배 사이여야 해요`, 4000); return; }
+      if (!f) { toast(`${what}에서 나올 수 있는 속도이면서, 예측값의 절반~2배 사이여야 해요`, 4000); return; }
       if (setCal(stroke, f, '지금 결과와 다음 분석에 적용했어요')) close();
     });
     const clr = $('#calClear', el);
@@ -610,8 +610,8 @@ function measures(m) {
     if (m.stroke === 'serve') {                                   // 서브: 리치와 견줘서
       const sc = Reach.serveContact(m.wristHeightGround, h);
       out.push(['내 리치', `약 ${sc.reach}cm (키 ${h}cm)`]);
-      if (sc.ball >= 0.85 * sc.reach && sc.ball <= sc.reach + 45) out.push(['타점 높이(손목으로 어림)', `약 ${sc.ball}cm · ${sc.text}`]);
-    } else out.push(['타점 높이(손목으로 어림)', `${Reach.bodyLevel(m.wristHeightGround)} · 약 ${cmv(m.wristHeightGround)}`]);   // 스트로크: 몸의 어느 높이인지
+      if (sc.ball >= 0.85 * sc.reach && sc.ball <= sc.reach + 45) out.push(['타점 높이(손목으로 예측)', `약 ${sc.ball}cm · ${sc.text}`]);
+    } else out.push(['타점 높이(손목으로 예측)', `${Reach.bodyLevel(m.wristHeightGround)} · 약 ${cmv(m.wristHeightGround)}`]);   // 스트로크: 몸의 어느 높이인지
   }
   if (Number.isFinite(m.kneeBend)) out.push(['무릎 굽힘(가장 깊을 때)', `${Math.round(m.kneeBend)}°`]);
   if (Number.isFinite(c.elbowHit)) out.push(['임팩트 때 팔꿈치', `${Math.round(c.elbowHit)}°`]);
@@ -622,9 +622,9 @@ function measures(m) {
     if (Number.isFinite(m.chestAtBackswing)) out.push(['백스윙 때 어깨 턴', `${Math.round(m.chestAtBackswing)}°`]);
     if (Number.isFinite(m.chestAtContact)) out.push(['임팩트 때 가슴 방향', `${Math.round(m.chestAtContact)}° (0 = 정면)`]);
   }
-  if (S.shot && S.shot.speed && S.shot.speed.ok) out.unshift(['공 속도(손목 속도로 어림)', `약 ${S.shot.speed.kmh}km/h (${S.shot.speed.lo}~${S.shot.speed.hi})`]);
+  if (S.shot && S.shot.speed && S.shot.speed.ok) out.unshift(['공 속도(손목 속도로 예측)', `약 ${S.shot.speed.kmh}km/h (${S.shot.speed.lo}~${S.shot.speed.hi})`]);
   out.push(['찍은 방향', { side: '옆', behind: '뒤', front: '앞', unknown: '알 수 없음' }[m.view]]);
-  if (m.sf > 1.5) out.push(['영상 속도', `슬로모션 약 ${Math.round(m.sf)}배${m.sfAuto ? '(어림)' : ''}`]);
+  if (m.sf > 1.5) out.push(['영상 속도', `슬로모션 약 ${Math.round(m.sf)}배${m.sfAuto ? '(예측)' : ''}`]);
   return out;
 }
 
@@ -791,12 +791,12 @@ function renderSession() {
   const figFor = (p) => figBox(p.item, shots[p.shot].m);
   const first = sum.priorities[0], rest = sum.priorities.slice(1);
   // 속도 줄 끝에 붙이는 말: 몇 개 기준인지, 어떤 가정으로 계산했는지
-  const spdNote = (x) => { const n = [x.n < x.of ? `${x.of}개 중 어림할 수 있었던 ${x.n}개` : '', x.assumed ? '일반 속도 영상으로 보고 계산' : ''].filter(Boolean); return n.length ? ` <span class="muted">(${n.join(' · ')})</span>` : ''; };
+  const spdNote = (x) => { const n = [x.n < x.of ? `${x.of}개 중 예측할 수 있었던 ${x.n}개` : '', x.assumed ? '일반 속도 영상으로 보고 계산' : ''].filter(Boolean); return n.length ? ` <span class="muted">(${n.join(' · ')})</span>` : ''; };
   const block = (b) => {
     const sp = spreadText(b, H);
     const spd = speedSummary(b.list.map((i) => shotSpeed(shots[i], { heightCm: H, cal: loadSpeedCal() })));
     return `<div class="sec"><h2>${b.label} <span class="muted num" style="font-size:15px;font-weight:600">${b.n}개${b.avg != null ? ` · 평균 ${b.avg}점` : ''}</span></h2>
-      ${spd ? `<p class="small" style="margin-top:6px">공 속도(어림${spd.cal ? ' · 맞춤' : ''}) ${spd.n > 1 ? `평균 약 <b class="num">${spd.avg}km/h</b> · 가장 큰 값 약 <b class="num">${spd.max}km/h</b>` : `약 <b class="num">${spd.avg}km/h</b>`}${spdNote(spd)}</p>` : ''}
+      ${spd ? `<p class="small" style="margin-top:6px">공 속도(예측${spd.cal ? ' · 맞춤' : ''}) ${spd.n > 1 ? `평균 약 <b class="num">${spd.avg}km/h</b> · 가장 큰 값 약 <b class="num">${spd.max}km/h</b>` : `약 <b class="num">${spd.avg}km/h</b>`}${spdNote(spd)}</p>` : ''}
       ${sp ? `<p class="small muted" style="margin-top:6px">${esc(sp)}</p>` : ''}
       ${b.patterns.slice(0, 3).map((p) => `<div class="pattern"><b>${esc(p.title)}</b><span>${p.of > 1 ? `${p.of}개 중 ${p.n}개에서 · ` : ''}${esc(p.cue)}</span></div>`).join('')
         || `<div class="pattern"><b>되풀이되는 문제는 보이지 않아요</b><span>${b.n > 1 ? '샷마다 다른 점만 아래에서 확인하세요.' : '아래 샷을 눌러 자세히 보세요.'}</span></div>`}

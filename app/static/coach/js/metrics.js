@@ -46,7 +46,7 @@ export function poseMetrics(pose, hand = 'R', h = G.statureW(pose)) {
 }
 
 /**
- * 사진 한 장이 스트로크의 어느 순간인지 어림한다(선수 사진을 순간별로 나눌 때). 모르면 null.
+ * 사진 한 장이 스트로크의 어느 순간인지 예측한다(선수 사진을 순간별로 나눌 때). 모르면 null.
  * stroke: 'serve'|'forehand'|'backhand', m = poseMetrics 결과(오른손 기준으로 뒤집어 잰 것이어도 된다).
  */
 export function guessPhase(stroke, m) {

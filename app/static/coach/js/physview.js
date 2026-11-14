@@ -60,7 +60,7 @@ function gapSentence(contactCm, speed, type, hand) {
  */
 export function serveHeightCard(root, o) {
   const H = o.heightCm, { reach } = R.reachOf(H);
-  const mine = o.speed >= 80 && o.speed <= 200 ? o.speed : NaN;       // 영상에서 어림한 내 서브 속도(계산할 수 있는 범위일 때만 쓴다. 벗어나면 자르지 않고 수준에 맞춘 속도로)
+  const mine = o.speed >= 80 && o.speed <= 200 ? o.speed : NaN;       // 영상에서 예측한 내 서브 속도(계산할 수 있는 범위일 때만 쓴다. 벗어나면 자르지 않고 수준에 맞춘 속도로)
   const speed = Number.isFinite(mine) ? mine : levelSpeed(o.level);
   const c = Number.isFinite(o.wristRatio) ? R.serveContact(o.wristRatio, H) : null;
   const measured = c && c.ball >= 0.85 * reach && c.ball <= reach + 45;       // 터무니없는 값은 '잰 값'이라고 하지 않는다
@@ -69,20 +69,20 @@ export function serveHeightCard(root, o) {
   if (measured) {
     const d = c.ball - target.height[0];
     say = d < -5 ? `${target.label} 서브라면 <b>${-d}cm 더 높은 곳</b>에서 맞히는 것이 좋아요(권장 ${range(target.height)}cm).`
-      : c.ball > target.height[1] + 5 ? `${target.label} 서브 권장 높이(${range(target.height)}cm)보다 높게 잡혔어요. ${Number.isFinite(o.jump) && o.jump * H >= 5 ? '뛰어올라 높은 곳에서 맞혔습니다.' : '뛰어올라 맞혔거나, 어림값이 실제보다 높게 나왔을 수 있어요.'}`
+      : c.ball > target.height[1] + 5 ? `${target.label} 서브 권장 높이(${range(target.height)}cm)보다 높게 잡혔어요. ${Number.isFinite(o.jump) && o.jump * H >= 5 ? '뛰어올라 높은 곳에서 맞혔습니다.' : '뛰어올라 맞혔거나, 예측값이 실제보다 높게 나왔을 수 있어요.'}`
         : `${target.label} 서브에 맞는 높이입니다(권장 ${range(target.height)}cm).`;
   }
   root.innerHTML = `<div class="phys">
     <div class="small muted">키 ${H}cm → 리치 약 ${reach}cm</div>
-    ${measured ? `<div class="big"><b class="num">${c.ball}</b><span>cm</span></div><div class="small">손목 높이로 어림한 이번 타점 · <b>${esc(c.text)}</b></div>` : `<div class="big"><b class="num">${reach}</b><span>cm</span></div><div class="small">발을 붙이고 칠 수 있는 가장 높은 타점(리치)</div>`}
+    ${measured ? `<div class="big"><b class="num">${c.ball}</b><span>cm</span></div><div class="small">손목 높이로 예측한 이번 타점 · <b>${esc(c.text)}</b></div>` : `<div class="big"><b class="num">${reach}</b><span>cm</span></div><div class="small">발을 붙이고 칠 수 있는 가장 높은 타점(리치)</div>`}
     ${reachFigure(H, measured ? { cm: c.ball, label: '이번 타점' } : null)}
     ${say ? `<p class="small" style="margin-top:10px">${say}</p>` : ''}
     <h3 style="margin-top:20px">종류별로 맞히는 높이와 자리</h3>
     ${serveRows(H, o.hand, type)}
-    <h3 style="margin-top:20px">네트 위로 지나가야 하는 틈 <span class="muted" style="font-weight:500">· ${Number.isFinite(mine) ? '어림한 내 속도 ' : ''}${speed}km/h</span></h3>
+    <h3 style="margin-top:20px">네트 위로 지나가야 하는 틈 <span class="muted" style="font-weight:500">· ${Number.isFinite(mine) ? '예측한 내 속도 ' : ''}${speed}km/h</span></h3>
     ${gapRows(measured ? c.ball : reach, speed, o.hand)}
     <p class="small muted" style="margin-top:10px">${esc(gapSentence(measured ? c.ball : reach, speed, type, o.hand))}</p>
-    <p class="small muted" style="margin-top:8px">${measured ? '타점 높이는 영상에서 잰 손목 높이에 라켓 길이(약 48cm)를 더한 어림값입니다. 라켓 각도와 자세 인식 오차로 10cm 넘게 다를 수 있어요.' : '영상에서 타점 높이를 재지 못해 리치 높이로 계산했습니다.'} 틈은 ${Number.isFinite(mine) ? '어림한 내 서브 속도' : '수준에 맞춘 속도'}(${speed}km/h)로 계산한 예시입니다.</p>
+    <p class="small muted" style="margin-top:8px">${measured ? '타점 높이는 영상에서 잰 손목 높이에 라켓 길이(약 48cm)를 더한 예측값입니다. 라켓 각도와 자세 인식 오차로 10cm 넘게 다를 수 있어요.' : '영상에서 타점 높이를 재지 못해 리치 높이로 계산했습니다.'} 틈은 ${Number.isFinite(mine) ? '예측한 내 서브 속도' : '수준에 맞춘 속도'}(${speed}km/h)로 계산한 예시입니다.</p>
   </div>`;
 }
 
@@ -122,12 +122,12 @@ export function groundHeightCard(root, o) {
       : cm > g.height[1] + 5 ? `좋은 높이(${range(g.height)}cm)보다 높은 공이었어요. <b>한 발 물러나 떨어지는 공</b>을 치거나 한 발 들어가 일찍 잡으세요.`
         : `치기 좋은 높이(${range(g.height)}cm)에서 맞혔어요.`;
   }
-  const mine = o.speed >= 50 && o.speed <= 130 ? o.speed : NaN;       // 영상에서 어림한 내 공 속도(계산할 수 있는 범위일 때만 쓴다)
+  const mine = o.speed >= 50 && o.speed <= 130 ? o.speed : NaN;       // 영상에서 예측한 내 공 속도(계산할 수 있는 범위일 때만 쓴다)
   const speed = Number.isFinite(mine) ? mine : o.level === 'adv' ? 95 : o.level === 'beg' ? 60 : 75;
   const c = R.groundClearance({ speedKmh: speed, rpm: 1000, contactCm: Number.isFinite(cm) ? Math.max(40, Math.min(cm, 150)) : Math.round(0.55 * H) });
   const frontCm = Number.isFinite(o.front) ? Math.round(o.front * H) : NaN;
   root.innerHTML = `<div class="phys">
-    ${Number.isFinite(cm) ? `<div class="small muted">손목 높이로 어림한 이번 타점</div><div class="big"><b>${esc(level)}</b><span class="num">약 ${cm}cm</span></div>` : `<div class="small muted">치기 좋은 높이</div><div class="big"><b>허리~가슴</b><span class="num">${range(g.height)}cm</span></div>`}
+    ${Number.isFinite(cm) ? `<div class="small muted">손목 높이로 예측한 이번 타점</div><div class="big"><b>${esc(level)}</b><span class="num">약 ${cm}cm</span></div>` : `<div class="small muted">치기 좋은 높이</div><div class="big"><b>허리~가슴</b><span class="num">${range(g.height)}cm</span></div>`}
     ${bodyFigure(H, cm)}
     ${say ? `<p class="small" style="margin-top:10px">${say}</p>` : ''}
     <dl class="kv" style="margin-top:14px">
@@ -135,32 +135,32 @@ export function groundHeightCard(root, o) {
       ${Number.isFinite(frontCm) ? `<dt>이번 타점</dt><dd>골반보다 ${Math.abs(frontCm)}cm ${frontCm >= 0 ? '앞' : '뒤'}</dd>` : ''}
     </dl>
     ${Number.isFinite(c.deepM) ? `<h3 style="margin-top:20px">네트 위로 얼마나 높이 넘길까 <span class="muted" style="font-weight:500">· 계산 예시</span></h3>
-      <p class="small muted" style="margin:4px 0 8px">베이스라인에서 ${Number.isFinite(mine) ? '어림한 내 공 속도' : '수준에 맞춘 속도'}(${speed}km/h, 보통 회전)로 친다고 보고 계산한 것입니다. 코트 안쪽에서 치면 더 낮게 넘겨도 됩니다.</p>
+      <p class="small muted" style="margin:4px 0 8px">베이스라인에서 ${Number.isFinite(mine) ? '예측한 내 공 속도' : '수준에 맞춘 속도'}(${speed}km/h, 보통 회전)로 친다고 보고 계산한 것입니다. 코트 안쪽에서 치면 더 낮게 넘겨도 됩니다.</p>
       <div class="pattern"><b>깊게 보내려면 <span class="num hl">네트 위 약 ${c.deepM.toFixed(1)}m</span></b><span>${esc(R.netsText(c.deepNets))} 높이로 넘겨야 베이스라인 가까이 떨어집니다.</span></div>
       ${Number.isFinite(c.shortM) ? `<div class="pattern"><b>네트 위 ${c.shortM.toFixed(1)}m 로 낮게 넘기면</b><span>서비스라인 근처에 짧게 떨어져 상대가 치기 쉽습니다.</span></div>` : ''}` : ''}
-    <p class="small muted" style="margin-top:10px">${Number.isFinite(cm) ? '타점 높이는 임팩트 때 손목 높이로 본 어림값입니다. 라켓이 위아래로 기울면 10cm 넘게 다를 수 있어요.' : '영상에서 타점 높이를 재지 못했습니다.'}${Number.isFinite(frontCm) ? '' : ' 옆에서 찍으면 타점이 골반보다 몇 cm 앞인지도 알려 드려요.'}</p>
+    <p class="small muted" style="margin-top:10px">${Number.isFinite(cm) ? '타점 높이는 임팩트 때 손목 높이로 본 예측값입니다. 라켓이 위아래로 기울면 10cm 넘게 다를 수 있어요.' : '영상에서 타점 높이를 재지 못했습니다.'}${Number.isFinite(frontCm) ? '' : ' 옆에서 찍으면 타점이 골반보다 몇 cm 앞인지도 알려 드려요.'}</p>
   </div>`;
 }
 
 /**
- * 공 속도(어림) 카드. est = speed.js 의 estimateSpeed 결과, stroke = 'serve'|'forehand'|'backhand',
- * onCal = '맞추기'를 눌렀을 때 부를 함수, onClear = 어림하지 못했을 때 '맞춘 값 지우기'를 눌렀을 때 부를 함수(없으면 버튼을 그리지 않는다)
+ * 공 속도(예측) 카드. est = speed.js 의 estimateSpeed 결과, stroke = 'serve'|'forehand'|'backhand',
+ * onCal = '맞추기'를 눌렀을 때 부를 함수, onClear = 예측하지 못했을 때 '맞춘 값 지우기'를 눌렀을 때 부를 함수(없으면 버튼을 그리지 않는다)
  */
 export function speedCard(root, est, stroke, { onCal, onClear } = {}) {
   if (!est || !est.ok) {
-    root.innerHTML = `<div class="callout info">공 속도는 어림하지 못했어요. ${esc((est && est.why) || '')}</div>
+    root.innerHTML = `<div class="callout info">공 속도는 예측하지 못했어요. ${esc((est && est.why) || '')}</div>
       ${onClear ? '<button class="btn ghost sm" id="calClearBtn" style="margin-top:10px">맞춘 값 지우기</button>' : ''}`;
     if (onClear) $('#calClearBtn', root).addEventListener('click', onClear);
     return;
   }
-  const rows = [[est.cal ? '나 (어림 · 맞춤)' : '나 (어림)', est.kmh, true], ...benchmarks(stroke).map(([l, v]) => [l, v, false])];
+  const rows = [[est.cal ? '나 (예측 · 맞춤)' : '나 (예측)', est.kmh, true], ...benchmarks(stroke).map(([l, v]) => [l, v, false])];
   const mx = Math.max(...rows.map((r) => r[1]));
   root.innerHTML = `<div class="phys">
-    <div class="small muted">손목 속도로 어림한 공 속도${est.cal ? ' · 내가 알려 준 실제 속도에 맞춤' : ''}</div>
+    <div class="small muted">손목 속도로 예측한 공 속도${est.cal ? ' · 내가 알려 준 실제 속도에 맞춤' : ''}</div>
     <div class="big"><b class="num">약 ${est.kmh}</b><span>km/h</span></div>
     <div class="small">참고 범위 ${est.lo}~${est.hi}km/h</div>
     <div class="bars spd">${rows.map(([l, v, me]) => `<div${me ? ' class="me"' : ''}><span>${esc(l)}</span><i><b style="width:${Math.round((v / mx) * 100)}%"></b></i><em>${v}km/h</em></div>`).join('')}</div>
-    <p class="small muted" style="margin-top:12px">공을 직접 잰 값이 아닙니다. 손목이 가장 빨랐던 순간의 속도(시속 약 ${est.wristKmh}km)에 환산 계수를 곱한 어림값입니다. 참고 범위는 ±${est.pct}%로 잡았지만 검증한 오차가 아니어서 실제 값은 이 범위를 벗어날 수도 있어요. 옆에서, 몸 전체가 크게 나오게 찍을수록 낫습니다.${est.assumed ? ' 일반 속도로 찍은 영상으로 보고 계산했어요. 슬로모션 영상이면 실제보다 낮게 나옵니다.' : ''}${est.slow ? ` 슬로모션 ${est.slow}배 영상으로 보고 계산했어요. 실제 배수가 다르면 그만큼 달라집니다.` : ''}</p>
+    <p class="small muted" style="margin-top:12px">공을 직접 잰 값이 아닙니다. 손목이 가장 빨랐던 순간의 속도(시속 약 ${est.wristKmh}km)에 환산 계수를 곱한 예측값입니다. 참고 범위는 ±${est.pct}%로 잡았지만 검증한 오차가 아니어서 실제 값은 이 범위를 벗어날 수도 있어요. 옆에서, 몸 전체가 크게 나오게 찍을수록 낫습니다.${est.assumed ? ' 일반 속도로 찍은 영상으로 보고 계산했어요. 슬로모션 영상이면 실제보다 낮게 나옵니다.' : ''}${est.slow ? ` 슬로모션 ${est.slow}배 영상으로 보고 계산했어요. 실제 배수가 다르면 그만큼 달라집니다.` : ''}</p>
     ${onCal ? `<button class="btn ghost sm" id="calBtn" style="margin-top:12px">${est.cal ? '다시 맞추기' : '실제 속도를 알고 있다면 맞추기'}</button>` : ''}
   </div>`;
   if (onCal) $('#calBtn', root).addEventListener('click', onCal);

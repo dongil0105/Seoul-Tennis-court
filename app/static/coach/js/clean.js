@@ -17,7 +17,7 @@ const d2 = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
 export function cleanFrames(frames, aspect = 1) {
   if (frames.length < 3) return frames.slice();
   const sc = (p) => [p[0] * aspect, p[1]];
-  // ① 좌우 뒤바뀜: 앞 두 프레임으로 '이번에 있을 자리'를 어림하고, 좌우를 바꾼 쪽이 그 자리에 훨씬 잘 맞으면 뒤집힌 것으로 본다.
+  // ① 좌우 뒤바뀜: 앞 두 프레임으로 '이번에 있을 자리'를 예측하고, 좌우를 바꾼 쪽이 그 자리에 훨씬 잘 맞으면 뒤집힌 것으로 본다.
   //    (빠르게 휘두르는 손목을 뒤바뀜으로 잘못 보지 않으려고 '그대로 이어 간 자리'와 견준다.)
   const parity = new Array(frames.length).fill(0);
   const seq = [frames[0]];
