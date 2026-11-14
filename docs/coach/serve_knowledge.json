@@ -1,0 +1,3051 @@
+{
+ "meta": {
+  "generated": "2026-11-14",
+  "scope": "Tennis serve reference data for a pose-based (MediaPipe 33-landmark) coaching app for Korean recreational players.",
+  "method": "Web search result summaries only. Full-text fetch of papers was blocked in this environment (pmc.ncbi.nlm.nih.gov and www.frontiersin.org did not resolve), so every number comes from a search-result snippet, from memory (source_id 'memory') or from a small physics model written for this file (source_id 'computed').",
+  "conventions": "Joint flexion is given with 0 = fully straight. Right-handed server assumed. 'elite_mixed' = men and women pooled. Units outside the requested list are used where unavoidable (x_bodyweight, rad/s, m/s).",
+  "pose_measurement_hints": {
+   "source_id": "memory",
+   "impact_height_from_wrist": "No ball or racket tracking: estimate impact height as hitting-wrist height at the contact frame plus roughly 0.45-0.50 m (hand to sweet spot of a 0.685 m racket, tilted 15-30 deg). With elite impact at 1.49 x height this puts the elite WRIST at about 1.2-1.25 x standing height at contact (e.g. about 2.1-2.2 m for a 1.75-1.80 m player). Derived estimate, not a published value.",
+   "contact_frame": "Use the frame of maximum hitting-wrist height / peak wrist speed; trophy = frame of maximum front-knee flexion; racket low point is roughly where the hitting wrist is lowest behind the back after trophy.",
+   "angles": "Knee flexion = 180 - angle(hip, knee, ankle). Elbow flexion = 180 - angle(shoulder, elbow, wrist). Arm-trunk angle = angle between (shoulder->elbow) and (shoulder->same-side hip). Published values are 3D joint angles; 2D camera angles differ unless the camera is square to the plane of motion, so use bands, not point targets.",
+   "not_measurable": "Shoulder external rotation, forearm pronation, grip and racket-face angle cannot be read from 33 landmarks; infer them only indirectly (e.g. wrist dropping below the elbow behind the back)."
+  },
+  "special_source_ids": {
+   "memory": "Not seen in a search result; recalled by the researcher. Verify before showing to users.",
+   "computed": "Calculated for this file from geometry or a simple trajectory model; not a published value."
+  }
+ },
+ "metrics": [
+  {
+   "id": "front_knee_flexion_trophy",
+   "definition": "Front (lead) knee flexion at trophy position / maximum knee bend; 0 = straight leg (MediaPipe: 180 - angle(hip,knee,ankle))",
+   "phase": "trophy",
+   "population": "elite_mixed",
+   "mean": 64.5,
+   "sd": 9.7,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "Pooled meta-analytic value. Most-studied trophy parameter."
+  },
+  {
+   "id": "peak_knee_flexion_study_means",
+   "definition": "Range of study-level mean peak knee flexion across serve types, stance and age groups",
+   "phase": "trophy",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    47,
+    81
+   ],
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "Lowest study mean 47 +/- 21, highest 81 +/- 8. Shows how wide 'normal' is."
+  },
+  {
+   "id": "knee_flexion_low_group",
+   "definition": "Maximum knee flexion, 'smaller knee flexion' group",
+   "phase": "trophy",
+   "population": "junior",
+   "mean": 55.6,
+   "sd": 8.6,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S8",
+   "note": "Group means seen via S4. This group had 3.33 km/h lower pre-impact racket speed and 130 deg/s lower knee-extension velocity than the high group; impact height did not differ (p=0.236)."
+  },
+  {
+   "id": "knee_flexion_high_group",
+   "definition": "Maximum knee flexion, 'greater knee flexion' group",
+   "phase": "trophy",
+   "population": "junior",
+   "mean": 74.7,
+   "sd": 5.9,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S8",
+   "note": "See knee_flexion_low_group. A ~19 deg deeper bend bought only ~3 km/h of racket speed."
+  },
+  {
+   "id": "front_knee_extension_foot_back",
+   "definition": "Front-knee value reported for the foot-back (platform) technique at the end of loading / leg drive",
+   "phase": "trophy",
+   "population": "elite_men",
+   "mean": 65.5,
+   "sd": 12.6,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S3",
+   "note": "Search-snippet wording: 'foot-back needs more front knee extension ... about 65.5 +/- 12.6 vs 54.1 +/- 11.7 for foot-up' (originally Reid et al. 2008). Whether this is a flexion angle or an extension range was not verifiable; check before use."
+  },
+  {
+   "id": "front_knee_extension_foot_up",
+   "definition": "Front-knee value reported for the foot-up (pinpoint) technique at the end of loading / leg drive",
+   "phase": "trophy",
+   "population": "elite_men",
+   "mean": 54.1,
+   "sd": 11.7,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S3",
+   "note": "See front_knee_extension_foot_back."
+  },
+  {
+   "id": "back_knee_flexion_trophy",
+   "definition": "Back (rear) knee flexion at trophy",
+   "phase": "trophy",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    60,
+    90
+   ],
+   "unit": "deg",
+   "source_id": "memory",
+   "note": "No pooled value was visible in the searched sources. Range is from memory (rear knee usually flexes as much as or more than the front knee, especially in pinpoint). Low confidence."
+  },
+  {
+   "id": "trunk_inclination_trophy",
+   "definition": "Trunk inclination at trophy position (trunk segment vs vertical)",
+   "phase": "trophy",
+   "population": "elite_mixed",
+   "mean": 25.0,
+   "sd": 7.1,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "Pooled. Direction convention differs between studies (backward/lateral lean)."
+  },
+  {
+   "id": "elbow_flexion_trophy",
+   "definition": "Hitting-elbow flexion at trophy position (0 = straight; 90 = right angle)",
+   "phase": "trophy",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    85,
+    107
+   ],
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "Range of study means (85 +/- 17 to 107 +/- 30). The coaching 'L shape / 90 deg' sits inside it."
+  },
+  {
+   "id": "elbow_flexion_trophy_beginner_case",
+   "definition": "Hitting-elbow flexion during trophy position, single beginner",
+   "phase": "trophy",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    100.3,
+    121.1
+   ],
+   "unit": "deg",
+   "source_id": "S75",
+   "note": "n=1 per level; the elite player in the same study was 114-119 deg. Not generalisable; shown only because recreational data are scarce."
+  },
+  {
+   "id": "trunk_hyperextension_max_flat",
+   "definition": "Maximum trunk dorsiflexion (back arch) before impact, flat serve",
+   "phase": "trophy",
+   "population": "elite_men",
+   "mean": 18,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S19",
+   "note": "Six elite right-handed men."
+  },
+  {
+   "id": "trunk_hyperextension_max_spin",
+   "definition": "Maximum trunk dorsiflexion (back arch) before impact, spin/kick serve",
+   "phase": "trophy",
+   "population": "elite_men",
+   "mean": 25,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S19",
+   "note": "Kick serve arches ~7 deg more than flat in the same players."
+  },
+  {
+   "id": "shoulder_tilt_trophy",
+   "definition": "Shoulder-line tilt at trophy (tossing shoulder above hitting shoulder), angle of shoulder line to horizontal seen from behind",
+   "phase": "trophy",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    30,
+    50
+   ],
+   "unit": "deg",
+   "source_id": "memory",
+   "note": "No published pooled value found in this search (S1 notes many parameters are unquantified). Range is a memory-based coaching estimate; low confidence. Treat as a 'present / absent' check rather than a target."
+  },
+  {
+   "id": "hip_shoulder_separation_trophy",
+   "definition": "Hip-shoulder (pelvis-thorax) axial separation at trophy / end of coil",
+   "phase": "trophy",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    15,
+    30
+   ],
+   "unit": "deg",
+   "source_id": "memory",
+   "note": "No serve-specific pooled number found (forehand studies report 27-33 deg). Memory-based placeholder; low confidence. S58 reports shoulder-hip plane angles for women but values were not retrieved."
+  },
+  {
+   "id": "pelvis_rotation_second_serve_national_women",
+   "definition": "Hip horizontal-plane rotation angle, second serve, national-level women",
+   "phase": "trophy",
+   "population": "elite_women",
+   "mean": -1.72,
+   "sd": 4.68,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S58",
+   "note": "Provincial players: 24.15 +/- 24.01 deg (p=0.047). n=5 per group."
+  },
+  {
+   "id": "toss_release_to_contact_time",
+   "definition": "Time from ball leaving the tossing hand to racket contact",
+   "phase": "toss",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    0.6,
+    1.24
+   ],
+   "unit": "s",
+   "source_id": "S52",
+   "note": "36 pros (23 ATP, 13 WTA), video frame counting. Fast rhythm (Nadal, D. Young) 0.6-0.7 s; no player hit the ball at the apex."
+  },
+  {
+   "id": "toss_release_to_contact_time_isner",
+   "definition": "Release-to-contact time, John Isner (low toss)",
+   "phase": "toss",
+   "population": "elite_men",
+   "mean": 0.7,
+   "sd": null,
+   "range": null,
+   "unit": "s",
+   "source_id": "S53",
+   "note": ""
+  },
+  {
+   "id": "toss_release_to_contact_time_sharapova",
+   "definition": "Release-to-contact time, Maria Sharapova (high toss)",
+   "phase": "toss",
+   "population": "elite_women",
+   "mean": 1.1,
+   "sd": null,
+   "range": null,
+   "unit": "s",
+   "source_id": "S53",
+   "note": ""
+  },
+  {
+   "id": "toss_apex_above_contact_low_toss",
+   "definition": "Toss apex above the contact point for the lowest-toss pros",
+   "phase": "toss",
+   "population": "elite_men",
+   "mean": null,
+   "sd": null,
+   "range": [
+    0.15,
+    0.2
+   ],
+   "unit": "m",
+   "source_id": "S52",
+   "note": "Source gives 6-8 inches (Nadal, Donald Young)."
+  },
+  {
+   "id": "toss_height_vs_contact_height_correlation",
+   "definition": "Correlation between toss height and ball-racquet contact height",
+   "phase": "toss",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S54",
+   "note": "Qualitative: no correlation (men, women or combined); a higher toss does not give a higher contact. Unit field not applicable."
+  },
+  {
+   "id": "toss_release_height",
+   "definition": "Height at which the ball leaves the tossing hand",
+   "phase": "toss",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": null,
+   "unit": "x_height",
+   "source_id": "S33",
+   "note": "Qualitative: 'approximately eye level' with a straight tossing arm (Human Kinetics; Tennis.com tip)."
+  },
+  {
+   "id": "shoulder_external_rotation_max",
+   "definition": "Maximum shoulder external rotation (humerus vs trunk) at racket low point",
+   "phase": "racket_drop",
+   "population": "elite_mixed",
+   "mean": 172,
+   "sd": 12,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S2",
+   "note": "Olympic players. Includes scapular and trunk contributions. Not measurable with a 33-landmark skeleton."
+  },
+  {
+   "id": "shoulder_external_rotation_pooled",
+   "definition": "Shoulder lateral rotation at racket low point, pooled across studies",
+   "phase": "racket_drop",
+   "population": "elite_mixed",
+   "mean": 130.1,
+   "sd": 26.5,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "Much lower than Fleisig's 172 because of different joint-angle conventions; a clear case of sources disagreeing."
+  },
+  {
+   "id": "elbow_flexion_at_max_er",
+   "definition": "Hitting-elbow flexion at maximum external rotation (racket drop)",
+   "phase": "racket_drop",
+   "population": "elite_mixed",
+   "mean": 104,
+   "sd": 12,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S2",
+   "note": "Column label inferred from the S1 table row '172(12) 101(13) 104(12) 66(19) 13(8)' and from memory of the paper."
+  },
+  {
+   "id": "shoulder_abduction_at_max_er",
+   "definition": "Arm-trunk (abduction) angle at maximum external rotation",
+   "phase": "racket_drop",
+   "population": "elite_mixed",
+   "mean": 101,
+   "sd": 13,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S2",
+   "note": "Column label inferred (see elbow_flexion_at_max_er)."
+  },
+  {
+   "id": "trunk_tilt_at_max_er",
+   "definition": "Trunk tilt above horizontal at maximum external rotation",
+   "phase": "racket_drop",
+   "population": "elite_mixed",
+   "mean": 66,
+   "sd": 9,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S2",
+   "note": "Column label inferred. 66 above horizontal = 24 from vertical."
+  },
+  {
+   "id": "front_knee_flexion_at_max_er",
+   "definition": "Front-knee flexion at maximum external rotation",
+   "phase": "racket_drop",
+   "population": "elite_mixed",
+   "mean": 13,
+   "sd": 8,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S2",
+   "note": "Column label inferred. Legs are almost fully extended by the time the racket reaches its lowest point: knee extension precedes the racket drop."
+  },
+  {
+   "id": "shoulder_abduction_impact",
+   "definition": "Arm-trunk angle (shoulder abduction) at ball impact",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 101,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S2",
+   "note": "The '~100 deg' finding: the arm is NOT straight up (180); extra height comes from tilting the trunk. SD about 11-13 (memory)."
+  },
+  {
+   "id": "shoulder_abduction_impact_study_range",
+   "definition": "Range of study-level means for shoulder abduction at impact",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    101,
+    115
+   ],
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "101 +/- 11 to 115 +/- 6."
+  },
+  {
+   "id": "shoulder_elevation_impact_pooled",
+   "definition": "Shoulder elevation at ball impact, pooled",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 110.7,
+   "sd": 16.9,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "Use roughly 95-125 deg as the 'normal' band."
+  },
+  {
+   "id": "elbow_flexion_impact_pooled",
+   "definition": "Hitting-elbow flexion at ball impact, pooled (0 = straight)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 30.1,
+   "sd": 15.9,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "Study means 27 +/- 8 to 44 +/- 12."
+  },
+  {
+   "id": "elbow_flexion_impact_fleisig",
+   "definition": "Hitting-elbow flexion at impact, Olympic players",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 20,
+   "sd": 4,
+   "range": null,
+   "unit": "deg",
+   "source_id": "memory",
+   "note": "From memory of Fleisig 2003 (search snippet only confirmed 'elbow, wrist and lead knee slightly flexed')."
+  },
+  {
+   "id": "lead_knee_flexion_impact",
+   "definition": "Lead-knee flexion at impact",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 24,
+   "sd": 14,
+   "range": null,
+   "unit": "deg",
+   "source_id": "memory",
+   "note": "From memory of Fleisig 2003; snippet confirmed only 'slightly flexed'."
+  },
+  {
+   "id": "trunk_tilt_impact",
+   "definition": "Trunk tilt above horizontal at impact (48 above horizontal = 42 forward of vertical)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 48,
+   "sd": 7,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S2",
+   "note": "Mean seen in a search snippet; SD from a secondary summary of S3."
+  },
+  {
+   "id": "trunk_tilt_impact_study_range",
+   "definition": "Range of study-level means for trunk tilt at impact",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    24,
+    48
+   ],
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "24 +/- 10 to 48 +/- 4; conventions differ between studies."
+  },
+  {
+   "id": "lateral_trunk_tilt_impact",
+   "definition": "Lateral trunk tilt (away from hitting arm) at impact, seen from behind",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    20,
+    35
+   ],
+   "unit": "deg",
+   "source_id": "memory",
+   "note": "No number retrieved. Follows geometrically from the ~100 deg arm-trunk angle with a near-vertical arm; memory-based estimate, low confidence."
+  },
+  {
+   "id": "impact_height_ratio_aerial",
+   "definition": "Impact height / standing height, 'aerial' servers",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 1.49,
+   "sd": 0.02,
+   "range": null,
+   "unit": "x_height",
+   "source_id": "S6",
+   "note": "Authors: in line with the literature's optimum of about 1.5 x height. Brody attributes the 1.5x rule to Bruce Elliott."
+  },
+  {
+   "id": "impact_height_ratio_terrestrial",
+   "definition": "Impact height / standing height, 'terrestrial' servers",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 1.49,
+   "sd": 0.04,
+   "range": null,
+   "unit": "x_height",
+   "source_id": "S6",
+   "note": "p=0.903 vs aerial: both groups reach the same relative height."
+  },
+  {
+   "id": "impact_forward_ratio_aerial",
+   "definition": "Forward distance of impact / standing height, aerial servers",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 0.31,
+   "sd": 0.08,
+   "range": null,
+   "unit": "x_height",
+   "source_id": "S6",
+   "note": "About 0.54 m for a 1.75 m player. Reference line (baseline or front toe) not visible in the snippet."
+  },
+  {
+   "id": "impact_forward_ratio_terrestrial",
+   "definition": "Forward distance of impact / standing height, terrestrial servers",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 0.37,
+   "sd": 0.04,
+   "range": null,
+   "unit": "x_height",
+   "source_id": "S6",
+   "note": "About 0.65 m for a 1.75 m player (p=0.03 vs aerial)."
+  },
+  {
+   "id": "impact_forward_of_front_toe",
+   "definition": "Ball location at impact in front of 'LT' (probably left toe)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 0.8,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S14",
+   "note": "Elite men and women at the Olympics; 'LT' not defined in the snippet."
+  },
+  {
+   "id": "impact_forward_women_national_second_serve",
+   "definition": "Forward impact position, second serve, national-level women",
+   "phase": "contact",
+   "population": "elite_women",
+   "mean": 0.296,
+   "sd": 0.088,
+   "range": null,
+   "unit": "m",
+   "source_id": "S58",
+   "note": "Provincial players hit further forward: 0.446 +/- 0.094 m (p=0.047). n=5 per group."
+  },
+  {
+   "id": "impact_height_foot_up",
+   "definition": "Impact height, foot-up (pinpoint) technique",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 2.65,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S5",
+   "note": "Elliott & Wood 1983 expert players; 11 cm higher than foot-back."
+  },
+  {
+   "id": "impact_height_foot_back",
+   "definition": "Impact height, foot-back (platform) technique",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 2.54,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S5",
+   "note": "Elliott & Wood 1983."
+  },
+  {
+   "id": "impact_height_first_and_second",
+   "definition": "Impact height, professional first and second serves",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 2.74,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S16",
+   "note": "Similar height on first and second serves."
+  },
+  {
+   "id": "second_serve_contact_shift_left",
+   "definition": "Second-serve contact further left than first serve (right-hander)",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": null,
+   "sd": null,
+   "range": [
+    0.2,
+    0.25
+   ],
+   "unit": "m",
+   "source_id": "S16",
+   "note": ""
+  },
+  {
+   "id": "second_serve_contact_shift_back",
+   "definition": "Second-serve contact closer to the baseline than first serve",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": null,
+   "sd": null,
+   "range": [
+    0.15,
+    0.2
+   ],
+   "unit": "m",
+   "source_id": "S16",
+   "note": ""
+  },
+  {
+   "id": "flat_vs_kick_contact_forward",
+   "definition": "Flat serve contacted further forward than kick serve",
+   "phase": "contact",
+   "population": "junior",
+   "mean": 0.17,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S17",
+   "note": "Elite adolescents. Boys also hit ~0.15 m further into the court than girls regardless of serve type."
+  },
+  {
+   "id": "kick_racquet_more_posterior",
+   "definition": "Racquet position at contact in the kick serve, more posterior than flat (relative to shoulder)",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 0.087,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S12",
+   "note": "NCAA Division I men."
+  },
+  {
+   "id": "kick_racquet_more_medial",
+   "definition": "Racquet position at contact in the kick serve, more medial (towards / over the head) than flat",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 0.211,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S12",
+   "note": ""
+  },
+  {
+   "id": "racket_tilt_left_first_serve",
+   "definition": "Racket tilt to the left at contact, first serve (rear view)",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": null,
+   "sd": null,
+   "range": [
+    25,
+    30
+   ],
+   "unit": "deg",
+   "source_id": "S55",
+   "note": "High-speed video observation; second serve up to 45 deg. Another Yandell passage says ~15 vs 30+, so treat as 15-30 first / 30-45 second."
+  },
+  {
+   "id": "com_lift_at_impact_aerial",
+   "definition": "Centre-of-mass lift at impact, aerial servers",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 0.24,
+   "sd": 0.06,
+   "range": null,
+   "unit": "m",
+   "source_id": "S6",
+   "note": ""
+  },
+  {
+   "id": "com_lift_at_impact_terrestrial",
+   "definition": "Centre-of-mass lift at impact, terrestrial servers",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 0.18,
+   "sd": 0.04,
+   "range": null,
+   "unit": "m",
+   "source_id": "S6",
+   "note": "p=0.02 vs aerial."
+  },
+  {
+   "id": "jump_height_second_serve_elite",
+   "definition": "Jump height during second serve, 'elite' group",
+   "phase": "landing",
+   "population": "elite_mixed",
+   "mean": 0.136,
+   "sd": 0.022,
+   "range": null,
+   "unit": "m",
+   "source_id": "S56",
+   "note": "Higher jump did not translate into ball speed; authors advise coaching technique, not jump height."
+  },
+  {
+   "id": "jump_height_second_serve_professional",
+   "definition": "Jump height during second serve, professional group",
+   "phase": "landing",
+   "population": "elite_mixed",
+   "mean": 0.107,
+   "sd": 0.023,
+   "range": null,
+   "unit": "m",
+   "source_id": "S56",
+   "note": "p=0.001 vs elite group. Yandell: Sampras 'got off the ground a few inches'."
+  },
+  {
+   "id": "forward_travel_foot_back",
+   "definition": "Distance travelled into the court during the serve, foot-back",
+   "phase": "landing",
+   "population": "elite_men",
+   "mean": 0.6,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S5",
+   "note": "Elliott & Wood 1983 as quoted by Martin."
+  },
+  {
+   "id": "forward_travel_foot_up",
+   "definition": "Distance travelled into the court during the serve, foot-up",
+   "phase": "landing",
+   "population": "elite_men",
+   "mean": 0.46,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S5",
+   "note": ""
+  },
+  {
+   "id": "landing_foot",
+   "definition": "Landing foot after contact",
+   "phase": "landing",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S55",
+   "note": "Qualitative: pros land on the front (left, for right-handers) foot with the heel inside the baseline. Unit not applicable."
+  },
+  {
+   "id": "ball_speed_foot_up",
+   "definition": "Ball speed, foot-up technique",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 173.2,
+   "sd": null,
+   "range": null,
+   "unit": "km/h",
+   "source_id": "S5",
+   "note": "Older expert sample; later studies (S10; S6) found no clear speed difference between stances."
+  },
+  {
+   "id": "ball_speed_foot_back",
+   "definition": "Ball speed, foot-back technique",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 166.3,
+   "sd": null,
+   "range": null,
+   "unit": "km/h",
+   "source_id": "S5",
+   "note": ""
+  },
+  {
+   "id": "vertical_grf_foot_up",
+   "definition": "Peak vertical ground reaction force, foot-up",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 2.1,
+   "sd": null,
+   "range": null,
+   "unit": "x_bodyweight",
+   "source_id": "S5",
+   "note": "Elliott & Wood 1983 / Bahamonde & Knudson 2001. Unit is body weights (outside the requested unit list)."
+  },
+  {
+   "id": "vertical_grf_foot_back",
+   "definition": "Peak vertical ground reaction force, foot-back",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 1.5,
+   "sd": null,
+   "range": null,
+   "unit": "x_bodyweight",
+   "source_id": "S5",
+   "note": ""
+  },
+  {
+   "id": "horizontal_grf_foot_up",
+   "definition": "Forward (propulsive) ground reaction force, foot-up",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 0.16,
+   "sd": null,
+   "range": null,
+   "unit": "x_bodyweight",
+   "source_id": "S5",
+   "note": ""
+  },
+  {
+   "id": "horizontal_grf_foot_back",
+   "definition": "Forward (propulsive) ground reaction force, foot-back",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 0.2,
+   "sd": null,
+   "range": null,
+   "unit": "x_bodyweight",
+   "source_id": "S5",
+   "note": ""
+  },
+  {
+   "id": "rear_knee_extension_velocity_foot_up",
+   "definition": "Peak rear-knee extension angular velocity, foot-up",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 9.3,
+   "sd": 1.2,
+   "range": null,
+   "unit": "rad/s",
+   "source_id": "S10",
+   "note": "Value seen via S4."
+  },
+  {
+   "id": "rear_knee_extension_velocity_foot_back",
+   "definition": "Peak rear-knee extension angular velocity, foot-back",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 7.2,
+   "sd": 0.9,
+   "range": null,
+   "unit": "rad/s",
+   "source_id": "S10",
+   "note": ""
+  },
+  {
+   "id": "racket_speed_flat",
+   "definition": "Racket velocity at impact, flat serve",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 43.2,
+   "sd": 3.1,
+   "range": null,
+   "unit": "m/s",
+   "source_id": "S4",
+   "note": "Reid et al. as quoted."
+  },
+  {
+   "id": "racket_speed_kick",
+   "definition": "Racket velocity at impact, kick serve",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 40.3,
+   "sd": 2.9,
+   "range": null,
+   "unit": "m/s",
+   "source_id": "S4",
+   "note": "S12 found no significant difference in composite racket speed between serve types."
+  },
+  {
+   "id": "knee_restriction_effect",
+   "definition": "Effect of fixing the knees at 10 deg flexion on flat first serve",
+   "phase": "whole",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": null,
+   "unit": "km/h",
+   "source_id": "S9",
+   "note": "Qualitative: ball speed and impact height fell in beginners, intermediates and elite alike - knee motion matters 'whatever the performance level'. Group numbers not retrieved."
+  },
+  {
+   "id": "knee_extension_timing_pro_vs_junior",
+   "definition": "Speed of knee extension from maximum knee bend to contact, professionals vs 12-16 year-olds",
+   "phase": "whole",
+   "population": "junior",
+   "mean": null,
+   "sd": null,
+   "range": null,
+   "unit": "s",
+   "source_id": "S57",
+   "note": "Qualitative: professionals extend the knees significantly faster and more sharply than juniors in flat, slice and topspin serves; juniors showed no timing difference between serve types. Angle tables not retrieved."
+  },
+  {
+   "id": "impact_location_stability_pro_vs_junior",
+   "definition": "Stability (clustering) of ball-impact location, professional men vs juniors",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": null,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S18",
+   "note": "Qualitative: professional men had a 56% more stable impact location on the x-axis in the flat serve; women could not be compared for lack of data. The x/y/z tables in this review are the best place to get per-serve-type contact coordinates (not retrieved here)."
+  },
+  {
+   "id": "toss_variability",
+   "definition": "Spatial variability of the ball toss",
+   "phase": "toss",
+   "population": "elite_women",
+   "mean": null,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S76",
+   "note": "Qualitative: fore-aft and lateral variability is smaller at the toss zenith than at impact - pros control the peak, not the contact spot."
+  }
+ ],
+ "serve_types": {
+  "flat": {
+   "toss_location": "Forward into the court and slightly to the hitting side: 'straight up, slightly to the right' (right-hander); a dropped toss lands inside the baseline in front of the front foot. Clock cue: between 12 and 1 o'clock.",
+   "contact_location": "At the front edge of the body, roughly in line with the edge of the nose / hitting shoulder; about 0.31-0.37 x standing height in front (0.55-0.65 m for 1.75 m); ~0.17 m further forward than a kick serve.",
+   "racket_path": "Mostly forward through the ball; smallest vertical racquet-velocity component of the three serves. Racket tilted ~15-30 deg left at contact.",
+   "trunk": "Least back arch (~18 deg max trunk dorsiflexion in elite men); trunk ~48 deg above horizontal at impact.",
+   "ball_speed_kmh": {
+    "elite_study": 187,
+    "atp_first_serve_avg": [
+     187,
+     192
+    ],
+    "wta_top10_first_serve_avg": 164,
+    "recreational_ntrp4_fastest": 137
+   },
+   "spin_rpm": {
+    "elite_study": 1217
+   },
+   "spin_axis_elevation_deg": 65.6,
+   "source_ids": [
+    "S71",
+    "S55",
+    "S6",
+    "S17",
+    "S12",
+    "S19",
+    "S2",
+    "S11",
+    "S45",
+    "S46",
+    "S50"
+   ],
+   "note": "Elite study = S11 (52.0 m/s, 127.4 rad/s; rpm = rad/s x 60 / 2pi). Even a 'flat' serve carries ~1,200 rpm."
+  },
+  "slice": {
+   "toss_location": "Further to the hitting side ('to the right of your body'); roughly 1-2 o'clock, still in front. Pros often disguise it with a neutral toss.",
+   "contact_location": "In front like the flat serve but further out to the hitting side; racket travels across the outside of the ball. First-serve data: contact is further left for wide serves than T serves (S15), i.e. placement changes contact by small amounts.",
+   "racket_path": "Lateral racquet velocity similar to the kick serve, forward velocity similar to the flat serve.",
+   "trunk": "Similar to flat; no significant difference in maximum back extension between the three serve types (S12).",
+   "ball_speed_kmh": {
+    "elite_study": 167,
+    "recreational_ntrp4": [
+     105,
+     113
+    ]
+   },
+   "spin_rpm": {
+    "elite_study": 2216
+   },
+   "spin_axis_elevation_deg": 68.4,
+   "source_ids": [
+    "S71",
+    "S15",
+    "S12",
+    "S11",
+    "S50"
+   ],
+   "note": "Elite study = S11 (46.4 m/s, 232.1 rad/s). Clock position for slice is a memory-based coaching convention."
+  },
+  "kick": {
+   "toss_location": "Slightly behind / over the head and more to the left (right-hander): around 11-12 o'clock; a dropped toss would land near or behind the heels.",
+   "contact_location": "Roughly over the top of the head. Versus the first serve: 0.20-0.25 m further left and 0.15-0.20 m closer to the baseline, at a similar height (~2.74 m in pros). Racquet 8.7 cm more posterior and 21.1 cm more medial than in the flat serve.",
+   "racket_path": "Up and across: largest lateral and smallest forward racquet-velocity component. Racket tilted 30-45 deg left at contact.",
+   "trunk": "More back arch (~25 deg vs 18 deg) and more lateral bend; higher low-back and posterior shoulder loads than the flat serve.",
+   "ball_speed_kmh": {
+    "elite_study": 147,
+    "atp_second_serve_avg": [
+     151,
+     154
+    ],
+    "wta_top10_second_serve_avg": 136
+   },
+   "spin_rpm": {
+    "elite_study": 3213,
+    "sampras_second_serve_avg": 4500,
+    "sampras_max": 5300,
+    "match_max_reported": [
+     3529,
+     4300
+    ],
+    "generic_range_unsourced": [
+     3000,
+     4500
+    ]
+   },
+   "spin_axis_elevation_deg": 54.5,
+   "flat_to_topspin_speed_gap_kmh_recreational": [
+    32,
+    40
+   ],
+   "source_ids": [
+    "S71",
+    "S55",
+    "S16",
+    "S12",
+    "S19",
+    "S11",
+    "S51",
+    "S45",
+    "S50"
+   ],
+   "note": "Elite study = S11 (40.8 m/s, 336.5 rad/s). The spin axis of a kick is only ~11-14 deg different from flat/slice: it is mostly more spin, not a different kind of spin. 11-12 o'clock cue is a memory-based coaching convention. Recreational gap = 20-25 mph (S50)."
+  }
+ },
+ "stances": {
+  "platform": {
+   "aka": [
+    "foot-back",
+    "플랫폼 스탠스"
+   ],
+   "definition": "Feet stay about shoulder-width apart from start to take-off; the back foot does not slide up.",
+   "vertical_grf_bw": 1.5,
+   "horizontal_grf_bw": 0.2,
+   "impact_height_m": 2.54,
+   "ball_speed_kmh": 166.3,
+   "forward_travel_m": 0.6,
+   "rear_knee_extension_velocity_rad_s": 7.2,
+   "mechanics": "Less vertical force and a slightly lower contact, more forward force and more travel into the court. Wider base of support, no moving foot to time.",
+   "pros": [
+    "balance and repeatability",
+    "fewer timing problems (no back-foot slide)",
+    "lower foot-fault risk",
+    "smooth forward weight transfer",
+    "smaller lower-limb joint moments in the Korean high-school study (except ankle dorsiflexion)"
+   ],
+   "cons": [
+    "less vertical drive (about 0.6 BW less peak vertical force in the classic data)",
+    "contact ~11 cm lower in the classic data"
+   ],
+   "users": [
+    "Federer",
+    "Djokovic",
+    "Sampras",
+    "Sinner (juniors; mid-2021 to mid/late 2023)"
+   ],
+   "source_ids": [
+    "S5",
+    "S10",
+    "S4",
+    "S59",
+    "S26",
+    "S32",
+    "S33",
+    "S83"
+   ]
+  },
+  "pinpoint": {
+   "aka": [
+    "foot-up",
+    "핀포인트 스탠스"
+   ],
+   "definition": "Feet start apart; the back foot slides or steps up next to (or just behind) the front foot before take-off. Most pros use a hybrid of this.",
+   "vertical_grf_bw": 2.1,
+   "horizontal_grf_bw": 0.16,
+   "impact_height_m": 2.65,
+   "ball_speed_kmh": 173.2,
+   "forward_travel_m": 0.46,
+   "rear_knee_extension_velocity_rad_s": 9.3,
+   "mechanics": "More vertical force and a higher contact; both legs push from under the body. Small base of support.",
+   "pros": [
+    "more vertical drive / higher contact",
+    "72% of the 50 best ATP servers (serve-effectiveness ranking, Feb 2021) used foot-up, and the taller the player the more likely",
+    "about 0.04 s shorter total motion time in a Korean study"
+   ],
+   "cons": [
+    "balance can be a problem (very small base)",
+    "timing the back-foot slide causes synchronisation problems for many club players",
+    "back foot can drift past the front foot or the front foot can creep: foot-fault risk",
+    "larger lower-limb joint moments: injury caution (Korean high-school study)"
+   ],
+   "users": [
+    "Isner",
+    "Zverev (hybrid)",
+    "Medvedev",
+    "Alcaraz",
+    "Kyrgios",
+    "Karlovic",
+    "Roddick",
+    "Shelton",
+    "Serena Williams",
+    "Swiatek (lateral pinpoint)",
+    "Keys (since 2025)",
+    "Sinner (mid-2018 to June 2021; again from mid/late 2023)"
+   ],
+   "source_ids": [
+    "S5",
+    "S10",
+    "S4",
+    "S7",
+    "S59",
+    "S60",
+    "S31",
+    "S32",
+    "S26",
+    "S83",
+    "S34"
+   ]
+  },
+  "comparison_notes": [
+   {
+    "text": "Speed: the 1983 expert data favour foot-up (173.2 vs 166.3 km/h) but later work found no clear difference: comparable shoulder kinetics across techniques (S10), speed normalised to height and mass 1.3 vs 1.4 km/h/m/kg (S6), and a small Division III study with foot-up 1.9% faster / foot-back 1.7% deeper, both non-significant.",
+    "source_ids": [
+     "S5",
+     "S10",
+     "S6"
+    ]
+   },
+   {
+    "text": "Which is more common: sources disagree. One coach article says platform is the slight favourite among top men but pinpoint is more common overall on both tours; another says pinpoint is simply the most common; a third notes that a 'true' pinpoint is rare and most players use a hybrid. On the WTA the large majority of top players are described as pinpoint.",
+    "source_ids": [
+     "S32",
+     "S81",
+     "S31"
+    ]
+   },
+   {
+    "text": "Serve-and-volley: a Korean paper (citing Groppel 1992) says pinpoint suits serve-and-volleyers and platform suits baseliners, but the force data show platform produces MORE forward force and travel (60 vs 46 cm). Do not hard-code either claim.",
+    "source_ids": [
+     "S59",
+     "S5"
+    ]
+   },
+   {
+    "text": "Pro players switch for reasons other than speed: Keys moved platform -> pinpoint in 2025 to unload shoulder and hip; Sinner moved platform -> pinpoint in 2023 because he was 'too side-on'. At pro level 'it usually comes down to personal preference'.",
+    "source_ids": [
+     "S36",
+     "S27",
+     "S26"
+    ]
+   }
+  ]
+ },
+ "players": [
+  {
+   "name": "Roger Federer",
+   "name_ko": "로저 페더러",
+   "sex": "M",
+   "height_cm": 185,
+   "height_source": "memory",
+   "stance": "platform",
+   "first_serve_kmh": 190,
+   "style_notes": "Classic full (long) take-back, platform stance, relaxed rhythm; wins with placement more than pace. Average first-serve figures disagree between sources (115-124 mph); 190 km/h (118 mph) is one of them.",
+   "amateur_friendly": true,
+   "why": "Coaches name his motion as the best template for club players: simple, classical, few extreme elements, stable platform base.",
+   "verified": true,
+   "source_ids": [
+    "S32",
+    "S33",
+    "S26",
+    "S70",
+    "memory"
+   ]
+  },
+  {
+   "name": "Novak Djokovic",
+   "name_ko": "노박 조코비치",
+   "sex": "M",
+   "height_cm": 188,
+   "height_source": "memory",
+   "stance": "platform",
+   "first_serve_kmh": null,
+   "style_notes": "Platform server who 'serves off two feet' (Roddick). Average first-serve speed not retrieved (memory: roughly 190-195 km/h).",
+   "amateur_friendly": true,
+   "why": "Platform stance and an unhurried rhythm; note his elbow/take-back has been reworked several times, so copy the base and balance rather than the arm path.",
+   "verified": true,
+   "source_ids": [
+    "S32",
+    "S33",
+    "S30",
+    "memory"
+   ]
+  },
+  {
+   "name": "Jannik Sinner",
+   "name_ko": "야닉 시너",
+   "sex": "M",
+   "height_cm": 191,
+   "height_source": "search",
+   "stance": "pinpoint",
+   "first_serve_kmh": 196,
+   "style_notes": "TIMELINE: juniors to mid-2018 platform -> mid-2018 to June 2021 pinpoint -> after Queen's 2021 back to platform -> platform through the first half of 2023 -> pinpoint (foot-up) from the second half / end of 2023 (ATP article Nov 2023; Cahill: planned for end of 2023 because he was too side-on) -> after the 2025 US Open final a new rhythm and a toss moved from forward-right to more over the head (rolled out in Beijing 2025). One SI piece dates the pinpoint switch to late 2025; ATP/US Open sources and Roddick ('platform to foot up, then the toss') support 2023. First serve averaged 119 mph in 2024 and 122 mph afterwards (secondary source).",
+   "amateur_friendly": false,
+   "why": "A serve rebuilt three or four times by a full-time team; the pinpoint slide and a toss over the head are both hard to time for club players.",
+   "verified": true,
+   "source_ids": [
+    "S25",
+    "S26",
+    "S27",
+    "S28",
+    "S29",
+    "S30",
+    "S46"
+   ]
+  },
+  {
+   "name": "Alexander Zverev",
+   "name_ko": "알렉산더 츠베레프",
+   "sex": "M",
+   "height_cm": 198,
+   "height_source": "memory",
+   "stance": "pinpoint",
+   "first_serve_kmh": 207,
+   "style_notes": "Hybrid pinpoint (feet start apart and come together). 2025 ATP average first serve 128.8 mph, third on tour. Height from memory.",
+   "amateur_friendly": false,
+   "why": "Speed comes from 198 cm and a very high contact; pinpoint timing plus a high toss.",
+   "verified": true,
+   "source_ids": [
+    "S31",
+    "S32",
+    "S44",
+    "memory"
+   ]
+  },
+  {
+   "name": "Carlos Alcaraz",
+   "name_ko": "카를로스 알카라스",
+   "sex": "M",
+   "height_cm": 183,
+   "height_source": "memory",
+   "stance": "pinpoint",
+   "first_serve_kmh": 195,
+   "style_notes": "Listed as pinpoint in a 2022 tennisplayer.net analysis; Roddick (2026): unlike Djokovic he does not serve off two feet. Motion changed almost yearly: 2024 two pauses -> one; 2025 smoother, no stops, +5 g racket; 2026 new start that looks like Djokovic's. 2024 average first serve about 121 mph (secondary source). Height from memory (one site lists 186).",
+   "amateur_friendly": false,
+   "why": "A moving target: the motion has been altered every season, and his deep knee bend and pinpoint drive need elite leg power.",
+   "verified": true,
+   "source_ids": [
+    "S34",
+    "S30",
+    "S35",
+    "S46",
+    "memory"
+   ]
+  },
+  {
+   "name": "Daniil Medvedev",
+   "name_ko": "다닐 메드베데프",
+   "sex": "M",
+   "height_cm": 198,
+   "height_source": "memory",
+   "stance": "pinpoint",
+   "first_serve_kmh": null,
+   "style_notes": "Named among pinpoint servers by coach Pat Dougherty (single coaching source). Height and speed not retrieved (height from memory).",
+   "amateur_friendly": false,
+   "why": "Idiosyncratic, height-dependent motion.",
+   "verified": true,
+   "source_ids": [
+    "S31",
+    "memory"
+   ]
+  },
+  {
+   "name": "Taylor Fritz",
+   "name_ko": "테일러 프리츠",
+   "sex": "M",
+   "height_cm": 196,
+   "height_source": "memory",
+   "stance": "platform",
+   "first_serve_kmh": null,
+   "style_notes": "UNVERIFIED stance: no source found; platform is from memory only. In a serve lesson Fritz reportedly said 'pick a stance, any stance, just get to the launch position'. His coach's teaching points start with a shoulder-width stance. Height from memory.",
+   "amateur_friendly": false,
+   "why": "Not recommended as an in-app model until the stance is verified from video; no sourced description of his motion was found.",
+   "verified": false,
+   "source_ids": [
+    "S80",
+    "S65",
+    "memory"
+   ]
+  },
+  {
+   "name": "John Isner",
+   "name_ko": "존 이스너",
+   "sex": "M",
+   "height_cm": 208,
+   "height_source": "search",
+   "stance": "pinpoint",
+   "first_serve_kmh": null,
+   "style_notes": "Pinpoint; very low toss (about 0.7 s from release to contact). Fastest serve 157.2 mph (253 km/h, 2016 Davis Cup); match-fastest serves usually 137-142 mph. Average first serve not retrieved.",
+   "amateur_friendly": false,
+   "why": "Built on 208 cm and a fast, low-toss rhythm that amateurs cannot time.",
+   "verified": true,
+   "source_ids": [
+    "S81",
+    "S53",
+    "S74"
+   ]
+  },
+  {
+   "name": "Pete Sampras",
+   "name_ko": "피트 샘프러스",
+   "sex": "M",
+   "height_cm": 185,
+   "height_source": "memory",
+   "stance": "platform",
+   "first_serve_kmh": null,
+   "style_notes": "Platform; heavy second serve averaging over 4,500 rpm (max over 5,300). 'Got off the ground a few inches' despite being able to dunk. Height from memory.",
+   "amateur_friendly": false,
+   "why": "The platform base is copyable, but the extreme shoulder turn, back arch and spin are not.",
+   "verified": true,
+   "source_ids": [
+    "S26",
+    "S32",
+    "S51",
+    "S55",
+    "memory"
+   ]
+  },
+  {
+   "name": "Elena Rybakina",
+   "name_ko": "엘레나 리바키나",
+   "sex": "F",
+   "height_cm": 184,
+   "height_source": "memory",
+   "stance": "pinpoint",
+   "first_serve_kmh": 175,
+   "style_notes": "UNVERIFIED stance (pinpoint from memory; no source found). Described as a precise, clean, efficient flat delivery; the toss 'barely moves in the air'. Roland Garros 2023 averages 109 mph first / 88 mph second; fastest 202.5 km/h; won 74.6% of first-serve points in 2025. Height from memory.",
+   "amateur_friendly": true,
+   "why": "Efficient, low-effort rhythm and a very stable toss: the best WTA model for 'do less, repeat more'. Speeds (175 km/h) are still far above club level.",
+   "verified": false,
+   "source_ids": [
+    "S72",
+    "S47",
+    "memory"
+   ]
+  },
+  {
+   "name": "Aryna Sabalenka",
+   "name_ko": "아리나 사발렌카",
+   "sex": "F",
+   "height_cm": 182,
+   "height_source": "memory",
+   "stance": "pinpoint",
+   "first_serve_kmh": 172,
+   "style_notes": "UNVERIFIED stance (pinpoint from memory). Serve collapsed in early 2022 (39 double faults in her first two matches) and was rebuilt with biomechanics coach Gavin MacMillan in 'a couple of weeks'. Roland Garros 2023 averages 107 / 87 mph; an Australian Open ranking lists 179.6 km/h; fastest 133 mph. Height from memory.",
+   "amateur_friendly": false,
+   "why": "Power-based motion that needed a specialist rebuild; a useful story for users (even pros double-fault), not a template.",
+   "verified": false,
+   "source_ids": [
+    "S43",
+    "S47",
+    "S73",
+    "memory"
+   ]
+  },
+  {
+   "name": "Iga Swiatek",
+   "name_ko": "이가 시비옹테크",
+   "sex": "F",
+   "height_cm": 176,
+   "height_source": "memory",
+   "stance": "pinpoint",
+   "first_serve_kmh": 163,
+   "style_notes": "'Lateral pinpoint' (back foot ends slightly outside the front foot), which limits hip coil (forum analysis). Changed the whole pre-toss movement in 2024 (arms from low to a higher V) and again under Wim Fissette. Roland Garros 2023 averages 101 / 85 mph. Height from memory (one site lists 175).",
+   "amateur_friendly": false,
+   "why": "Her first-serve speed (about 163 km/h) is the closest of the stars to a strong club man, but the motion is still being reworked and is criticised by coaches.",
+   "verified": true,
+   "source_ids": [
+    "S39",
+    "S40",
+    "S47",
+    "memory"
+   ]
+  },
+  {
+   "name": "Coco Gauff",
+   "name_ko": "코코 고프",
+   "sex": "F",
+   "height_cm": 175,
+   "height_source": "search",
+   "stance": "pinpoint",
+   "first_serve_kmh": 180,
+   "style_notes": "Stance weakly sourced: an analyst suggested she move 'from pinpoint to a pure platform stance' to cut double faults. Hired Gavin MacMillan in Aug 2025 (toss and contact point). Average first serve about 112 mph (July 2024 match), fastest 128 mph (2022 US Open).",
+   "amateur_friendly": false,
+   "why": "Fastest serve on the WTA but chronic double faults; shows that speed without a stable toss and contact is not the goal.",
+   "verified": false,
+   "source_ids": [
+    "S42",
+    "S43",
+    "S73"
+   ]
+  },
+  {
+   "name": "Serena Williams",
+   "name_ko": "세레나 윌리엄스",
+   "sex": "F",
+   "height_cm": 175,
+   "height_source": "memory",
+   "stance": "pinpoint",
+   "first_serve_kmh": null,
+   "style_notes": "Pinpoint (described in 2002 as an even more extreme pinpoint than her peers) with a textbook trophy position and 'easy power'. Fastest 128.6 mph (207 km/h, 2013 Australian Open). Average not retrieved; height from memory.",
+   "amateur_friendly": true,
+   "why": "Copy the rhythm, trophy position and full leg drive; the stance itself is optional. Widely treated as the reference WTA serve.",
+   "verified": true,
+   "source_ids": [
+    "S37",
+    "S38",
+    "S74",
+    "memory"
+   ]
+  },
+  {
+   "name": "Naomi Osaka",
+   "name_ko": "오사카 나오미",
+   "sex": "F",
+   "height_cm": 180,
+   "height_source": "memory",
+   "stance": "mixed",
+   "first_serve_kmh": 169,
+   "style_notes": "2016 analysis: starts wide and shifts from platform to pinpoint early in the motion, fairly high toss. In 2022 she worked on Kyrgios-style footwork. Current stance not verified. 2019 Australian Open first-serve average about 105 mph; second serve only 74% of first-serve speed. Height from memory.",
+   "amateur_friendly": false,
+   "why": "Big first serve but an unusually slow second serve; high toss.",
+   "verified": false,
+   "source_ids": [
+    "S41",
+    "S84",
+    "S48",
+    "memory"
+   ]
+  },
+  {
+   "name": "Madison Keys",
+   "name_ko": "매디슨 키스",
+   "sex": "F",
+   "height_cm": 178,
+   "height_source": "memory",
+   "stance": "pinpoint",
+   "first_serve_kmh": null,
+   "style_notes": "Switched from a long-used feet-apart platform stance to pinpoint for 2025 after repeated shoulder injuries, to reduce stress on shoulder and hip. Height from memory.",
+   "amateur_friendly": false,
+   "why": "Included as evidence that stance is a comfort / joint-load choice, not a speed rule.",
+   "verified": true,
+   "source_ids": [
+    "S36",
+    "memory"
+   ]
+  }
+ ],
+ "speeds": [
+  {
+   "label": "ATP top-10 average",
+   "level": "ATP",
+   "first_serve_kmh": 188.6,
+   "second_serve_kmh": 154.1,
+   "spin_rpm": null,
+   "source_id": "S45",
+   "note": "117.2 / 95.8 mph, Tennis Abstract data; season window not visible."
+  },
+  {
+   "label": "WTA top-10 average",
+   "level": "WTA",
+   "first_serve_kmh": 164.0,
+   "second_serve_kmh": 135.7,
+   "spin_rpm": null,
+   "source_id": "S45",
+   "note": "101.9 / 84.3 mph."
+  },
+  {
+   "label": "ATP tour average, 2024 (secondary reports)",
+   "level": "ATP",
+   "first_serve_kmh": [
+    187,
+    192
+   ],
+   "second_serve_kmh": 151,
+   "spin_rpm": null,
+   "source_id": "S46",
+   "note": "Quoted as 116 mph first / 94 mph second in one place and 119 mph in another."
+  },
+  {
+   "label": "International players, review means",
+   "level": "ATP/WTA",
+   "first_serve_kmh": {
+    "men": 182,
+    "women": 156
+   },
+   "second_serve_kmh": {
+    "men": 149,
+    "women": 134
+   },
+   "spin_rpm": null,
+   "source_id": "S78",
+   "note": "Men 182 [178,187] and 149 [135,164] km/h."
+  },
+  {
+   "label": "ATP 2025 leaders, average first serve",
+   "level": "ATP",
+   "first_serve_kmh": {
+    "Mpetshi Perricard": 216.3,
+    "Opelka": 210.2,
+    "Zverev": 207.3
+   },
+   "second_serve_kmh": {
+    "Mpetshi Perricard": 188.3
+   },
+   "spin_rpm": null,
+   "source_id": "S44",
+   "note": "134.4, 130.6, 128.8 mph; Mpetshi Perricard second serve 117 mph."
+  },
+  {
+   "label": "Wimbledon 2023 tournament averages",
+   "level": "ATP/WTA",
+   "first_serve_kmh": {
+    "women": 159.3
+   },
+   "second_serve_kmh": {
+    "men": 153.5
+   },
+   "spin_rpm": null,
+   "source_id": "S49",
+   "note": "Women's first serve 99.0 mph; men's second serve 95.4 mph."
+  },
+  {
+   "label": "Roland Garros 2023 averages (clay)",
+   "level": "WTA",
+   "first_serve_kmh": {
+    "Swiatek": 163,
+    "Sabalenka": 172,
+    "Rybakina": 175
+   },
+   "second_serve_kmh": {
+    "Swiatek": 137,
+    "Sabalenka": 140,
+    "Rybakina": 142
+   },
+   "spin_rpm": null,
+   "source_id": "S47",
+   "note": "101/85, 107/87, 109/88 (mph inferred)."
+  },
+  {
+   "label": "Elite men, lab study by serve type",
+   "level": "elite study",
+   "first_serve_kmh": {
+    "flat": 187,
+    "slice": 167,
+    "kick": 147
+   },
+   "second_serve_kmh": null,
+   "spin_rpm": {
+    "flat": 1217,
+    "slice": 2216,
+    "kick": 3213
+   },
+   "source_id": "S11",
+   "note": "52.0 / 46.4 / 40.8 m/s and 127.4 / 232.1 / 336.5 rad/s; clear trade-off between spin and horizontal speed."
+  },
+  {
+   "label": "Expert players by stance (1983)",
+   "level": "elite study",
+   "first_serve_kmh": {
+    "foot_up": 173.2,
+    "foot_back": 166.3
+   },
+   "second_serve_kmh": null,
+   "spin_rpm": null,
+   "source_id": "S5",
+   "note": ""
+  },
+  {
+   "label": "Second serve vs first serve, pros in competition",
+   "level": "ATP/WTA",
+   "first_serve_kmh": null,
+   "second_serve_kmh": null,
+   "spin_rpm": null,
+   "source_id": "S13",
+   "note": "Post-impact ball speed is 24.1% lower on the second serve; pre-impact racquet-head speed is NOT different - the speed goes into spin."
+  },
+  {
+   "label": "Sampras second serve",
+   "level": "ATP",
+   "first_serve_kmh": null,
+   "second_serve_kmh": null,
+   "spin_rpm": {
+    "average": 4500,
+    "max": 5300
+   },
+   "source_id": "S51",
+   "note": "'over 4500 rpm' average, 'over 5300 rpm' maximum (US Open filming)."
+  },
+  {
+   "label": "College players (competitive, not recreational)",
+   "level": "college",
+   "first_serve_kmh": {
+    "men": 167.3,
+    "women": 149.6
+   },
+   "second_serve_kmh": null,
+   "spin_rpm": null,
+   "source_id": "S77",
+   "note": "SD 8.9 and 12.5 km/h; n = 15 men, 14 women."
+  },
+  {
+   "label": "NTRP 4.0 (informal radar survey)",
+   "level": "recreational",
+   "first_serve_kmh": 137,
+   "second_serve_kmh": null,
+   "spin_rpm": null,
+   "source_id": "S50",
+   "note": "'Fastest flat serve around 85 mph'; slice 65-70 mph (105-113 km/h); flat-to-topspin gap typically 20-25 mph (32-40 km/h) at every level measured. Peak, not average."
+  },
+  {
+   "label": "NTRP 3.0 (estimate)",
+   "level": "recreational",
+   "first_serve_kmh": [
+    95,
+    120
+   ],
+   "second_serve_kmh": [
+    65,
+    90
+   ],
+   "spin_rpm": null,
+   "source_id": "memory",
+   "note": "No measured data found; memory-based estimate. Low confidence."
+  },
+  {
+   "label": "NTRP 3.5 (estimate)",
+   "level": "recreational",
+   "first_serve_kmh": [
+    110,
+    135
+   ],
+   "second_serve_kmh": [
+    75,
+    100
+   ],
+   "spin_rpm": null,
+   "source_id": "memory",
+   "note": "Memory-based estimate. Low confidence."
+  },
+  {
+   "label": "NTRP 4.5 (estimate)",
+   "level": "recreational",
+   "first_serve_kmh": [
+    145,
+    170
+   ],
+   "second_serve_kmh": [
+    105,
+    130
+   ],
+   "spin_rpm": null,
+   "source_id": "memory",
+   "note": "Memory-based estimate. Low confidence."
+  },
+  {
+   "label": "10-and-under players",
+   "level": "junior",
+   "first_serve_kmh": 94,
+   "second_serve_kmh": null,
+   "spin_rpm": null,
+   "source_id": "S79",
+   "note": "About 60 km/h slower than 16-and-under players."
+  },
+  {
+   "label": "Records",
+   "level": "ATP/WTA",
+   "first_serve_kmh": {
+    "Isner_2016": 253,
+    "Sabalenka_2018": 214,
+    "Serena_2013": 207,
+    "Gauff_2022": 206,
+    "Rybakina_2022": 202.5
+   },
+   "second_serve_kmh": {
+    "Mpetshi_Perricard_Wimbledon_2025": 237
+   },
+   "spin_rpm": null,
+   "source_id": "S74",
+   "note": "157.2, 133, 128.6, 128 mph."
+  }
+ ],
+ "physics": [
+  {
+   "id": "court_geometry",
+   "fact": "Court 23.77 m long, singles width 8.23 m (doubles 10.97 m). Net 0.914 m high at the centre and 1.07 m at the posts. Baseline to net 11.885 m.",
+   "value": {
+    "court_length_m": 23.77,
+    "singles_width_m": 8.23,
+    "net_centre_m": 0.914,
+    "net_post_m": 1.07,
+    "baseline_to_net_m": 11.885
+   },
+   "source_id": "S24",
+   "note": ""
+  },
+  {
+   "id": "service_box",
+   "fact": "Service line is 6.40 m from the net, so the serve must land within 18.285 m of the baseline; each service box is 6.40 m x 4.115 m.",
+   "value": {
+    "service_line_from_net_m": 6.4,
+    "baseline_to_service_line_m": 18.285,
+    "box_width_m": 4.115
+   },
+   "source_id": "memory",
+   "note": "Standard rule values from memory; the search result confirmed length, width and net heights but not 6.40 m explicitly."
+  },
+  {
+   "id": "no_gravity_min_contact_height",
+   "fact": "A dead-straight (no gravity, no spin) serve down the centre that just clears the net and lands on the service line needs a contact height of 0.914 x 18.285 / 6.40 = 2.61 m. A published version: a fast straight ball cannot clear the net and land in unless struck from at least 2.6 m.",
+   "value": {
+    "min_height_m": 2.61
+   },
+   "source_id": "S23",
+   "note": "Similar-triangle arithmetic (computed here) agrees with the article's 2.6 m. At 1.5 x height that is a 1.74 m player: most club players are at or below the line, so their serve MUST curve down (gravity + topspin)."
+  },
+  {
+   "id": "margin_at_3m",
+   "fact": "Even with a contact point near 3 m, a straight-line serve has only about 13 cm of margin over the lowest part of the net.",
+   "value": {
+    "margin_m": 0.13
+   },
+   "source_id": "S23",
+   "note": ""
+  },
+  {
+   "id": "height_doubles_success",
+   "fact": "Brody (1985) simulation: at 40 m/s (90 mph, 144 km/h) a ball hit at 2.7 m has twice the chance of going in as one hit at 2.2 m; the harder the hit, the more contact height matters.",
+   "value": {
+    "speed_m_s": 40,
+    "heights_m": [
+     2.2,
+     2.7
+    ],
+    "relative_success": 2.0
+   },
+   "source_id": "S20",
+   "note": ""
+  },
+  {
+   "id": "contact_height_rule",
+   "fact": "Players hit the serve at about 1.5 x their standing height (a 6 ft player at about 9 ft); measured 1.49 x in two groups of servers.",
+   "value": {
+    "ratio": 1.5
+   },
+   "source_id": "S21",
+   "note": "Also S6 and S54."
+  },
+  {
+   "id": "window_definition",
+   "fact": "Vertical acceptance window = maximum launch angle that still lands in minus minimum launch angle that clears the net. It shrinks as speed rises and grows with contact height and topspin.",
+   "value": null,
+   "source_id": "S21",
+   "note": "Also S22."
+  },
+  {
+   "id": "topspin_bonus",
+   "fact": "Brody: adding 10 rev/s (600 rpm) of topspin lets about 41% more serves go in at 150 mph, and opens the window by about 29% at 120 mph.",
+   "value": {
+    "topspin_rps": 10,
+    "gain_at_150mph_pct": 41,
+    "gain_at_120mph_pct": 29
+   },
+   "source_id": "S21",
+   "note": ""
+  },
+  {
+   "id": "speed_shrinks_window_groundstroke",
+   "fact": "For a groundstroke, raising ball speed from 50 to 60 mph shrinks the acceptance window by 43%.",
+   "value": {
+    "shrink_pct": 43
+   },
+   "source_id": "S22",
+   "note": "Groundstroke example, same mechanism as the serve."
+  },
+  {
+   "id": "second_serve_is_spin_not_slow_swing",
+   "fact": "Pros swing just as fast on the second serve; ball speed drops 24% because the racket path converts speed into topspin/sidespin.",
+   "value": {
+    "speed_drop_pct": 24.1
+   },
+   "source_id": "S13",
+   "note": ""
+  },
+  {
+   "id": "computed_window_table",
+   "fact": "Launch-angle window (degrees) for a serve straight down the centre line from the baseline, from a simple point-mass model with gravity, drag (Cd 0.55) and Magnus lift (Cl = 1/(2 + v/(R*omega))). Negative angles are below horizontal.",
+   "value": [
+    {
+     "contact_height_m": 2.4,
+     "speed_kmh": 80,
+     "topspin_rpm": 0,
+     "min_angle_deg": 0.97,
+     "max_angle_deg": 6.09,
+     "window_deg": 5.13
+    },
+    {
+     "contact_height_m": 2.4,
+     "speed_kmh": 100,
+     "topspin_rpm": 0,
+     "min_angle_deg": -1.89,
+     "max_angle_deg": 1.1,
+     "window_deg": 3.0
+    },
+    {
+     "contact_height_m": 2.4,
+     "speed_kmh": 100,
+     "topspin_rpm": 1500,
+     "min_angle_deg": -0.08,
+     "max_angle_deg": 4.03,
+     "window_deg": 4.12
+    },
+    {
+     "contact_height_m": 2.4,
+     "speed_kmh": 120,
+     "topspin_rpm": 0,
+     "min_angle_deg": -3.44,
+     "max_angle_deg": -1.53,
+     "window_deg": 1.92
+    },
+    {
+     "contact_height_m": 2.4,
+     "speed_kmh": 120,
+     "topspin_rpm": 1500,
+     "min_angle_deg": -1.87,
+     "max_angle_deg": 0.99,
+     "window_deg": 2.87
+    },
+    {
+     "contact_height_m": 2.2,
+     "speed_kmh": 120,
+     "topspin_rpm": 0,
+     "min_angle_deg": -2.49,
+     "max_angle_deg": -0.91,
+     "window_deg": 1.59
+    },
+    {
+     "contact_height_m": 2.6,
+     "speed_kmh": 120,
+     "topspin_rpm": 0,
+     "min_angle_deg": -4.39,
+     "max_angle_deg": -2.16,
+     "window_deg": 2.24
+    },
+    {
+     "contact_height_m": 2.5,
+     "speed_kmh": 140,
+     "topspin_rpm": 0,
+     "min_angle_deg": -4.85,
+     "max_angle_deg": -3.42,
+     "window_deg": 1.44
+    },
+    {
+     "contact_height_m": 2.5,
+     "speed_kmh": 140,
+     "topspin_rpm": 3000,
+     "min_angle_deg": -2.56,
+     "max_angle_deg": 0.22,
+     "window_deg": 2.79
+    },
+    {
+     "contact_height_m": 2.5,
+     "speed_kmh": 160,
+     "topspin_rpm": 0,
+     "min_angle_deg": -5.45,
+     "max_angle_deg": -4.44,
+     "window_deg": 1.02
+    },
+    {
+     "contact_height_m": 2.7,
+     "speed_kmh": 160,
+     "topspin_rpm": 0,
+     "min_angle_deg": -6.4,
+     "max_angle_deg": -5.06,
+     "window_deg": 1.35
+    },
+    {
+     "contact_height_m": 2.7,
+     "speed_kmh": 160,
+     "topspin_rpm": 3000,
+     "min_angle_deg": -4.3,
+     "max_angle_deg": -1.72,
+     "window_deg": 2.59
+    },
+    {
+     "contact_height_m": 2.7,
+     "speed_kmh": 200,
+     "topspin_rpm": 0,
+     "min_angle_deg": -7.11,
+     "max_angle_deg": -6.26,
+     "window_deg": 0.86
+    },
+    {
+     "contact_height_m": 2.9,
+     "speed_kmh": 200,
+     "topspin_rpm": 0,
+     "min_angle_deg": -8.06,
+     "max_angle_deg": -6.88,
+     "window_deg": 1.19
+    },
+    {
+     "contact_height_m": 2.9,
+     "speed_kmh": 200,
+     "topspin_rpm": 1500,
+     "min_angle_deg": -7.0,
+     "max_angle_deg": -5.19,
+     "window_deg": 1.82
+    }
+   ],
+   "source_id": "computed",
+   "note": "NOT from a publication: computed for this file (script: scratchpad/work/serve_window.py). Use for trends and rough sizes only. Trends match Brody. Key reading: at 80-100 km/h from 2.4 m the ball must leave roughly level or slightly UPWARD; only above ~120 km/h is the launch clearly downward."
+  },
+  {
+   "id": "amateur_must_hit_up",
+   "fact": "For a typical club contact height (2.2-2.5 m) and speed (80-120 km/h) the correct launch direction is within about +/-3 deg of horizontal, not 'down'.",
+   "value": {
+    "contact_height_m": [
+     2.2,
+     2.5
+    ],
+    "speed_kmh": [
+     80,
+     120
+    ],
+    "launch_angle_deg": [
+     -3.4,
+     6.8
+    ]
+   },
+   "source_id": "computed",
+   "note": "Derived from the model above; supports the cue 'hit up, not down'."
+  }
+ ],
+ "faults": [
+  {
+   "id": "toss_too_low",
+   "symptom_ko": "토스가 낮아서 쫓기듯 급하게 치고, 팔이 다 펴지기 전에 맞는다",
+   "skeleton_sign": "Side or rear view. Hitting-wrist height at contact well below the elite ratio (impact about 1.5 x standing height; suggested flag: estimated impact height < 1.35 x height). Hitting-elbow flexion at contact > ~45 deg (elite about 20-30). Time from tossing-hand release to contact < ~0.6 s (pros 0.6-1.24 s). Tossing wrist stops rising below head height.",
+   "likely_causes": [
+    "공을 손목으로 튕겨 올리거나 팔을 굽혀서 던짐",
+    "공을 너무 낮은 위치(허리~가슴)에서 놓음",
+    "토스 팔을 끝까지 올리지 않고 멈춤"
+   ],
+   "fix_cues_ko": [
+    "토스한 손끝이 하늘을 가리킬 때까지 팔을 쭉 올리세요",
+    "공은 던지지 말고, 눈높이에서 살짝 놓아 주세요",
+    "라켓을 뻗은 높이보다 공 두세 개만큼만 더 높게 올리세요"
+   ],
+   "source_ids": [
+    "S62",
+    "S64",
+    "S33",
+    "S52",
+    "S6",
+    "S1"
+   ]
+  },
+  {
+   "id": "toss_behind_head",
+   "symptom_ko": "토스가 머리 뒤로 넘어가서 허리가 꺾이고, 공이 뜨거나 길게 나간다",
+   "skeleton_sign": "Side view. At contact the hitting wrist is level with or behind the head / front hip instead of in front of the front toe. Trunk leans backward at contact (shoulder behind hip) and back arch at trophy clearly exceeds the elite 18-25 deg. Weight stays on the back foot (back heel down at contact).",
+   "likely_causes": [
+    "토스 팔이 몸 쪽(머리 쪽)으로 휘어 올라감",
+    "공을 너무 늦게(머리 위에서) 놓음",
+    "체중이 뒷발에 남아 있음"
+   ],
+   "fix_cues_ko": [
+    "토스 팔을 오른쪽 네트 기둥 쪽으로 뻗으면서 올리세요",
+    "공을 그냥 떨어뜨리면 앞발 앞 한 뼘쯤에 떨어지게 올리세요",
+    "공을 눈높이에서 일찍 놓으세요"
+   ],
+   "source_ids": [
+    "S63",
+    "S64",
+    "S71",
+    "S19",
+    "S55"
+   ]
+  },
+  {
+   "id": "toss_too_far_forward",
+   "symptom_ko": "토스가 너무 앞으로 가서 몸이 앞으로 쏟아지며 네트에 걸린다",
+   "skeleton_sign": "Side view. Trunk forward tilt at contact much larger than elite (elite about 42 deg from vertical; suggested flag > ~55 deg). Head and tossing shoulder drop before contact. Contact wrist far ahead of the front toe (> ~0.45 x height) and low. Large lunge and stumble on landing.",
+   "likely_causes": [
+    "토스 팔을 위가 아니라 앞으로 밀어냄",
+    "공을 따라가며 상체가 먼저 숙여짐",
+    "토스를 늦게 놓음"
+   ],
+   "fix_cues_ko": [
+    "토스 팔을 앞으로 밀지 말고 위로 올리세요",
+    "가슴을 세우고 위로 올라가서 치세요",
+    "맞는 순간까지 턱을 들고 공을 보세요"
+   ],
+   "source_ids": [
+    "S66",
+    "S62",
+    "S65",
+    "S2"
+   ]
+  },
+  {
+   "id": "waiters_tray",
+   "symptom_ko": "웨이터 서브: 라켓 면이 하늘을 본 채 쟁반 들듯 밀어 친다 (힘이 없고 공이 길게 나감)",
+   "skeleton_sign": "Rear or side view. No racket drop: the hitting wrist never falls below the elbow behind the back, and the elbow angle stays nearly fixed from trophy to contact. Hitting elbow below shoulder line and pushed forward. Chest already faces the net at trophy (shoulder line parallel to baseline). Little shoulder external rotation. (Grip itself is not visible in a skeleton.)",
+   "likely_causes": [
+    "포핸드(이스턴) 그립으로 서브를 잡음",
+    "라켓 면을 너무 일찍 엶",
+    "몸이 일찍 정면으로 돌아감",
+    "팔꿈치가 낮음"
+   ],
+   "fix_cues_ko": [
+    "그립을 망치 쥐듯(콘티넨탈) 바꿔 잡으세요",
+    "라켓 날로 공을 자르러 올라가다가, 마지막에 손바닥을 바깥으로 돌리세요",
+    "라켓 머리가 등 뒤로 툭 떨어지게 손목 힘을 빼세요",
+    "옆으로 선 자세를 맞는 순간 직전까지 지키세요"
+   ],
+   "source_ids": [
+    "S61",
+    "S1",
+    "S2"
+   ]
+  },
+  {
+   "id": "no_knee_bend",
+   "symptom_ko": "무릎을 거의 안 굽히고 팔 힘으로만 친다",
+   "skeleton_sign": "Side view. Maximum front-knee flexion at trophy < ~40 deg (elite pooled 64.5 +/- 9.7; study means 47-81). Hip height barely changes between trophy and contact; heels never leave the ground. Or knees bend but are still bent at racket drop (elite front knee is back to about 13 deg flexion by then).",
+   "likely_causes": [
+    "토스와 무릎 굽히기 타이밍이 따로 놂",
+    "균형을 잃을까 봐 다리를 고정함",
+    "무릎을 굽히기만 하고 위로 펴 올리지 않음"
+   ],
+   "fix_cues_ko": [
+    "토스를 올리면서 동시에 무릎을 살짝 앉으세요",
+    "의자에 반쯤 걸터앉는 정도(무릎 60도쯤)면 충분합니다",
+    "라켓이 등 뒤로 떨어질 때 다리를 쭉 펴며 위로 올라가세요",
+    "더 깊이 앉을 필요는 없어요. 펴는 타이밍이 중요합니다"
+   ],
+   "source_ids": [
+    "S1",
+    "S8",
+    "S9",
+    "S2",
+    "S82"
+   ]
+  },
+  {
+   "id": "tossing_arm_drops_early",
+   "symptom_ko": "토스한 팔이 일찍 떨어져서 어깨가 빨리 열리고 머리가 숙여진다",
+   "skeleton_sign": "Rear or side view. Tossing wrist falls below shoulder height before the knees start to extend / before the racket reaches its low point. The tossing-shoulder-high tilt at trophy is small or disappears early. Head drops before contact.",
+   "likely_causes": [
+    "공을 놓자마자 왼팔을 내림",
+    "빨리 치려고 상체가 먼저 돌아감"
+   ],
+   "fix_cues_ko": [
+    "토스한 손으로 공을 가리킨 채 '하나' 세고 치세요",
+    "왼손으로 떨어지는 공을 받을 것처럼 끝까지 올려 두세요",
+    "칠 때 왼팔은 배 앞으로 접어 넣으세요"
+   ],
+   "source_ids": [
+    "S68",
+    "S62",
+    "S66",
+    "S65"
+   ]
+  },
+  {
+   "id": "contact_too_low_bent_arm",
+   "symptom_ko": "타점이 낮고, 팔꿈치가 굽은 채로 맞는다",
+   "skeleton_sign": "Rear and side view. Estimated impact height < ~1.35 x standing height (elite 1.49). Elbow flexion at contact > ~45 deg (elite pooled 30 +/- 16). Arm-trunk angle at contact outside roughly 95-125 deg: below 90 means a dropped elbow; near 180 with an upright trunk means reaching straight up instead of tilting the shoulders.",
+   "likely_causes": [
+    "공이 떨어지기를 기다렸다가 침",
+    "토스가 낮음",
+    "어깨를 기울이지 않고 팔만 위로 듦"
+   ],
+   "fix_cues_ko": [
+    "공을 기다리지 말고, 제일 높은 곳으로 올라가서 맞히세요",
+    "맞는 순간 팔꿈치를 다 펴세요",
+    "왼쪽 어깨를 내리고 오른쪽 어깨를 올려서 높이 닿으세요"
+   ],
+   "source_ids": [
+    "S6",
+    "S1",
+    "S2",
+    "S21"
+   ]
+  },
+  {
+   "id": "contact_not_in_front",
+   "symptom_ko": "타점이 머리 위나 뒤에 있어서 공에 체중이 안 실린다 (플랫 서브)",
+   "skeleton_sign": "Side view. At contact the hitting wrist is less than ~0.15 x height in front of the front toe (elite flat serve 0.31-0.37 x height, about 55-65 cm for a 175 cm player; elite landings are inside the baseline). Trunk upright or leaning back at contact (elite trunk about 42 deg forward of vertical). Player lands on or behind the baseline.",
+   "likely_causes": [
+    "토스가 몸에 너무 붙음",
+    "앞으로 나가며 치는 게 겁나서 제자리에서 침",
+    "킥 서브 토스로 플랫 서브를 치려 함"
+   ],
+   "fix_cues_ko": [
+    "타점을 지금보다 20cm만 더 네트 쪽에서 잡으세요",
+    "토스를 코트 안쪽으로 한 뼘 더 보내세요",
+    "치고 나서 왼발이 베이스라인 안쪽에 떨어지게 하세요"
+   ],
+   "source_ids": [
+    "S6",
+    "S55",
+    "S17",
+    "S14",
+    "S71"
+   ]
+  },
+  {
+   "id": "falling_left",
+   "symptom_ko": "치고 나면 몸이 왼쪽으로 쓰러진다 (오른손잡이 기준)",
+   "skeleton_sign": "Rear view. After contact the head and trunk are far outside the left foot; landing foot comes down well left of where the front foot started; hitting arm finishes across a collapsed trunk. Lateral trunk tilt at contact far beyond the ~20-35 deg expected.",
+   "likely_causes": [
+    "토스가 머리 왼쪽이나 뒤로 감",
+    "플랫 서브인데 킥 서브처럼 옆으로 너무 기울임",
+    "앞으로 나가지 않고 옆으로 넘어짐"
+   ],
+   "fix_cues_ko": [
+    "토스를 오른쪽 어깨 앞, 1시 방향으로 올리세요",
+    "치고 나서 왼발로 코트 안쪽에 똑바로 착지하세요",
+    "끝날 때 가슴이 공을 보낸 쪽을 보게 하세요"
+   ],
+   "source_ids": [
+    "S71",
+    "S64",
+    "memory"
+   ]
+  },
+  {
+   "id": "foot_fault",
+   "symptom_ko": "풋폴트: 치기 전에 앞발이 라인을 밟거나, 끌어온 뒷발이 앞발을 지나친다",
+   "skeleton_sign": "Side view with the baseline visible. Front ankle shifts forward or rotates between the ready position and take-off (suggested flag: > ~5 cm before contact). In a pinpoint stance the back ankle passes the front ankle before take-off. Detect take-off as the frame where both ankles rise.",
+   "likely_causes": [
+    "앞발이 돌면서 앞으로 미끄러짐",
+    "핀포인트에서 뒷발을 너무 많이 끌어옴",
+    "토스가 너무 앞이라 몸이 먼저 따라 나감"
+   ],
+   "fix_cues_ko": [
+    "앞발은 못 박은 것처럼 그대로 두세요",
+    "뒷발은 앞발 뒤꿈치 뒤까지만 가져오세요",
+    "라인에서 발 반 개만큼 떨어져서 서세요",
+    "자꾸 밟으면 두 발을 벌린 채로(플랫폼) 쳐 보세요"
+   ],
+   "source_ids": [
+    "S83",
+    "S34",
+    "S31",
+    "memory"
+   ]
+  },
+  {
+   "id": "serve_into_net",
+   "symptom_ko": "서브가 자꾸 네트에 걸린다",
+   "skeleton_sign": "Combination signs. Low contact (impact < ~1.35 x height), head and tossing arm dropping before contact, trunk collapsing forward, or a toss too far in front. Wrist path through contact points downward. Physics: below ~2.6 m contact no straight downward line exists, and at 80-100 km/h the ball must leave about level or slightly upward.",
+   "likely_causes": [
+    "공을 아래로 내리찍으려고 함",
+    "토스가 낮거나 너무 앞",
+    "왼팔과 머리가 일찍 떨어짐"
+   ],
+   "fix_cues_ko": [
+    "내리찍지 말고 위로 올려 치세요",
+    "네트 위로 라켓 하나 높이를 넘긴다고 생각하세요",
+    "토스를 조금 더 높게, 왼팔은 조금 더 오래 올려 두세요"
+   ],
+   "source_ids": [
+    "S62",
+    "S23",
+    "S65",
+    "computed"
+   ]
+  },
+  {
+   "id": "serve_long",
+   "symptom_ko": "서브가 자꾸 길게 나간다 (서비스 라인을 넘김)",
+   "skeleton_sign": "Combination signs. Contact behind the head (wrist not in front of the front toe), waiter's-tray signs (no racket drop), or elbow clearly bent at contact (> ~45 deg). Note: one source says a toss too far back can also send the ball into the net, so confirm toss position on video before changing it.",
+   "likely_causes": [
+    "토스가 뒤로 가서 라켓 면이 열려 맞음",
+    "웨이터 서브",
+    "맞는 순간 팔이 접힘",
+    "스핀 없이 밀어 침"
+   ],
+   "fix_cues_ko": [
+    "토스를 한 뼘만 더 앞으로 보내세요",
+    "공의 뒤가 아니라 뒤쪽 위를 쓸어 올리듯 치세요",
+    "맞는 순간 팔을 끝까지 펴세요"
+   ],
+   "source_ids": [
+    "S63",
+    "S61",
+    "S67",
+    "S64"
+   ]
+  },
+  {
+   "id": "no_body_turn",
+   "symptom_ko": "정면을 보고 서서 팔로만 친다 (몸통 꼬임이 없다)",
+   "skeleton_sign": "Rear view. At trophy the shoulder line is nearly parallel to the baseline and hip-shoulder separation is ~0. No shoulder tilt (tossing shoulder not above hitting shoulder). Shoulders are already square to the net when the racket starts up.",
+   "likely_causes": [
+    "준비 자세부터 발과 몸이 네트를 향함",
+    "토스할 때 어깨를 돌리지 않음"
+   ],
+   "fix_cues_ko": [
+    "앞발 끝이 오른쪽 네트 기둥을 보게 옆으로 서세요",
+    "토스할 때 등이 상대에게 살짝 보이게 어깨를 돌리세요",
+    "왼쪽 어깨는 올리고 오른쪽 어깨는 내리세요"
+   ],
+   "source_ids": [
+    "S38",
+    "S27",
+    "memory"
+   ]
+  },
+  {
+   "id": "low_elbow_trophy",
+   "symptom_ko": "트로피 자세에서 팔꿈치가 처지거나 너무 접힌다",
+   "skeleton_sign": "Rear or side view. At trophy the hitting elbow is clearly below the shoulder line (elite arm-trunk angle about 100 deg later at racket drop) or the elbow angle is far from the elite 85-107 deg flexion band (suggested flag: < 60 or > 130 deg).",
+   "likely_causes": [
+    "라켓을 어깨에 짊어지듯 멈춤",
+    "팔을 몸에 붙인 채 올림"
+   ],
+   "fix_cues_ko": [
+    "팔꿈치를 어깨 높이까지 올리세요",
+    "팔을 ㄴ자(약 90도)로 만드세요",
+    "활을 당기듯 팔꿈치를 등 뒤로 당기세요"
+   ],
+   "source_ids": [
+    "S1",
+    "S2",
+    "S37"
+   ]
+  }
+ ],
+ "copyable_motions": [
+  {
+   "element": "Platform (foot-back) stance",
+   "why": "Wider base and no moving foot to time; coaches report that club players 'frequently struggle with the timing of sliding the back foot up'. Later studies show no clear speed penalty versus pinpoint, and lower-limb joint moments were smaller in the Korean study.",
+   "pro_examples": [
+    "Federer",
+    "Djokovic",
+    "Sampras"
+   ],
+   "source_ids": [
+    "S34",
+    "S10",
+    "S6",
+    "S59",
+    "S83"
+   ]
+  },
+  {
+   "element": "Moderate knee bend (about 55-70 deg at the front knee) with good timing",
+   "why": "Elite pooled mean is 64.5 +/- 9.7. A 19 deg deeper bend gained only ~3 km/h of racket speed and no extra contact height; Kovacs says 'bend deeper' is not a good cue for most players. Zero bend clearly costs speed and height at every level.",
+   "pro_examples": [
+    "Federer",
+    "Rybakina"
+   ],
+   "source_ids": [
+    "S1",
+    "S8",
+    "S9",
+    "S82"
+   ]
+  },
+  {
+   "element": "Classic full take-back rather than an abbreviated one",
+   "why": "Coaches who analyse pros advise club players to copy a classic motion like Federer's; abbreviated motions (Roddick-style) need more coordination and often 'end in ruins' for recreational players. An EMG study found no advantage either way.",
+   "pro_examples": [
+    "Federer"
+   ],
+   "source_ids": [
+    "S70",
+    "S69"
+   ]
+  },
+  {
+   "element": "Moderate, repeatable toss released at eye level with a straight arm",
+   "why": "Toss height does not correlate with contact height in pros; pros control the toss peak tightly; a very low toss leaves only 0.6-0.7 s and is hard to time, a very high one (1.1 s) is wind-sensitive.",
+   "pro_examples": [
+    "Rybakina"
+   ],
+   "source_ids": [
+    "S54",
+    "S76",
+    "S52",
+    "S53",
+    "S33",
+    "S72"
+   ]
+  },
+  {
+   "element": "Contact at about 1.5 x height with the arm about 100 deg from the trunk",
+   "why": "Both 'aerial' and 'terrestrial' elite servers reach 1.49 x height; height comes from shoulder tilt and leg extension, not from jumping (jump height did not predict ball speed).",
+   "pro_examples": [
+    "all"
+   ],
+   "source_ids": [
+    "S6",
+    "S2",
+    "S56"
+   ]
+  },
+  {
+   "element": "Spin on the second serve instead of a slower swing",
+   "why": "Pros keep racket speed and lose 24% ball speed to spin; topspin widens the launch-angle window (Brody: +29% to +41%).",
+   "pro_examples": [
+    "Sampras"
+   ],
+   "source_ids": [
+    "S13",
+    "S21"
+   ]
+  },
+  {
+   "element": "Use WTA speeds as the reachable reference",
+   "why": "WTA top-10 first serves average about 164 km/h and second serves about 136 km/h; an NTRP 4.0 man's fastest flat serve is about 137 km/h. ATP averages (about 189 km/h) are out of range.",
+   "pro_examples": [
+    "Swiatek (163 km/h)",
+    "Rybakina (175 km/h)",
+    "Serena Williams"
+   ],
+   "source_ids": [
+    "S45",
+    "S47",
+    "S50"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "S1",
+   "title": "Kinematics characteristics of key point of interest during tennis serve among tennis players: a systematic review and meta-analysis",
+   "authors": "Jacquier-Bret J, Gorce P",
+   "year": 2024,
+   "url": "https://www.frontiersin.org/articles/10.3389/fspor.2024.1432030/full",
+   "type": "paper",
+   "note": "Frontiers in Sports and Active Living; PRISMA review, 27 articles from 2,844 records. PMC11260724."
+  },
+  {
+   "id": "S2",
+   "title": "Kinematics used by world class tennis players to produce high-velocity serves",
+   "authors": "Fleisig G, Nicholls R, Elliott B, Escamilla R",
+   "year": 2003,
+   "url": "https://research-repository.uwa.edu.au/en/publications/kinematics-used-by-word-class-tennis-players-to-produce-high-velo/",
+   "type": "paper",
+   "note": "Sports Biomechanics 2(1):51-64. Sydney 2000 Olympic singles, 3D video. Values seen via search snippets and via table rows of S1; column labels partly inferred."
+  },
+  {
+   "id": "S3",
+   "title": "An 8-Stage Model for Evaluating the Tennis Serve: Implications for Performance Enhancement and Injury Prevention",
+   "authors": "Kovacs M, Ellenbecker T",
+   "year": 2011,
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3445225",
+   "type": "paper",
+   "note": "Sports Health 3(6):504-513. Stages: start, release, loading, cocking, acceleration, contact, deceleration, finish (3 phases: preparation, acceleration, follow-through)."
+  },
+  {
+   "id": "S4",
+   "title": "Frontiers in Sports and Active Living article 10.3389/fspor.2024.1451174 (lower-limb role in the tennis serve; title not retrieved)",
+   "authors": "Gorce P, Jacquier-Bret J (per search summary)",
+   "year": 2024,
+   "url": "https://www.frontiersin.org/articles/10.3389/fspor.2024.1451174/full",
+   "type": "paper",
+   "note": "Used only as a secondary source quoting Bahamonde & Knudson 2001, Reid et al. 2008, Hornestam et al. 2021."
+  },
+  {
+   "id": "S5",
+   "title": "Should players serve using the foot-up or foot-back technique?",
+   "authors": "Martin C",
+   "year": 2015,
+   "url": "https://itfcoachingreview.com/index.php/journal/article/view/154",
+   "type": "article",
+   "note": "ITF Coaching & Sport Science Review. Quotes Elliott & Wood 1983 and Bahamonde & Knudson 2001."
+  },
+  {
+   "id": "S6",
+   "title": "ITF Coaching & Sport Science Review issue 84 (Aug 2021): aerial (AER) vs terrestrial (TER) servers (exact title not retrieved)",
+   "authors": "Martin C et al.",
+   "year": 2021,
+   "url": "https://itfcoachingreview.com/index.php/journal/article/download/201/653/764",
+   "type": "article",
+   "note": "9 AER (1.91 m, 79 kg) vs 10 TER (1.80 m, 72 kg) servers, 3D motion capture."
+  },
+  {
+   "id": "S7",
+   "title": "Types of serve stance and height of players. A study of the best servers in history",
+   "authors": "Vila Pascual J",
+   "year": 2023,
+   "url": "https://itfcoachingreview.com/index.php/journal/article/view/372",
+   "type": "article",
+   "note": "ITF CSSR 89:16-20. Top-50 ATP servers by serve-effectiveness ranking (5 Feb 2021)."
+  },
+  {
+   "id": "S8",
+   "title": "The Effects of Knee Flexion on Tennis Serve Performance of Intermediate Level Tennis Players",
+   "authors": "Hornestam JF et al.",
+   "year": 2021,
+   "url": "https://www.mdpi.com/1424-8220/21/16/5254",
+   "type": "paper",
+   "note": "Sensors 21(16):5254. 32 junior players, inertial sensors."
+  },
+  {
+   "id": "S9",
+   "title": "Influence of restricted knee motion during the flat first serve in tennis",
+   "authors": "Girard O, Micallef JP, Millet GP",
+   "year": 2007,
+   "url": "https://researchportal.murdoch.edu.au/esploro/outputs/journalArticle/Influence-of-restricted-knee-motion-during/991005540772107891",
+   "type": "paper",
+   "note": "J Strength Cond Res 21(3):950-957. 30 players (beginner / intermediate / elite); knees splinted at 10 deg."
+  },
+  {
+   "id": "S10",
+   "title": "Lower-limb coordination and shoulder joint mechanics in the tennis serve",
+   "authors": "Reid M, Elliott B, Alderson J",
+   "year": 2008,
+   "url": "https://lida.sport-iat.de/ta/Record/4013870?lng=en",
+   "type": "paper",
+   "note": "Med Sci Sports Exerc 40(2). 12 high-performance males; foot-up, foot-back, arm-only; 12-camera Vicon 250 Hz."
+  },
+  {
+   "id": "S11",
+   "title": "Ball spin in the tennis serve: spin rate and axis of rotation",
+   "authors": "Sakurai S, Reid M, Elliott B",
+   "year": 2013,
+   "url": "https://lida.sport-iat.de/twm/Record/4028109?lng=en",
+   "type": "paper",
+   "note": "Sports Biomechanics 12(1):23-29. Elite male players. Erratum: flat-serve spin SD is 56.3 not 6.3 rad/s."
+  },
+  {
+   "id": "S12",
+   "title": "Kinematics differences between the flat, kick, and slice serves measured using a markerless motion capture method",
+   "authors": "Sheets AL, Abrams GD, Corazza S, Safran MR, Andriacchi TP",
+   "year": 2011,
+   "url": "https://stanfordhealthcare.org/publications/113/113525.html",
+   "type": "paper",
+   "note": "Ann Biomed Eng 39(12):3011-3020. 7 NCAA Division I men, 8-camera markerless capture."
+  },
+  {
+   "id": "S13",
+   "title": "Comparing the pre- and post-impact ball and racquet kinematics of elite tennis players' first and second serves: a preliminary study",
+   "authors": "Chow JW, Carlton LG, Lim YT, et al.",
+   "year": 2003,
+   "url": "https://research.knu.ac.kr/en/publications/comparing-the-pre-and-post-impact-ball-and-racquet-kinematics-of-/",
+   "type": "paper",
+   "note": "J Sports Sci 21(7):529-537. 4 male + 4 female pros in competition, two 200 Hz cameras."
+  },
+  {
+   "id": "S14",
+   "title": "Chow et al. ISBS conference papers on elite serves (directional control; male vs female ball location at impact)",
+   "authors": "Chow JW et al.",
+   "year": null,
+   "url": "https://ojs.ub.uni-konstanz.de/cpa/article/view/798",
+   "type": "paper",
+   "note": "Search snippet: 'for both sexes, the ball location at impact was about 0.8 m in front of the LT' (LT not defined in snippet; probably left toe)."
+  },
+  {
+   "id": "S15",
+   "title": "Serving to different locations: set-up, toss, and racket kinematics of the professional tennis serve",
+   "authors": "Reid M, Whiteside D, Elliott B",
+   "year": 2011,
+   "url": "https://vuir.vu.edu.au/32014/",
+   "type": "paper",
+   "note": "Sports Biomechanics 10(4):407-414. 6 professional right-handers, 22-camera Vicon 250 Hz."
+  },
+  {
+   "id": "S16",
+   "title": "ISBS conference paper on professional first vs second serve impact position (exact title not retrieved)",
+   "authors": "Reid M, Whiteside D, Elliott B (probable)",
+   "year": null,
+   "url": "https://ojs.ub.uni-konstanz.de/cpa/article/view/4850",
+   "type": "paper",
+   "note": "Search snippet: second serve contacted 0.20-0.25 m further left, 0.15-0.20 m closer to the baseline, similar impact height (~2.74 m). Attribution to this URL is probable, not confirmed."
+  },
+  {
+   "id": "S17",
+   "title": "Effects of Lumbar Spine Abnormality and Serve Types on Lumbar Kinematics in Elite Adolescent Tennis Players",
+   "authors": "Connolly M et al.",
+   "year": 2021,
+   "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7801574/",
+   "type": "paper",
+   "note": "Sports Medicine - Open. 24 elite adolescents."
+  },
+  {
+   "id": "S18",
+   "title": "A Systematic Review of Spatial Differences of the Ball Impact within the Serve Type at Professional and Junior Tennis Players",
+   "authors": "Vacek J, Vagner M, Cleather DJ, Stastny P",
+   "year": 2023,
+   "url": "https://www.mdpi.com/2076-3417/13/6/3586",
+   "type": "paper",
+   "note": "Appl Sci 13:3586. 10 articles, 133 males + 51 females aged 11-25. Axis tables not retrieved."
+  },
+  {
+   "id": "S19",
+   "title": "ISBS conference paper: kinematics of flat vs spin serve in six elite male players (title not retrieved)",
+   "authors": "unknown",
+   "year": null,
+   "url": "https://ojs.ub.uni-konstanz.de/cpa/article/view/1294",
+   "type": "paper",
+   "note": "Search snippet: maximum trunk dorsiflexion before impact about 25 deg (spin serve) vs 18 deg (flat serve)."
+  },
+  {
+   "id": "S20",
+   "title": "Research into practice: the service action (coaching review quoting Brody 1985)",
+   "authors": "Elliott B, Marsh T",
+   "year": null,
+   "url": "https://ojs.ub.uni-konstanz.de/cpa/article/view/3485",
+   "type": "article"
+  },
+  {
+   "id": "S21",
+   "title": "Hitting 150 mph Serves (TennisOne)",
+   "authors": "Brody H",
+   "year": null,
+   "url": "https://tennisone.tennisplayer.net/club/lessons/brody/serve/150.php",
+   "type": "article"
+  },
+  {
+   "id": "S22",
+   "title": "Unforced errors and error reduction in tennis",
+   "authors": "Brody H",
+   "year": 2006,
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2577482",
+   "type": "paper",
+   "note": "Br J Sports Med 40(5):397-400."
+  },
+  {
+   "id": "S23",
+   "title": "Fast serves don't make sense unless you factor in physics",
+   "authors": "Blazevich A",
+   "year": 2019,
+   "url": "https://theconversation.com/fast-serves-dont-make-sense-unless-you-factor-in-physics-106937",
+   "type": "article"
+  },
+  {
+   "id": "S24",
+   "title": "Tennis court dimensions (ITF Rules of Tennis, Rule 1; Tennis Australia page)",
+   "authors": "ITF / Tennis Australia",
+   "year": null,
+   "url": "https://tennis.com.au/learn/courts-and-surfaces/dimensions",
+   "type": "article"
+  },
+  {
+   "id": "S25",
+   "title": "Here's Why Jannik Sinner Has Become A Super Server...",
+   "authors": "ATP Tour (TDI Insights)",
+   "year": 2023,
+   "url": "https://www.atptour.com/en/news/sinner-serving-up-success-turin-2023",
+   "type": "stats"
+  },
+  {
+   "id": "S26",
+   "title": "Sinner's Serve (The Racquet, Substack)",
+   "authors": "The Racquet",
+   "year": 2021,
+   "url": "https://theracquet.substack.com/p/sinners-serve",
+   "type": "article"
+  },
+  {
+   "id": "S27",
+   "title": "Swiatek, Sinner, Alcaraz and more tinker with technique ahead of 2025 US Open",
+   "authors": "usopen.org",
+   "year": 2025,
+   "url": "https://www.usopen.org/amp/en_US/news/articles/2025-08-27/swiatek_sinner_alcaraz_and_more_tinker_with_technique_ahead_of_2025_us_open.html",
+   "type": "article"
+  },
+  {
+   "id": "S28",
+   "title": "Cahill, Vagnozzi break down the serve secrets behind Sinner's Nitto ATP Finals win",
+   "authors": "ATP Tour",
+   "year": 2025,
+   "url": "https://www.atptour.com/en/news/vagnozzi-cahill-sinner-nitto-atp-finals-2025-title-reaction",
+   "type": "article"
+  },
+  {
+   "id": "S29",
+   "title": "The Power and Technique Behind Jannik Sinner's Unbeatable Serve",
+   "authors": "Sports Illustrated",
+   "year": 2025,
+   "url": "https://www.si.com/onsi/serve/news/power-technique-behind-jannik-sinners-unbeatable-serve-01m3z0c061fx",
+   "type": "article"
+  },
+  {
+   "id": "S30",
+   "title": "Roddick denies the resemblance between Alcaraz's serve and Djokovic's",
+   "authors": "Punto de Break / Tennishead (reporting A. Roddick podcast)",
+   "year": 2026,
+   "url": "https://www.puntodebreak.com/en/2026/02/26/roddick-denies-the-resemblance-between-alcarazs-serve-and-djokovics",
+   "type": "article"
+  },
+  {
+   "id": "S31",
+   "title": "Why I Prefer the Pinpoint Stance",
+   "authors": "Dougherty P",
+   "year": 2024,
+   "url": "https://www.tennisplayer.net/article/why-i-prefer-the-pinpoint-stance/",
+   "type": "article"
+  },
+  {
+   "id": "S32",
+   "title": "Platform vs pinpoint serve stance (DadRacket)",
+   "authors": "DadRacket",
+   "year": null,
+   "url": "https://dadracket.com/?p=1445",
+   "type": "article"
+  },
+  {
+   "id": "S33",
+   "title": "Types of Serves (Human Kinetics book excerpt)",
+   "authors": "Human Kinetics",
+   "year": null,
+   "url": "https://us.humankinetics.com/blogs/excerpt/types-of-serves",
+   "type": "article"
+  },
+  {
+   "id": "S34",
+   "title": "Interactive Forum October 2022: Carlos Alcaraz Serve",
+   "authors": "tennisplayer.net forum",
+   "year": 2022,
+   "url": "https://forum.tennisplayer.net/98692-interactive-forum-october-2022-carlos-alcaraz-serve",
+   "type": "article"
+  },
+  {
+   "id": "S35",
+   "title": "Carlos Alcaraz serve changes 2024-2026 (Tennis365 / Punto de Break / Tennis.com coverage)",
+   "authors": "various",
+   "year": 2026,
+   "url": "https://www.tennis.com/news/articles/carlos-alcaraz-talks-new-serve-motion-novak-djokovic-similarities-at-2026-australian-open",
+   "type": "article"
+  },
+  {
+   "id": "S36",
+   "title": "The evolution of champions: How the WTA's best continue to adapt",
+   "authors": "WTA Tennis",
+   "year": 2025,
+   "url": "https://www.wtatennis.com/news/4224437/the-evolution-of-champions-how-the-wtas-best-continue-to-adapt",
+   "type": "article"
+  },
+  {
+   "id": "S37",
+   "title": "Serena Williams Serve Analysis",
+   "authors": "The Tennis Bros",
+   "year": null,
+   "url": "https://thetennisbros.com/tennis-tips/pro-tennis/serena-williams-serve-analysis/",
+   "type": "article"
+  },
+  {
+   "id": "S38",
+   "title": "The Serve: Where Are We Now? The Women",
+   "authors": "Yandell J",
+   "year": null,
+   "url": "https://www.tennisplayer.net/public/avancedtennis/john_yandell/modern_tennis/what_have_we_learned_serve/the_women",
+   "type": "article"
+  },
+  {
+   "id": "S39",
+   "title": "Interactive Forum March 2024: Iga Swiatek Serve",
+   "authors": "tennisplayer.net forum",
+   "year": 2024,
+   "url": "https://forum.tennisplayer.net/103555-interactive-forum-march-2024-iga-swiatek-serve",
+   "type": "article"
+  },
+  {
+   "id": "S40",
+   "title": "'We changed the whole movement': Swiatek and Gauff on new serve techniques",
+   "authors": "WTA Tennis",
+   "year": 2024,
+   "url": "https://wtatennis.com/news/4032548/we-changed-the-whole-movement-swiatek-and-gauff-on-new-serve-techniques",
+   "type": "article"
+  },
+  {
+   "id": "S41",
+   "title": "Naomi Osaka - Japanese tennis prodigy - service analysis",
+   "authors": "CPTA",
+   "year": 2016,
+   "url": "https://cpta-tennis.org/naomi-osaka-analysis-of-the-japanese-tennis-prodigy-1-service/",
+   "type": "article"
+  },
+  {
+   "id": "S42",
+   "title": "EssentiallySports: analyst on Coco Gauff's serve flaw vs Sabalenka (stance comment)",
+   "authors": "EssentiallySports",
+   "year": 2024,
+   "url": "https://www.essentiallysports.com/wta-tennis-news-coco-gauffs-flaw-becomes-aryna-sabalenkas-biggest-strength-as-expert-analyst-opens-up-on-her-successful-two-thousand-twenty-four-season",
+   "type": "article"
+  },
+  {
+   "id": "S43",
+   "title": "Sabalenka: Two Keys to Rebuilding Serve with Coach MacMillan / Gauff hires MacMillan (Tennis Now, WTA)",
+   "authors": "Tennis Now; WTA Tennis",
+   "year": 2025,
+   "url": "https://tennisnow.com/sabalenka-two-keys-to-rebuilding-serve-with-coach-macmillan/",
+   "type": "article"
+  },
+  {
+   "id": "S44",
+   "title": "ATP 2025 scorecards: Mpetshi Perricard leads average first-serve speed",
+   "authors": "ATP Tour",
+   "year": 2025,
+   "url": "https://www.atptour.com/en/news/scorecards-mpetshi-perricard-first-serve-speed",
+   "type": "stats"
+  },
+  {
+   "id": "S45",
+   "title": "Average / fastest tennis serve speeds (Tennis Creative, using Tennis Abstract data)",
+   "authors": "Tennis Creative",
+   "year": null,
+   "url": "https://tenniscreative.com/?p=708",
+   "type": "stats",
+   "note": "Date and data window not visible in the search result."
+  },
+  {
+   "id": "S46",
+   "title": "Secondary-site figures for 2024-25 ATP serve speeds (search summary; not resolved to a single page)",
+   "authors": "various (Tennis Gazette, Tennis365, others)",
+   "year": 2025,
+   "url": "https://www.thetennisgazette.com/news/the-official-five-best-servers-on-the-atp-tour-this-season-include-two-american-players/",
+   "type": "stats",
+   "note": "Sinner 122 mph vs 119 in 2024; Alcaraz 121 mph in 2024; ATP tour average quoted as 116-119 mph first / 94 mph second. Treat as approximate."
+  },
+  {
+   "id": "S47",
+   "title": "Speed and Spin in the Current Women's Game",
+   "authors": "Fawcette J",
+   "year": 2023,
+   "url": "https://www.tennisplayer.net/public/notes_on_tour/jim_fawcette/speed_and_spin_women_2023",
+   "type": "stats",
+   "note": "Roland Garros 2023 speed averages; units inferred as mph."
+  },
+  {
+   "id": "S48",
+   "title": "The Oddity of Naomi Osaka's Soft Second Serves",
+   "authors": "Sackmann J (Tennis Abstract)",
+   "year": 2019,
+   "url": "https://www.tennisabstract.com/blog/?p=3284",
+   "type": "stats"
+  },
+  {
+   "id": "S49",
+   "title": "Wimbledon serve speed is trending in the wrong direction",
+   "authors": "O'Shannessy C (Brain Game Tennis)",
+   "year": 2023,
+   "url": "https://www.braingametennis.com/wimbledon-serve-speed-is-trending-in-the-wrong-direction/",
+   "type": "stats"
+  },
+  {
+   "id": "S50",
+   "title": "Informal stroke speed survey of US players (Tennis Speed Research blog)",
+   "authors": "Tennis Speed Research",
+   "year": 2007,
+   "url": "https://tennisspeedresearch.blogspot.com/2007/11/informal-stroke-speed-survey-of-us.html",
+   "type": "article",
+   "note": "Informal radar survey; only the NTRP 4.0 numbers were visible."
+  },
+  {
+   "id": "S51",
+   "title": "Advanced Tennis Research Project: spin on the Sampras serve (tennisplayer.net)",
+   "authors": "Yandell J et al.",
+   "year": null,
+   "url": "https://www.tennisplayer.net/?p=4511",
+   "type": "article"
+  },
+  {
+   "id": "S52",
+   "title": "The Three Service Rhythms",
+   "authors": "Eng D",
+   "year": null,
+   "url": "https://old.tennisplayer.net/members/tour_strokes/doug_eng/the_three_service_rhythms/index.html",
+   "type": "article",
+   "note": "Video study of 36 pros (23 ATP, 13 WTA); not peer-reviewed."
+  },
+  {
+   "id": "S53",
+   "title": "How a Lower Ball Toss Can Help Your Serve",
+   "authors": "Tennis View Magazine",
+   "year": null,
+   "url": "https://www.tennisviewmag.com/print/1916",
+   "type": "article"
+  },
+  {
+   "id": "S54",
+   "title": "3D Data Weigh In On Pro Tossing",
+   "authors": "Shaughnessy JR (USPTA)",
+   "year": null,
+   "url": "https://www.uspta.com/USPTA/Membership/Member_Resources/ADDvantage_Articles/3D_Data_Weight_In_On_Pro_Tossing.aspx",
+   "type": "article"
+  },
+  {
+   "id": "S55",
+   "title": "Yandell serve analyses on tennisplayer.net (Your Strokes; The Serve: Where Are We Now?)",
+   "authors": "Yandell J",
+   "year": null,
+   "url": "https://www.tennisplayer.net/members/avancedtennis/john_yandell/modern_tennis/what_have_we_learned_serve/part_01",
+   "type": "article"
+  },
+  {
+   "id": "S56",
+   "title": "Jump height analysis on tennis serve",
+   "authors": "unknown (see record)",
+   "year": null,
+   "url": "https://lida.sport-iat.de/ta/Record/4048110",
+   "type": "paper",
+   "note": "8 players (4 elite, 4 professional), high-speed video."
+  },
+  {
+   "id": "S57",
+   "title": "Kinematic differences between professionals and young players in the tennis serve",
+   "authors": "Mourtzios C, Athanailidis I, Kellis E, Arvanitidou V",
+   "year": 2021,
+   "url": "https://itfcoachingreview.com/index.php/journal/article/view/52",
+   "type": "article",
+   "note": "ITF CSSR 83:25-27. 12 juniors (12-16 y) vs 12 Roland Garros main-draw pros; OptiTrack."
+  },
+  {
+   "id": "S58",
+   "title": "Kinematic differences between female national and provincial athletes in the tennis serve",
+   "authors": "Chen et al.",
+   "year": 2024,
+   "url": "https://peerj.com/articles/18410",
+   "type": "paper",
+   "note": "PeerJ 12:e18410. 5 national (23.6 y) vs 5 provincial (17.6 y) women; 1,000 fps 3D video."
+  },
+  {
+   "id": "S59",
+   "title": "테니스 서브 스탠스 유형별 하지관절 모멘트의 패턴 연구",
+   "authors": "한국운동역학회지 (authors not retrieved)",
+   "year": 2008,
+   "url": "https://koreascience.kr/article/JAKO200834939517302.page?lang=ko",
+   "type": "paper",
+   "note": "한국운동역학회지 18(2):41-48. 우수 고등부 선수 7명, VICON. Companion kinematics paper: JAKO200834939517665."
+  },
+  {
+   "id": "S60",
+   "title": "플랫 서브 스탠스(핀포인트/플랫폼) 비교 연구",
+   "authors": "이건희, 정익수",
+   "year": 2017,
+   "url": "https://www.earticle.net/Article/A309738",
+   "type": "paper",
+   "note": "Search snippet only: pinpoint reduced total motion time by 0.04 s."
+  },
+  {
+   "id": "S61",
+   "title": "Fix the \"Waiter's Tray\" in Your Serve",
+   "authors": "Active.com",
+   "year": null,
+   "url": "https://www.active.com/tennis/articles/fix-the-waiter-s-tray-in-your-serve",
+   "type": "article"
+  },
+  {
+   "id": "S62",
+   "title": "How to stop your serve from going into the net",
+   "authors": "USTA Net Generation (R. Macci)",
+   "year": null,
+   "url": "https://netgeneration.usta.com/us-en/special-features-and-stories/how-to-stop-your-serve-from-going-into-the-net.html",
+   "type": "article"
+  },
+  {
+   "id": "S63",
+   "title": "Essential Tennis: why serves go long (toss too far back, collapsing arm)",
+   "authors": "Essential Tennis",
+   "year": null,
+   "url": "https://www.essentialtennis.com/?p=28246",
+   "type": "article"
+  },
+  {
+   "id": "S64",
+   "title": "Tip: Better toss for a better serve",
+   "authors": "Tennis.com",
+   "year": null,
+   "url": "https://www.tennis.com/news/articles/tip-better-toss-for-a-better-serve",
+   "type": "article"
+  },
+  {
+   "id": "S65",
+   "title": "High Level Serving Breakdown / serve-fault videos",
+   "authors": "CoachLife",
+   "year": null,
+   "url": "https://www.coachlife.com/videos/high-level-serving-breakdown",
+   "type": "article"
+  },
+  {
+   "id": "S66",
+   "title": "Fixing serve errors and placing serves",
+   "authors": "platformtennis.org",
+   "year": 2023,
+   "url": "https://platformtennis.org/news/post/2023/10/14/fixing-serve-errors-and-placing-serves/67",
+   "type": "article"
+  },
+  {
+   "id": "S67",
+   "title": "Win more matches with the full-swing serve (Human Kinetics excerpt)",
+   "authors": "Human Kinetics",
+   "year": null,
+   "url": "https://us.humankinetics.com/blogs/excerpt/win-more-matches-with-the-full-swing-serve",
+   "type": "article"
+  },
+  {
+   "id": "S68",
+   "title": "The Hidden Link in the Kinematic Chain: The Influence of the Tossing Arm on Head and Serve Kinematics in Tennis",
+   "authors": "Newton, Girard O, Chin, Reid M",
+   "year": 2025,
+   "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12294548/",
+   "type": "paper",
+   "note": "Eur J Sport Sci. 10 high-performance males, 10-camera 250 Hz; normal vs early vs late tossing-arm adduction."
+  },
+  {
+   "id": "S69",
+   "title": "Abbreviated vs traditional serve (Tennis View 'Short n Sweet'; EMG comparison study record)",
+   "authors": "various",
+   "year": null,
+   "url": "https://lida.sport-iat.de/twm/Record/4014656",
+   "type": "article"
+  },
+  {
+   "id": "S70",
+   "title": "Federer's Serve: A Model of Perfection (Active.com) and tennisinstruction.com serve-motion advice",
+   "authors": "various coaches",
+   "year": null,
+   "url": "https://www.active.com/tennis/Articles/Federers-Serve-A-Model-of-Perfection.htm",
+   "type": "article"
+  },
+  {
+   "id": "S71",
+   "title": "Toss placement by serve type (Long Island Tennis Magazine; Artengo; Human Kinetics)",
+   "authors": "various coaches",
+   "year": null,
+   "url": "https://artengo.com/tennis-technique-different-throws-for-serving",
+   "type": "article"
+  },
+  {
+   "id": "S72",
+   "title": "Technique Tuesday: Elena Rybakina serves notice with efficient delivery (Tennis.com) / Red Bull profile / Tennis365 2025 stats",
+   "authors": "Tennis.com; Red Bull; Tennis365",
+   "year": 2023,
+   "url": "https://redbull.com/int-en/wta-finals-2023-elena-rybakina-profile",
+   "type": "article"
+  },
+  {
+   "id": "S73",
+   "title": "Gauff's Goal: Bring the Heat (Tennis Now, July 2024) / Gauff revels in 128 mph serve (Tennis.com)",
+   "authors": "Tennis Now; Tennis.com",
+   "year": 2024,
+   "url": "https://tennisnow.com/Blogs/NET-POSTS/July-2024/Gauff-s-Goal-Bring-the-Heat.aspx",
+   "type": "stats"
+  },
+  {
+   "id": "S74",
+   "title": "Fastest recorded tennis serves",
+   "authors": "Wikipedia (mirrors)",
+   "year": null,
+   "url": "https://en.wikipedia.org/wiki/Fastest_recorded_tennis_serves",
+   "type": "stats"
+  },
+  {
+   "id": "S75",
+   "title": "Comparison of upper limb's biomechanics parameters in tennis in terms of sports level",
+   "authors": "unknown (see record)",
+   "year": null,
+   "url": "https://lida.sport-iat.de/ta/Record/4091008",
+   "type": "paper",
+   "note": "One player per level (elite / advanced / beginner), 8-camera motion capture; not generalisable."
+  },
+  {
+   "id": "S76",
+   "title": "Redefining spatial consistency in the ball toss of the professional female tennis serve",
+   "authors": "Whiteside D, Giblin G, Reid M",
+   "year": 2014,
+   "url": "https://core.ac.uk/works/132808902",
+   "type": "paper",
+   "note": "8 professional women, 500 Hz optical capture."
+  },
+  {
+   "id": "S77",
+   "title": "College tennis players' first-serve speed (DergiPark article; title not retrieved)",
+   "authors": "unknown",
+   "year": null,
+   "url": "https://dergipark.org.tr/en/download/article-file/2781997",
+   "type": "paper",
+   "note": "15 male + 14 female college players, radar gun."
+  },
+  {
+   "id": "S78",
+   "title": "Review of international players' serve speeds (search summary; exact citation not resolved)",
+   "authors": "unknown",
+   "year": null,
+   "url": "https://keele-repository.worktribe.com/OutputFile/464038",
+   "type": "paper",
+   "note": "Men 182 km/h [178,187] first, 149 [135,164] second; women 156 / 134 km/h."
+  },
+  {
+   "id": "S79",
+   "title": "Preliminary kinematic analysis of the serve in 10 and under players",
+   "authors": "ITF Coaching & Sport Science Review",
+   "year": null,
+   "url": "https://itfcoachingreview.com/index.php/journal/article/view/275",
+   "type": "article"
+  },
+  {
+   "id": "S80",
+   "title": "Forum thread on Pat Dougherty's pinpoint article (mentions a Taylor Fritz serve lesson)",
+   "authors": "tennisplayer.net forum",
+   "year": 2024,
+   "url": "https://forum.tennisplayer.net/forum/tennisplayer/103841-why-i-prefer-the-pinpoint-stance",
+   "type": "article"
+  },
+  {
+   "id": "S81",
+   "title": "PlayYourCourt serve-stance article (pinpoint: Isner etc.)",
+   "authors": "PlayYourCourt",
+   "year": null,
+   "url": "https://www.playyourcourt.com/news/?p=9425",
+   "type": "article"
+  },
+  {
+   "id": "S82",
+   "title": "Kovacs Academy note on knee bend cueing",
+   "authors": "Kovacs M",
+   "year": null,
+   "url": "https://kovacsacademy.com/?p=7147",
+   "type": "article"
+  },
+  {
+   "id": "S83",
+   "title": "Serve (tennis)",
+   "authors": "Wikipedia",
+   "year": null,
+   "url": "https://en.wikipedia.org/wiki/Serve_(tennis)",
+   "type": "article"
+  },
+  {
+   "id": "S84",
+   "title": "Osaka on Emulating Kyrgios Serve",
+   "authors": "Tennis Now",
+   "year": 2022,
+   "url": "https://tennisnow.com/Blogs/NET-POSTS/March-2022-(1)/Osaka-on-Emulating-Kyrgios-Serve.aspx",
+   "type": "article"
+  }
+ ]
+}

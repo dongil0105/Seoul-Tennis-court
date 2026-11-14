@@ -255,7 +255,19 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .cell .v.on{font-weight:600;color:var(--brand)}
 .cell .chev-r{width:20px;height:20px;color:var(--ink-4)}
 .cell:active{background:var(--press)}
-.foot{padding:16px 20px calc(28px + env(safe-area-inset-bottom));font-size:13px;line-height:1.6;color:var(--ink-3)}
+.foot{padding:16px 20px 28px;font-size:13px;line-height:1.6;color:var(--ink-3)}
+
+/* ── 아래 탭: 코트 오픈 ↔ 스윙 코치 ───────────────────── */
+.app{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
+.tabs{position:fixed;left:50%;bottom:0;z-index:30;transform:translateX(-50%);display:grid;grid-template-columns:1fr 1fr;
+  width:100%;max-width:520px;padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--line);
+  background:var(--bg);background:color-mix(in srgb,var(--bg) 96%,transparent);
+  -webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px)}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:56px;
+  font-size:11px;font-weight:600;color:var(--ink-3)}
+.tab svg{width:24px;height:24px}
+.tab.on{color:var(--brand)}
+.tab:active{background:var(--press)}
 
 /* ── 알림 시트 ────────────────────────────────────────── */
 dialog{width:100%;max-width:520px;max-height:90vh;max-height:min(90dvh,760px);margin:auto auto 0;padding:0;border:0;
@@ -302,7 +314,7 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
 .sheet-foot{margin-top:12px}
 
 /* ── 토스트 · 뼈대 ────────────────────────────────────── */
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));z-index:60;
+.toast{position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom));z-index:60;
   max-width:min(92vw,440px);padding:12px 16px;border-radius:12px;background:var(--ink);color:var(--bg);
   font-size:14px;font-weight:500;text-align:center;opacity:0;transform:translate(-50%,8px);pointer-events:none;
   transition:opacity .2s,transform .2s}
@@ -379,6 +391,11 @@ dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
     <footer class="foot">서울시 공공서비스예약에 올라온 정보를 그대로 보여 드려요. ‘공지 일정’은 시설 안내문에 적힌 정기 오픈 날짜라 실제와 다를 수 있어요.</footer>
   </main>
 </div>
+
+<nav class="tabs" id="tabs" aria-label="화면 바꾸기">
+  <a class="tab on" aria-current="page" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3" width="15" height="18" rx="1.5"/><path d="M4.5 12h15M8 3v18M16 3v18M8 7.5h8M8 16.5h8"/></svg><span>코트 오픈</span></a>
+  <a class="tab" href="/coach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="14.6" cy="8.6" rx="4.6" ry="6" transform="rotate(38 14.6 8.6)"/><path d="M10.9 13.3 5 20.5"/><circle cx="5.6" cy="6.4" r="1.7"/></svg><span>스윙 코치</span></a>
+</nav>
 
 <dialog id="sheet" aria-labelledby="sheet-title">
   <div class="sheet">

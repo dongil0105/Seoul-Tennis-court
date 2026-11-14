@@ -1,0 +1,3867 @@
+{
+ "_meta": {
+  "generated": "2026-11-14",
+  "method": "Web search result summaries/abstract snippets only. Page fetching was blocked in this session (pmc.ncbi.nlm.nih.gov and www.jssm.org are outside the allowed network domains) and the shared web-search budget ran out, so table values come from snippets and were not checked against full texts. source_id 'CALC' = own simulation; 'memory' = unverified prior knowledge.",
+  "angle_conventions": "Shoulder/hip 'alignment' or 'turn': 0 = line parallel to the net (chest facing net), 90 = side-on. Elbow/knee 'included angle': 180 = straight. 'flexion': 0 = straight. Racket face: degrees closed (tilted forward) from vertical. Launch/path angles: degrees above horizontal.",
+  "units_note": "Besides the requested units, a few metrics use deg/s, m/s and %.",
+  "handedness": "All left/right wording assumes a right-handed player."
+ },
+ "metrics": [
+  {
+   "id": "fh_unit_turn_shoulder_angle",
+   "stroke": "forehand",
+   "definition": "Shoulder-line angle to the baseline at the end of the initial unit turn (0 = facing net, 90 = side-on)",
+   "phase": "ready",
+   "population": "elite_mixed",
+   "mean": 45,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S38",
+   "note": "Yandell high-speed video description: 'unit turn gets the shoulders to about 45 degrees'. Qualitative video estimate, not mocap."
+  },
+  {
+   "id": "fh_full_turn_shoulder_angle",
+   "stroke": "forehand",
+   "definition": "Shoulder-line angle to the baseline at completion of the full turn (end of backswing)",
+   "phase": "backswing",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    90,
+    110
+   ],
+   "unit": "deg",
+   "source_id": "S38",
+   "note": "Yandell: 'at least 90 degrees to the baseline, usually a little more'; full left-arm stretch across the body adds another 10-20 deg past perpendicular. Medvedev is ~90 because his left elbow stays bent."
+  },
+  {
+   "id": "fh_separation_angle_max_elite",
+   "stroke": "forehand",
+   "definition": "Maximum shoulder-vs-pelvis (hip) separation angle; negative = shoulders rotated further back than hips",
+   "phase": "backswing",
+   "population": "elite_men",
+   "mean": -27.0,
+   "sd": 8.9,
+   "range": [
+    -28.7,
+    -25.4
+   ],
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "ATP professionals n=6, 400 Hz Vicon. Range = cross-court (-28.7, SD 9.5) vs down-the-line (-25.4, SD 8.9). Column labels were inferred from the table row surfaced in a search snippet (third value equals the mean of the first two); not checked against full text."
+  },
+  {
+   "id": "fh_separation_angle_max_high_performance",
+   "stroke": "forehand",
+   "definition": "Same as above for high-performance (national-level, non-ATP) players",
+   "phase": "backswing",
+   "population": "elite_men",
+   "mean": -33.0,
+   "sd": 9.8,
+   "range": [
+    -34.7,
+    -31.2
+   ],
+   "unit": "deg",
+   "source_id": "S1",
+   "note": "n=7. Cross-court -34.7 (SD 10.1), down-the-line -31.2 (SD 9.9). Group differences in peak angles were NOT significant - the paper says max racquet/shoulder/hip alignment angles were similar between levels; timing differed. Label inference as above."
+  },
+  {
+   "id": "fh_trunk_rotation_change_with_speed",
+   "stroke": "forehand",
+   "definition": "Relative increase of peak trunk axial rotation (before impact) when ball speed goes from slow to fast",
+   "phase": "backswing",
+   "population": "elite_mixed",
+   "mean": 28,
+   "sd": null,
+   "range": null,
+   "unit": "%",
+   "source_id": "S4",
+   "note": "Seeley 2011: several dominant-side peak joint angles prior to impact increased from slow to fast forehands: trunk rotation +28%, knee flexion +27%. Absolute degrees not captured."
+  },
+  {
+   "id": "fh_knee_flexion_change_with_speed",
+   "stroke": "forehand",
+   "definition": "Relative increase of peak knee flexion before impact, slow -> fast forehand",
+   "phase": "loading",
+   "population": "elite_mixed",
+   "mean": 27,
+   "sd": null,
+   "range": null,
+   "unit": "%",
+   "source_id": "S4",
+   "note": "Harder shots = deeper knee bend. Absolute values not captured."
+  },
+  {
+   "id": "fh_knee_included_angle_front_after_backswing",
+   "stroke": "forehand",
+   "definition": "Front (left, for right-hander) knee included angle after the backswing (180 = straight leg)",
+   "phase": "loading",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    128.7,
+    140.4
+   ],
+   "unit": "deg",
+   "source_id": "S72",
+   "note": "Two groups of 6 players (group means 128.7 and 140.4). Rear/right knee about 113-114 in both groups. Small sample, source only seen as ResearchGate listing - treat as indicative."
+  },
+  {
+   "id": "fh_knee_included_angle_rear_after_backswing",
+   "stroke": "forehand",
+   "definition": "Rear (right, for right-hander) knee included angle after the backswing (180 = straight leg)",
+   "phase": "loading",
+   "population": "elite_mixed",
+   "mean": 113.5,
+   "sd": null,
+   "range": [
+    113,
+    114
+   ],
+   "unit": "deg",
+   "source_id": "S72",
+   "note": "See above. i.e. roughly 65 deg of knee flexion on the loading leg."
+  },
+  {
+   "id": "fh_knee_flexion_ready_stance_optimum",
+   "stroke": "forehand",
+   "definition": "Optimum knee flexion in the preparatory (ready) stance for initiating quick trunk rotation",
+   "phase": "ready",
+   "population": "elite_mixed",
+   "mean": 24.8,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S26",
+   "note": "Yamamoto (1996) as cited in Nesbit et al. 2008. Flexion from straight (i.e. included angle about 155)."
+  },
+  {
+   "id": "fh_racket_speed_loss_restricted_knees",
+   "stroke": "forehand",
+   "definition": "Average loss of racket velocity when knee positioning and range of motion are reduced (stiff/straight legs) in a forward-dynamics model driven by real swings",
+   "phase": "loading",
+   "population": "elite_women",
+   "mean": 29,
+   "sd": null,
+   "range": null,
+   "unit": "%",
+   "source_id": "S26",
+   "note": "16 female college players, closed-stance forehand. Exaggerating knee motion also cost 17%. Rear-knee range of motion mattered more than its starting angle. Figures from a secondary copy of the abstract."
+  },
+  {
+   "id": "fh_open_stance_share_pro_matches",
+   "stroke": "forehand",
+   "definition": "Share of forehands hit from an open (incl. semi-open) stance in professional match play",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 83.6,
+   "sd": null,
+   "range": [
+    65.4,
+    83.6
+   ],
+   "unit": "%",
+   "source_id": "S24",
+   "note": "2,479 forehands by 20 professionals; no sex difference. Falls to 65.4% in favourable (time-rich) situations. Older, unsourced claim (Schonborn 1999): ~90%."
+  },
+  {
+   "id": "fh_square_vs_open_ball_speed_gain",
+   "stroke": "forehand",
+   "definition": "Median ball-speed gain of square (neutral) stance over open stance",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 5,
+   "sd": null,
+   "range": [
+    4,
+    6
+   ],
+   "unit": "km/h",
+   "source_id": "S25",
+   "note": "42 players, 3,280 shots: +6 km/h in lateral running, +4 km/h in diagonal-inside running; accuracy and metabolic cost not significantly different. Player level not verified (population tag approximate)."
+  },
+  {
+   "id": "fh_shoulder_line_at_contact",
+   "stroke": "forehand",
+   "definition": "Shoulder-line angle to the net at contact (0 = parallel to net / chest facing net, 90 = side-on)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    0,
+    45
+   ],
+   "unit": "deg",
+   "source_id": "S39",
+   "note": "Yandell: spectrum from ~45 deg (more neutral-stance hitters) to parallel to the net (open-stance, straight-arm hitters). Forward shoulder rotation from full turn to finish is ~90 deg (neutral stance) up to ~180 deg (common in pro open-stance forehands)."
+  },
+  {
+   "id": "fh_pelvis_angular_velocity_at_impact_elite",
+   "stroke": "forehand",
+   "definition": "Pelvis axial angular velocity at impact",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 295,
+   "sd": null,
+   "range": null,
+   "unit": "deg/s",
+   "source_id": "S2",
+   "note": "ATP pros 295 vs high-performance 168 deg/s. Unit extends the schema list."
+  },
+  {
+   "id": "fh_upper_trunk_angular_velocity_at_impact_elite",
+   "stroke": "forehand",
+   "definition": "Upper-trunk axial angular velocity at impact",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 453,
+   "sd": null,
+   "range": null,
+   "unit": "deg/s",
+   "source_id": "S2",
+   "note": "ATP pros 453 vs high-performance 292 deg/s. Levels differ in rotation speed/timing, not in peak angles."
+  },
+  {
+   "id": "fh_hitting_shoulder_linear_speed_elite",
+   "stroke": "forehand",
+   "definition": "Horizontal linear speed of the hitting shoulder (peak)",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 3.0,
+   "sd": 0.4,
+   "range": null,
+   "unit": "m/s",
+   "source_id": "S3",
+   "note": "Elite 3.0 +/- 0.4 vs high-performance 2.5 +/- 0.4 m/s (review citing Landlinger 2010a). The Sports Biomechanics abstract (S2) gives 2.0 vs 1.2 m/s at impact."
+  },
+  {
+   "id": "fh_elbow_angle_at_impact_eastern",
+   "stroke": "forehand",
+   "definition": "Hitting-arm elbow included angle at impact, eastern-grip players (180 = straight)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 130,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S3",
+   "note": "Review citing Elliott et al. 1989/1997: eastern grip ~130 deg, more western grips ~100 deg. Elbow and wrist positions at impact are stable shot-to-shot (Knudson 1990)."
+  },
+  {
+   "id": "fh_elbow_angle_at_impact_western",
+   "stroke": "forehand",
+   "definition": "Hitting-arm elbow included angle at impact, western-grip players",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 100,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S3",
+   "note": "See above."
+  },
+  {
+   "id": "fh_elbow_carrying_angle_pre_impact_atp_top25",
+   "stroke": "forehand",
+   "definition": "Frontal-plane carrying angle of the elbow measured on video frames with the elbow as close as possible to full extension just before impact",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 11.5,
+   "sd": 4.7,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S37",
+   "note": "Top-25 ATP players. Not a flexion angle; included only as evidence that many top men approach full elbow extension before contact."
+  },
+  {
+   "id": "fh_contact_height_hawkeye_men",
+   "stroke": "forehand",
+   "definition": "Average groundstroke contact height above the court (all groundstrokes, Hawk-Eye, Australian Open)",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 0.96,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S22",
+   "note": "About waist height. Secondary summary of Reid et al. Hawk-Eye work; extracted PDF text partly garbled. Roughly 0.51 x height for a 1.88 m player (height assumption from memory)."
+  },
+  {
+   "id": "fh_contact_height_hawkeye_women",
+   "stroke": "forehand",
+   "definition": "Average groundstroke contact height above the court (all groundstrokes, Hawk-Eye)",
+   "phase": "contact",
+   "population": "elite_women",
+   "mean": 0.94,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S22",
+   "note": "See above."
+  },
+  {
+   "id": "fh_contact_height_target_vendor",
+   "stroke": "forehand",
+   "definition": "Vendor target band for consistent contact height",
+   "phase": "contact",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    0.9,
+    1.1
+   ],
+   "unit": "m",
+   "source_id": "S43",
+   "note": "OnCourtAI goal-setting content ('90-110 cm in 90% of shots'). Vendor figure, not research."
+  },
+  {
+   "id": "fh_contact_forward_of_body_pat_cash",
+   "stroke": "forehand",
+   "definition": "Contact point distance in front of the body (reference = body/torso plane) for relaxed, balanced pros",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    5,
+    20
+   ],
+   "unit": "cm",
+   "source_id": "S42",
+   "note": "Pat Cash argues against reaching far out in front. Reference point is the torso, which explains the small number."
+  },
+  {
+   "id": "fh_contact_forward_of_front_hip_coaching",
+   "stroke": "forehand",
+   "definition": "Contact point distance in front of the lead (front) hip, at about waist height",
+   "phase": "contact",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    30,
+    46
+   ],
+   "unit": "cm",
+   "source_id": "S44",
+   "note": "Coaching guide: '12-18 inches in front of your lead hip, at waist height'. Not measured data."
+  },
+  {
+   "id": "fh_contact_forward_of_shoulder_vendor",
+   "stroke": "forehand",
+   "definition": "Wrist/contact distance in front of the hitting shoulder: vendor scoring bands",
+   "phase": "contact",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    20,
+    40
+   ],
+   "unit": "cm",
+   "source_id": "S43",
+   "note": "OnCourtAI: excellent 20-40 cm, good 10-20 cm, late <10 cm or behind the shoulder line, too early >40 cm (reaching). Same vendor claims Federer/Nadal/Djokovic contact 30-40 cm in front of the body. Product thresholds, unverified."
+  },
+  {
+   "id": "fh_contact_forward_too_far_korean_forum",
+   "stroke": "forehand",
+   "definition": "Distance in front of the front knee judged 'too far in front' by a Korean coaching forum answer",
+   "phase": "contact",
+   "population": "recreational",
+   "mean": 40,
+   "sd": null,
+   "range": null,
+   "unit": "cm",
+   "source_id": "S53",
+   "note": "tenniseye Q&A: ideal is 'slightly in front of the front knee' (also KATO S56); ~40 cm in front of the left knee is described as excessive. Anecdotal."
+  },
+  {
+   "id": "fh_racket_speed_club",
+   "stroke": "forehand",
+   "definition": "Racket (head) speed at impact, club players",
+   "phase": "contact",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    21,
+    24
+   ],
+   "unit": "m/s",
+   "source_id": "S3",
+   "note": "Review figure; professionals ~33 m/s."
+  },
+  {
+   "id": "fh_racket_speed_pro",
+   "stroke": "forehand",
+   "definition": "Racket (head) speed at impact, professionals",
+   "phase": "contact",
+   "population": "elite_men",
+   "mean": 33,
+   "sd": null,
+   "range": null,
+   "unit": "m/s",
+   "source_id": "S3",
+   "note": "See above."
+  },
+  {
+   "id": "fh_ball_speed_atp_tour_avg",
+   "stroke": "forehand",
+   "definition": "Average forehand ball speed, ATP Tour (Hawk-Eye / Tennis Data Innovations)",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 120,
+   "sd": null,
+   "range": [
+    117,
+    126
+   ],
+   "unit": "km/h",
+   "source_id": "S16",
+   "note": "Reported tour averages: 73 mph (2024 Sinner piece), ~75 mph (top-10 average, Oct 2024, S19), 76 mph (Mar 2025, S18), up to ~78 mph in a later Substack note. 73-78 mph = 117-126 km/h."
+  },
+  {
+   "id": "fh_topspin_atp_tour_avg",
+   "stroke": "forehand",
+   "definition": "Average forehand topspin, ATP Tour",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 2776,
+   "sd": null,
+   "range": [
+    2708,
+    2844
+   ],
+   "unit": "rpm",
+   "source_id": "S18",
+   "note": "2,708 rpm (2024, S16/S81) and 2,844 rpm (2025, S18). Mean field is just the midpoint."
+  },
+  {
+   "id": "fh_ball_speed_sinner_2024",
+   "stroke": "forehand",
+   "definition": "Jannik Sinner average forehand speed 2024",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 125.5,
+   "sd": null,
+   "range": null,
+   "unit": "km/h",
+   "source_id": "S16",
+   "note": "78 mph; spin 3,049 rpm."
+  },
+  {
+   "id": "fh_topspin_sinner_2024",
+   "stroke": "forehand",
+   "definition": "Jannik Sinner average forehand topspin 2024",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 3049,
+   "sd": null,
+   "range": null,
+   "unit": "rpm",
+   "source_id": "S16",
+   "note": "ESPN gives 3,041 rpm."
+  },
+  {
+   "id": "fh_ball_speed_alcaraz_2024",
+   "stroke": "forehand",
+   "definition": "Carlos Alcaraz average topspin-forehand speed 2024",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 125.5,
+   "sd": null,
+   "range": null,
+   "unit": "km/h",
+   "source_id": "S17",
+   "note": "78 mph."
+  },
+  {
+   "id": "fh_topspin_alcaraz_2024",
+   "stroke": "forehand",
+   "definition": "Carlos Alcaraz average topspin-forehand spin 2024",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 3208,
+   "sd": null,
+   "range": [
+    3177,
+    3208
+   ],
+   "unit": "rpm",
+   "source_id": "S17",
+   "note": "3,208 rpm overall; 3,177 rpm on outdoor hard. Casper Ruud 3,291 rpm on clay."
+  },
+  {
+   "id": "fh_ball_speed_usopen2024_top",
+   "stroke": "forehand",
+   "definition": "Average forehand speed at US Open 2024 for four headline players",
+   "phase": "whole",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    122,
+    129
+   ],
+   "unit": "km/h",
+   "source_id": "S21",
+   "note": "Sabalenka 129, Alcaraz 127, Sinner 125, Djokovic 122 km/h."
+  },
+  {
+   "id": "fh_ball_speed_wta_top100_avg",
+   "stroke": "forehand",
+   "definition": "Average forehand speed, WTA top 100 (derived)",
+   "phase": "whole",
+   "population": "elite_women",
+   "mean": 114.6,
+   "sd": null,
+   "range": null,
+   "unit": "km/h",
+   "source_id": "S20",
+   "note": "Derived: Rybakina 122.6 km/h is 'almost 8 km/h faster than the WTA top-100 average' (AO 2023). Sabalenka 123.4 km/h."
+  },
+  {
+   "id": "fh_topspin_wta_top100_avg",
+   "stroke": "forehand",
+   "definition": "Average forehand topspin, WTA top 100 (derived)",
+   "phase": "whole",
+   "population": "elite_women",
+   "mean": 2121,
+   "sd": null,
+   "range": null,
+   "unit": "rpm",
+   "source_id": "S20",
+   "note": "Derived: Rybakina 2,286 rpm is 165 rpm above the top-100 average. Sabalenka 2,341 rpm. Swiatek reported >3,200 rpm by Tennisnerd (S82) but ~2,600 rpm in a forum post - conflicting."
+  },
+  {
+   "id": "fh_ball_speed_recreational_ntrp35",
+   "stroke": "forehand",
+   "definition": "Average forehand speed, NTRP 3.5 (flight-average from phone tracking)",
+   "phase": "whole",
+   "population": "recreational",
+   "mean": 71.1,
+   "sd": null,
+   "range": [
+    66.5,
+    77.6
+   ],
+   "unit": "km/h",
+   "source_id": "S23",
+   "note": "SwingVision ladder (mph): 2.5=41.3, 3.0=43.6, 3.5=44.2, 4.0=45.5, 4.5=47.0, 5.0=48.2. Range = 2.5 to 5.0. Whole-flight average reads ~10% below radar. PlayYourCourt quotes 47-54 mph without method."
+  },
+  {
+   "id": "fh_topspin_recreational",
+   "stroke": "forehand",
+   "definition": "Typical forehand topspin of recreational players",
+   "phase": "whole",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    500,
+    1500
+   ],
+   "unit": "rpm",
+   "source_id": "memory",
+   "note": "No measured recreational rpm found in this session. Range is from memory of consumer racket-sensor data; low confidence."
+  },
+  {
+   "id": "fh_net_clearance_pro_men",
+   "stroke": "forehand",
+   "definition": "Average groundstroke net clearance (height above the net), men",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 0.69,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S22",
+   "note": "Hawk-Eye summary. Women 0.77 m. Coaching sites say 2-4 ft (0.6-1.2 m) is a sensible club target and that club players often clear by only ~1 ft (S67)."
+  },
+  {
+   "id": "fh_net_clearance_pro_women",
+   "stroke": "forehand",
+   "definition": "Average groundstroke net clearance, women",
+   "phase": "whole",
+   "population": "elite_women",
+   "mean": 0.77,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S22",
+   "note": "See above."
+  },
+  {
+   "id": "bh2_shoulder_alignment_end_backswing",
+   "stroke": "backhand_2h",
+   "definition": "Shoulder alignment angle at completion of backswing (0 = shoulders parallel to net, 90 = side-on, >90 = back partly turned to net)",
+   "phase": "backswing",
+   "population": "elite_mixed",
+   "mean": 83.4,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S29",
+   "note": "Reid & Elliott 2002 abstract (high-performance players). One-hander 119.1 deg. Angle convention assumed from the usual 'alignment' definition."
+  },
+  {
+   "id": "bh2_separation_angle_backswing",
+   "stroke": "backhand_2h",
+   "definition": "Shoulder-hip separation angle created in the backswing",
+   "phase": "backswing",
+   "population": "elite_mixed",
+   "mean": 20,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S28",
+   "note": "Elliott 2006 review: 'one handed ~30 deg; two handed ~20 deg'."
+  },
+  {
+   "id": "bh2_racket_accel_onset_before_impact",
+   "stroke": "backhand_2h",
+   "definition": "Time before impact at which horizontal racket acceleration toward the ball begins",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 0.08,
+   "sd": null,
+   "range": null,
+   "unit": "s",
+   "source_id": "S29",
+   "note": "Two-handers delay the forward acceleration (0.08 s) compared with one-handers (0.13 s) - a more compact, later swing."
+  },
+  {
+   "id": "bh2_extra_shoulder_rotation_vs_1h",
+   "stroke": "backhand_2h",
+   "definition": "Additional shoulder rotation used in the acceleration phase compared with a one-handed backhand",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 12,
+   "sd": null,
+   "range": null,
+   "unit": "%",
+   "source_id": "S30",
+   "note": "Review citing Fanchiang et al. (S32). 2H relies on trunk rotation; 1H on upper-limb segment rotations (S31)."
+  },
+  {
+   "id": "bh2_top_arm_elbow_flexion_at_impact_eastern",
+   "stroke": "backhand_2h",
+   "definition": "Non-dominant (top-hand) elbow flexion at impact, eastern top-hand grip (0 = straight)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 60.9,
+   "sd": 20.3,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S33",
+   "note": "16 sub-elite players. Included angle about 119 deg. Top-hand wrist extension 34.7 +/- 16.0 deg."
+  },
+  {
+   "id": "bh2_top_arm_elbow_flexion_at_impact_continental",
+   "stroke": "backhand_2h",
+   "definition": "Non-dominant (top-hand) elbow flexion at impact, continental top-hand grip",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 46.8,
+   "sd": 20.1,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S33",
+   "note": "Included angle about 133 deg; wrist extension 43.0 +/- 16.7 deg. Eastern top-hand grip gave faster horizontal racket-head velocity; accuracy and spin did not differ."
+  },
+  {
+   "id": "bh2_arm_extension_at_contact_vendor",
+   "stroke": "backhand_2h",
+   "definition": "Arm (elbow) included angle at contact, vendor band",
+   "phase": "contact",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    140,
+    160
+   ],
+   "unit": "deg",
+   "source_id": "S43",
+   "note": "OnCourtAI vendor figure. Tennis.com notes some pros have both elbows bent 45 deg or more at contact while Zverev's back arm is straight (S75)."
+  },
+  {
+   "id": "bh2_torso_rotation_target_vendor",
+   "stroke": "backhand_2h",
+   "definition": "Torso rotation target for the two-handed backhand",
+   "phase": "backswing",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    55,
+    70
+   ],
+   "unit": "deg",
+   "source_id": "S43",
+   "note": "OnCourtAI goal-setting figure; not research."
+  },
+  {
+   "id": "bh2_contact_forward",
+   "stroke": "backhand_2h",
+   "definition": "Contact point distance in front of the body",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 0.4,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S70",
+   "note": "Quoted by a coaching site as a biomechanics figure (0.40 m two-handed vs 0.59 m one-handed) without naming the study; an ISBS paper confirms Reid & Elliott 2002 found the one-hander impacts further in front. Coaching consensus: 2H contact is about level with / just ahead of the front hip (S71)."
+  },
+  {
+   "id": "bh2_ball_speed_atp_tour_avg",
+   "stroke": "backhand_2h",
+   "definition": "Average backhand speed, ATP Tour",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 106.2,
+   "sd": null,
+   "range": null,
+   "unit": "km/h",
+   "source_id": "S16",
+   "note": "66 mph. Sinner and Alcaraz 73 mph (117.5 km/h)."
+  },
+  {
+   "id": "bh2_topspin_atp_tour_avg",
+   "stroke": "backhand_2h",
+   "definition": "Average backhand topspin, ATP Tour",
+   "phase": "whole",
+   "population": "elite_men",
+   "mean": 1876,
+   "sd": null,
+   "range": [
+    1775,
+    1977
+   ],
+   "unit": "rpm",
+   "source_id": "S16",
+   "note": "1,977 rpm (Sinner piece) vs 1,775 rpm (Alcaraz piece) - ATP's own articles disagree. Sinner 2,235 rpm; Alcaraz ~2,005 rpm."
+  },
+  {
+   "id": "bh2_ball_speed_recreational_ntrp35",
+   "stroke": "backhand_2h",
+   "definition": "Average backhand speed (all backhand types), NTRP 3.5",
+   "phase": "whole",
+   "population": "recreational",
+   "mean": 67.1,
+   "sd": null,
+   "range": [
+    63.9,
+    73.2
+   ],
+   "unit": "km/h",
+   "source_id": "S23",
+   "note": "SwingVision (mph): 2.5=39.7, 3.0=41.3, 3.5=41.7, 4.0=43.0, 4.5=44.6, 5.0=45.5."
+  },
+  {
+   "id": "bh1_shoulder_alignment_end_backswing",
+   "stroke": "backhand_1h",
+   "definition": "Shoulder alignment angle at completion of backswing (>90 = back partly turned to the net)",
+   "phase": "backswing",
+   "population": "elite_mixed",
+   "mean": 119.1,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S29",
+   "note": "Reid & Elliott 2002 abstract. Clearly more turn than the two-hander (83.4)."
+  },
+  {
+   "id": "bh1_separation_angle_backswing",
+   "stroke": "backhand_1h",
+   "definition": "Shoulder-hip separation angle created in the backswing",
+   "phase": "backswing",
+   "population": "elite_mixed",
+   "mean": 30,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S28",
+   "note": "Elliott 2006 review."
+  },
+  {
+   "id": "bh1_racket_accel_onset_before_impact",
+   "stroke": "backhand_1h",
+   "definition": "Time before impact at which horizontal racket acceleration toward the ball begins",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 0.13,
+   "sd": null,
+   "range": null,
+   "unit": "s",
+   "source_id": "S29",
+   "note": "Longer acceleration path than the two-hander - needs earlier preparation."
+  },
+  {
+   "id": "bh1_shoulder_line_at_contact",
+   "stroke": "backhand_1h",
+   "definition": "Shoulder-line angle to the net at contact (90 = side-on)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    45,
+    90
+   ],
+   "unit": "deg",
+   "source_id": "S40",
+   "note": "Yandell: classic model = shoulders basically perpendicular to the net at contact, opening only a small amount; 'a very common error is turning the hips and shoulders too far too soon so that they face the net at contact'. Feel Tennis says shoulders rotate to ~45 deg even on the one-hander (lower bound)."
+  },
+  {
+   "id": "bh1_contact_forward",
+   "stroke": "backhand_1h",
+   "definition": "Contact point distance in front of the body",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 0.59,
+   "sd": null,
+   "range": null,
+   "unit": "m",
+   "source_id": "S70",
+   "note": "See bh2_contact_forward. About 0.32 x height for a 1.83 m player. Korean coaching write-up: about 30 cm in front of the front foot (S53); vendor band 15-25 cm in front (S43)."
+  },
+  {
+   "id": "bh1_arm_extension_at_contact_vendor",
+   "stroke": "backhand_1h",
+   "definition": "Hitting-arm elbow included angle at contact",
+   "phase": "contact",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    160,
+    175
+   ],
+   "unit": "deg",
+   "source_id": "S43",
+   "note": "Vendor figure. Coaching consensus: arm straight before contact; a bent arm at contact is the most common one-hander error (S52). Federer's elbow is bent ~60 deg at the bottom of the swing vs ~20 deg for Gasquet (S65)."
+  },
+  {
+   "id": "bh1_vs_bh2_ball_speed",
+   "stroke": "backhand_1h",
+   "definition": "Difference in racket/ball speed and accuracy between one- and two-handed backhands",
+   "phase": "whole",
+   "population": "elite_mixed",
+   "mean": 0,
+   "sd": null,
+   "range": null,
+   "unit": "km/h",
+   "source_id": "S30",
+   "note": "No significant difference in speed or accuracy (gyroscope study of 20 players; Reid & Elliott report comparable horizontal racket velocities). Choice of backhand is not a power issue."
+  },
+  {
+   "id": "fh_elbow_angle_forward_swing_double_bend",
+   "stroke": "forehand",
+   "definition": "Hitting-arm elbow included angle during the forward swing for double-bend forehands (coaching guidance)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": null,
+   "sd": null,
+   "range": [
+    90,
+    140
+   ],
+   "unit": "deg",
+   "source_id": "S84",
+   "note": "Coaching sources disagree: 'bent typically at around 90 degrees for top players' vs a developmental recommendation of 110-140 degrees. Compare with measured 100 (western) to 130 (eastern) at impact (S3)."
+  },
+  {
+   "id": "bh2_trunk_rotation_range",
+   "stroke": "backhand_2h",
+   "definition": "Trunk rotation used in the stroke (college players, moderate and maximal power)",
+   "phase": "whole",
+   "population": "elite_mixed",
+   "mean": 29,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S32",
+   "note": "0.51 rad for two-handed vs 0.35 rad (20 deg) for one-handed. Taken from an auto-generated summary of the ISBS paper - NOT verified against the paper's table. Females used ~10% more shoulder rotation; maximal power ~20% more shoulder rotation (same caveat)."
+  },
+  {
+   "id": "bh1_trunk_rotation_range",
+   "stroke": "backhand_1h",
+   "definition": "Trunk rotation used in the stroke (college players)",
+   "phase": "whole",
+   "population": "elite_mixed",
+   "mean": 20,
+   "sd": null,
+   "range": null,
+   "unit": "deg",
+   "source_id": "S32",
+   "note": "0.35 rad; see bh2_trunk_rotation_range caveat."
+  },
+  {
+   "id": "contact_height_norm_pro",
+   "stroke": "forehand",
+   "definition": "Average pro groundstroke contact height as a fraction of body height (derived)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 0.52,
+   "sd": null,
+   "range": [
+    0.51,
+    0.54
+   ],
+   "unit": "x_height",
+   "source_id": "CALC",
+   "note": "Derived: 0.96 m / ~1.88 m (ATP) and 0.94 m / ~1.74 m (WTA). Contact heights from S22; average player heights are from memory. Roughly hip-to-navel level."
+  },
+  {
+   "id": "fh_contact_forward_of_front_hip_norm",
+   "stroke": "forehand",
+   "definition": "Coaching guideline for forehand contact in front of the lead hip, as a fraction of body height (derived)",
+   "phase": "contact",
+   "population": "recreational",
+   "mean": null,
+   "sd": null,
+   "range": [
+    0.17,
+    0.26
+   ],
+   "unit": "x_height",
+   "source_id": "CALC",
+   "note": "Derived from 30-46 cm (S44) for a 1.78 m player. Guideline, not measurement."
+  },
+  {
+   "id": "bh2_contact_forward_norm",
+   "stroke": "backhand_2h",
+   "definition": "Two-handed backhand contact distance in front of the body as a fraction of body height (derived)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 0.22,
+   "sd": null,
+   "range": null,
+   "unit": "x_height",
+   "source_id": "CALC",
+   "note": "Derived from 0.40 m (S70, secondary) with an assumed 1.83 m player (memory)."
+  },
+  {
+   "id": "bh1_contact_forward_norm",
+   "stroke": "backhand_1h",
+   "definition": "One-handed backhand contact distance in front of the body as a fraction of body height (derived)",
+   "phase": "contact",
+   "population": "elite_mixed",
+   "mean": 0.32,
+   "sd": null,
+   "range": null,
+   "unit": "x_height",
+   "source_id": "CALC",
+   "note": "Derived from 0.59 m (S70, secondary) with an assumed 1.83 m player (memory). The useful, robust fact is the ordering: one-hander contact is ~0.2 m (about 0.1 x height) further forward than the two-hander."
+  }
+ ],
+ "contact_by_grip": [
+  {
+   "stroke": "forehand",
+   "grip": "continental",
+   "contact_forward": "Least far forward - more beside the body, suits a closed stance",
+   "contact_height": "Low balls; struggles above waist",
+   "elbow_at_contact_deg": null,
+   "notes": "Lowest isometric force at every contact position in the 100-volunteer test (S36). Face tends to be open, so late contact = high/long ball. Not recommended as a rally forehand grip.",
+   "source_ids": [
+    "S45",
+    "S36",
+    "S76"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "grip": "eastern",
+   "contact_forward": "In front of the body, around the front hip/knee line",
+   "contact_height": "Knee to waist; best at waist",
+   "elbow_at_contact_deg": 130,
+   "notes": "Highest force at early, mid and late contact positions (static test, p<0.001) (S36). More extended elbow (~130 deg) (S3). Good on low and medium balls, harder above the shoulder. Examples: Federer (modified eastern), del Potro.",
+   "source_ids": [
+    "S36",
+    "S3",
+    "S45",
+    "S61"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "grip": "semi-western",
+   "contact_forward": "Slightly further in front than eastern",
+   "contact_height": "Waist to shoulder",
+   "elbow_at_contact_deg": null,
+   "notes": "Most common tour grip. Beats continental only at the early (forward) contact position in the force test, i.e. it needs contact out in front (S36). Recommended default for recreational players: Tennis Korea clinic says semi-western or eastern for beginners (S86); thicker grips shorten reach.",
+   "source_ids": [
+    "S36",
+    "S45",
+    "S61",
+    "S86"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "grip": "western",
+   "contact_forward": "Furthest in front; contact with a more bent elbow",
+   "contact_height": "Shoulder height and above",
+   "elbow_at_contact_deg": 100,
+   "notes": "Elbow ~100 deg at impact (S3). Hard on low balls (wrist constriction makes flattening out nearly impossible). Thicker grip shortens reach. Example: Swiatek.",
+   "source_ids": [
+    "S3",
+    "S45",
+    "S61"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "grip": "any (distance-in-front figures)",
+   "contact_forward": "5-20 cm in front of the torso (S42); 30-46 cm in front of the lead hip (S44); 20-40 cm in front of the hitting shoulder (vendor, S43); slightly in front of the front knee, 40 cm ahead of the knee is too far (Korean forum, S53/S56)",
+   "contact_height": "Pro average 0.94-0.96 m (S22); works from knee to shoulder (S39)",
+   "elbow_at_contact_deg": null,
+   "notes": "The figures disagree mainly because they use different reference points. No peer-reviewed forehand 'distance in front' value was found. Lateral distance: no numeric source; practical check is elbow not pinned to the torso and arm not fully reaching (S44).",
+   "source_ids": [
+    "S42",
+    "S44",
+    "S43",
+    "S53",
+    "S56",
+    "S22",
+    "S39"
+   ]
+  },
+  {
+   "stroke": "backhand_2h",
+   "grip": "dominant hand continental + top hand eastern/semi-western forehand",
+   "contact_forward": "About level with or just in front of the front hip - further back than a one-hander (S71); 0.40 m quoted (S70)",
+   "contact_height": "Waist height is ideal (S46); copes with shoulder-height balls better than the one-hander",
+   "elbow_at_contact_deg": 119,
+   "notes": "Top-hand elbow flexion at impact 60.9 +/- 20.3 deg with eastern top-hand grip, 46.8 +/- 20.1 deg with continental (S33). Eastern top hand gives more racket-head speed. Korean sources: top hand semi-western, bottom hand continental; 'left-hand dominant' is the original model (S73).",
+   "source_ids": [
+    "S71",
+    "S70",
+    "S33",
+    "S46",
+    "S73"
+   ]
+  },
+  {
+   "stroke": "backhand_1h",
+   "grip": "eastern backhand (conservative: Federer, Dimitrov; stronger: Wawrinka; extreme: Gasquet, Kuerten)",
+   "contact_forward": "Clearly further in front than the two-hander: 0.59 m quoted (S70); about 30 cm in front of the front foot (S53); further in front than the forehand (S56)",
+   "contact_height": "Knee to chest; loses leverage above the shoulder (S47, S51)",
+   "elbow_at_contact_deg": 170,
+   "notes": "Arm straight before contact (S40, S52). Stronger (more extreme) grips handle high balls better but low balls worse (S77). Shoulders stay roughly side-on at contact (S40).",
+   "source_ids": [
+    "S70",
+    "S53",
+    "S56",
+    "S40",
+    "S52",
+    "S65",
+    "S77"
+   ]
+  }
+ ],
+ "physics": [
+  {
+   "id": "swing_path_angle_topspin",
+   "statement": "Upward racket path angle before impact for topspin groundstrokes",
+   "values": {
+    "elliott_marsh_topspin_approach_deg": 27.5,
+    "cross_typical_groundstroke_deg": 30,
+    "twu_model_default_deg": 19,
+    "intermediate_players_deg": 20,
+    "advanced_players_deg": 30,
+    "backspin_approach_downward_deg": 19.5
+   },
+   "unit": "deg above horizontal",
+   "source_ids": [
+    "S5",
+    "S7",
+    "S8",
+    "S3",
+    "S11"
+   ],
+   "note": "Elliott & Marsh 1989: 0.48 rad up for topspin, 0.34 rad down for backspin. Reid 2013 review: intermediates ~20 deg, advanced ~30 deg."
+  },
+  {
+   "id": "racket_face_angle_at_impact",
+   "statement": "Racket face tilt at impact, forward-closed from vertical (topspin forehand)",
+   "values": {
+    "elliott_marsh_topspin_deg": 7.4,
+    "elliott_marsh_backspin_open_deg": 6.3,
+    "federer_deg": 11,
+    "nadal_deg": 15,
+    "atp_top10_range_deg": [
+     5,
+     18
+    ],
+    "cross_model_deg": 10,
+    "cross_heavy_topspin_up_to_deg": 20,
+    "twu_model_default_deg": 10,
+    "collegiate_range_from_vertical_deg": [
+     5,
+     20
+    ]
+   },
+   "unit": "deg closed",
+   "source_ids": [
+    "S5",
+    "S13",
+    "S7",
+    "S8",
+    "S6"
+   ],
+   "note": "So 'close the face a little' is correct in absolute terms: a good topspin drive has the face 5-15 deg closed while the path rises 20-30 deg. Kwon 2017 (13 collegiate players): only face angle and vertical racket velocity correlated with topspin; no racket variable correlated with accuracy. One summary of Kwon gives 'impact angle 14-33 deg, mean 21' - definition not verified, so not used."
+  },
+  {
+   "id": "face_vs_path_sensitivity",
+   "statement": "How much the launch angle changes per degree of racket-face tilt vs per degree of swing-path angle",
+   "values": {
+    "dLaunch_per_deg_face": [
+     0.8,
+     1.05
+    ],
+    "dLaunch_per_deg_path": [
+     0.26,
+     0.35
+    ]
+   },
+   "unit": "deg per deg",
+   "source_ids": [
+    "CALC"
+   ],
+   "note": "Own rigid-impact model (incoming ball 10 m/s, racket 12-30 m/s). Face angle is roughly 3x more influential than path. Tennis coaching sources seen (TennisOne ball-control lesson, ALTA Net News) only say the face is the primary controller and that the racket path dominates more when the racket is much faster than the ball; the popular 75-85% figure is from golf (peer-reviewed golf range 61-83%)."
+  },
+  {
+   "id": "vertical_acceptance_window",
+   "statement": "Launch-angle window between 'just clears the net' and 'lands on the baseline' for a ball hit from the baseline at 0.95 m height",
+   "values": {
+    "70kmh_500rpm": {
+     "min_deg": 11.6,
+     "max_deg": 31.5,
+     "window_deg": 19.9
+    },
+    "70kmh_1200rpm": {
+     "min_deg": 12.6,
+     "max_deg": 35.4,
+     "window_deg": 22.8
+    },
+    "80kmh_800rpm": {
+     "min_deg": 9.3,
+     "max_deg": 21.8,
+     "window_deg": 12.6
+    },
+    "80kmh_1500rpm": {
+     "min_deg": 10.1,
+     "max_deg": 23.8,
+     "window_deg": 13.7
+    },
+    "90kmh_1000rpm": {
+     "min_deg": 7.7,
+     "max_deg": 16.8,
+     "window_deg": 9.2
+    },
+    "100kmh_1000rpm": {
+     "min_deg": 6.3,
+     "max_deg": 13.2,
+     "window_deg": 6.9
+    },
+    "100kmh_2000rpm": {
+     "min_deg": 7.2,
+     "max_deg": 15.1,
+     "window_deg": 8.0
+    },
+    "106kmh_1900rpm_atp_avg_backhand": {
+     "min_deg": 6.5,
+     "max_deg": 13.3,
+     "window_deg": 6.8
+    },
+    "120kmh_2700rpm_atp_avg_forehand": {
+     "min_deg": 5.8,
+     "max_deg": 11.3,
+     "window_deg": 5.6
+    },
+    "120kmh_flat": {
+     "min_deg": 3.4,
+     "max_deg": 6.3,
+     "window_deg": 2.9
+    },
+    "100kmh_flat": {
+     "min_deg": 5.0,
+     "max_deg": 10.2,
+     "window_deg": 5.2
+    },
+    "80kmh_flat": {
+     "min_deg": 8.0,
+     "max_deg": 18.4,
+     "window_deg": 10.4
+    }
+   },
+   "unit": "deg",
+   "source_ids": [
+    "CALC",
+    "S9",
+    "S10",
+    "S11"
+   ],
+   "note": "Own simulation; consistent with Brody: ~8 deg acceptance for a topspin forehand (as cited in S11), window shrinks 43% from 50 to 60 mph (mine: 12.9 -> 7.3 deg), topspin roughly doubles the window at 60 mph and more than triples it at 75 mph vs flat. Recreational pace has a window 2-4x wider than tour pace."
+  },
+  {
+   "id": "face_error_tolerance",
+   "statement": "Racket-face error that turns a centred shot into a net or long ball (half the window divided by the face sensitivity)",
+   "values": {
+    "recreational_70_80kmh_deg": [
+     6,
+     10
+    ],
+    "tour_pace_120kmh_deg": [
+     2.5,
+     3.5
+    ]
+   },
+   "unit": "deg (plus/minus)",
+   "source_ids": [
+    "CALC"
+   ],
+   "note": "Derived from the two entries above. For recreational players a 5 deg face correction is a meaningful coaching step; for tour pace 1-2 deg matters."
+  },
+  {
+   "id": "depth_per_degree",
+   "statement": "Change in landing depth per 1 degree of launch angle (near the baseline)",
+   "values": {
+    "70kmh_m": [
+     0.19,
+     0.25
+    ],
+    "80kmh_m": [
+     0.5,
+     0.54
+    ],
+    "90kmh_m": 0.76,
+    "100kmh_m": [
+     0.88,
+     0.97
+    ],
+    "120kmh_2700rpm_m": 1.17,
+    "120kmh_flat_m": 1.67,
+    "cross_notes_ft": 6
+   },
+   "unit": "m per deg",
+   "source_ids": [
+    "CALC",
+    "S14"
+   ],
+   "note": "Cross's notes give ~6 ft per degree of launch angle (context likely a fast shot/serve). At recreational pace one degree is only 0.2-0.5 m."
+  },
+  {
+   "id": "lateral_acceptance",
+   "statement": "Sideways error",
+   "values": {
+    "m_per_deg_at_baseline_distance": 0.41,
+    "feeltennis_m_per_deg_face": 0.8,
+    "cross_inches_per_deg": 16,
+    "centre_to_singles_sideline_deg": 9.8,
+    "brody_deg": 10
+   },
+   "unit": "m per deg / deg",
+   "source_ids": [
+    "CALC",
+    "S15",
+    "S14",
+    "S9"
+   ],
+   "note": "Geometry: tan(1 deg) x 23.77 m = 0.41 m. Feel Tennis uses a mirror model (1 deg of face = ~2 deg of ball = ~0.8 m). Brody: aiming down the middle gives almost 10 deg either side."
+  },
+  {
+   "id": "window_vs_contact_height",
+   "statement": "Effect of contact height on the launch window (ball hit from the baseline)",
+   "values": {
+    "80kmh_1000rpm": {
+     "h0.40m": {
+      "min_deg": 12.3,
+      "window_deg": 11.8
+     },
+     "h0.70m": {
+      "min_deg": 10.8,
+      "window_deg": 12.4
+     },
+     "h0.95m": {
+      "min_deg": 9.6,
+      "window_deg": 12.9
+     },
+     "h1.20m": {
+      "min_deg": 8.3,
+      "window_deg": 13.4
+     },
+     "h1.50m": {
+      "min_deg": 6.8,
+      "window_deg": 14.0
+     }
+    },
+    "120kmh_2700rpm": {
+     "h0.40m": {
+      "min_deg": 8.4,
+      "window_deg": 4.3
+     },
+     "h0.95m": {
+      "min_deg": 5.8,
+      "window_deg": 5.6
+     },
+     "h1.50m": {
+      "min_deg": 3.1,
+      "window_deg": 6.9
+     }
+    }
+   },
+   "unit": "deg",
+   "source_ids": [
+    "CALC",
+    "S9"
+   ],
+   "note": "A knee-high ball must be launched ~3 deg higher than a waist-high ball just to clear the net; a shoulder-high ball ~3 deg lower. Brody states the same dependence qualitatively."
+  },
+  {
+   "id": "window_vs_court_position",
+   "statement": "Effect of hitting position on the launch window (80 km/h, 1,000 rpm, 0.95 m contact)",
+   "values": {
+    "2m_behind_baseline_deg": 15.2,
+    "on_baseline_deg": 12.9,
+    "2m_inside_deg": 11.3,
+    "4m_inside_deg": 9.9
+   },
+   "unit": "deg",
+   "source_ids": [
+    "CALC",
+    "S10"
+   ],
+   "note": "Brody: the further behind the baseline, the bigger the window (waist-high contact). Short balls need more topspin or less pace."
+  },
+  {
+   "id": "net_clearance_needed_for_depth_recreational",
+   "statement": "Net clearance and launch angle needed for a given depth at recreational pace (landing distance measured from the hitter's baseline; far service line = 18.29 m, far baseline = 23.77 m)",
+   "values": {
+    "60kmh_600rpm": {
+     "clear_0.7m": {
+      "launch_deg": 20.1,
+      "lands_m": 15.6
+     },
+     "clear_2.0m": {
+      "launch_deg": 27.0,
+      "lands_m": 18.0
+     },
+     "clear_3.0m": {
+      "launch_deg": 32.3,
+      "lands_m": 19.3
+     }
+    },
+    "70kmh_800rpm": {
+     "clear_0.7m": {
+      "launch_deg": 15.8,
+      "lands_m": 16.8
+     },
+     "clear_1.5m": {
+      "launch_deg": 19.9,
+      "lands_m": 18.9
+     },
+     "clear_2.0m": {
+      "launch_deg": 22.4,
+      "lands_m": 20.1
+     },
+     "clear_3.0m": {
+      "launch_deg": 27.3,
+      "lands_m": 22.0
+     }
+    },
+    "80kmh_1000rpm": {
+     "clear_0.7m": {
+      "launch_deg": 13.3,
+      "lands_m": 17.9
+     },
+     "clear_1.5m": {
+      "launch_deg": 17.2,
+      "lands_m": 20.6
+     },
+     "clear_2.0m": {
+      "launch_deg": 19.6,
+      "lands_m": 22.1
+     },
+     "clear_3.0m": {
+      "launch_deg": 24.4,
+      "lands_m": 24.7
+     }
+    },
+    "90kmh_1200rpm": {
+     "clear_0.7m": {
+      "launch_deg": 11.6,
+      "lands_m": 19.0
+     },
+     "clear_1.5m": {
+      "launch_deg": 15.5,
+      "lands_m": 22.3
+     },
+     "clear_2.0m": {
+      "launch_deg": 17.9,
+      "lands_m": 24.1
+     }
+    },
+    "120kmh_2700rpm_tour": {
+     "clear_0.7m": {
+      "launch_deg": 9.4,
+      "lands_m": 21.3
+     },
+     "clear_1.0m": {
+      "launch_deg": 10.9,
+      "lands_m": 23.0
+     }
+    }
+   },
+   "unit": "deg / m",
+   "source_ids": [
+    "CALC",
+    "S22",
+    "S23",
+    "S67"
+   ],
+   "note": "At 70 km/h a ball that clears the net by the tour-average 0.7 m lands ~1.5 m SHORT of the service line; depth at club pace needs 1.5-3 m of clearance (launch 20-27 deg). Do not use the tour net-clearance number (0.69-0.77 m) as a recreational target."
+  },
+  {
+   "id": "topspin_generation",
+   "statement": "What produces topspin",
+   "values": {
+    "cross_model_swing_deg": 30,
+    "cross_model_tilt_deg": 10,
+    "spin_at_17deg_tilt_rad_s": 500,
+    "spin_at_17deg_tilt_rpm": 4775
+   },
+   "unit": "mixed",
+   "source_ids": [
+    "S7",
+    "S6"
+   ],
+   "note": "Cross: about 500 rad/s is reachable with ~17 deg forward tilt, especially when the ball is falling and the head rising steeply. Kwon: topspin correlates with face angle and vertical racket velocity, not with horizontal velocity or path direction."
+  },
+  {
+   "id": "long_vs_net_error_signature",
+   "statement": "Racket-path difference between long errors and net errors",
+   "values": {
+    "long_minus_net_path_deg": 3
+   },
+   "unit": "deg",
+   "source_ids": [
+    "S3",
+    "S11",
+    "S12"
+   ],
+   "note": "Balls hit long had racket trajectories about 3 deg steeper than balls hit into the net (Blackwell & Knudson; Knudson & Blackwell). Unsuccessful shots also show greater variability in racket-face (orientation) angle; mean face angle differs little between skill levels."
+  },
+  {
+   "id": "speed_accuracy_tradeoff",
+   "statement": "Speed-accuracy trade-off in sub-elite forehands",
+   "values": {},
+   "unit": "n/a",
+   "source_ids": [
+    "S85"
+   ],
+   "note": "Nine college players: the study found the trade-off only in depth, not laterally, and attributed it to the shrinking geometric window rather than to noisier movement - i.e. hitting harder mainly costs depth control."
+  },
+  {
+   "id": "pose_estimation_limits",
+   "statement": "Limits of phone pose estimation relevant to this app",
+   "values": {
+    "stroke_type_accuracy_world_landmarks_pct": 83,
+    "stroke_type_accuracy_image_landmarks_pct": 47
+   },
+   "unit": "%",
+   "source_ids": [
+    "S79",
+    "S80"
+   ],
+   "note": "MediaPipe tennis study (1,281 strokes): switching from metric world landmarks to image-space landmarks dropped cross-player stroke-type accuracy from 83% to 47%. A 2024 validation against Vicon found elbow angles had the largest pose-estimation errors - prefer ratios such as shoulder-to-wrist distance over arm length, and trends over single frames."
+  },
+  {
+   "id": "arm_extension_ratio",
+   "statement": "Shoulder-to-wrist distance divided by (upper arm + forearm length) as a camera-robust proxy for elbow angle",
+   "values": {
+    "elbow_90deg": 0.71,
+    "elbow_100deg_western": 0.77,
+    "elbow_120deg": 0.87,
+    "elbow_130deg_eastern": 0.91,
+    "elbow_140deg": 0.94,
+    "elbow_160deg": 0.985,
+    "straight_arm": 1.0
+   },
+   "unit": "ratio",
+   "source_ids": [
+    "CALC",
+    "S3"
+   ],
+   "note": "Pure geometry with segment ratio upper arm:forearm = 0.186:0.146 of height (anthropometric ratios from memory). Ratio < ~0.72 at contact suggests a jammed elbow; > ~0.97 a straight-arm hitter."
+  }
+ ],
+ "ball_height_adjustments": {
+  "high": [
+   {
+    "stroke": "forehand",
+    "contact_zone": "shoulder height and above (pro average contact is only 0.94-0.96 m, S22)",
+    "pro_adjustment": [
+     "Stronger grip helps: semi-western/western are comfortable at shoulder height, eastern tends to sail long (S46, S48)",
+     "Prepare the racket higher and swing more level - pull across the ball instead of lifting from far below (S47); do not drop the racket as low as on a normal ball (S48)",
+     "For topspin still start about 30-46 cm (12-18 in) under the ball with a more vertical finish (S48)",
+     "More upright stance, hitting shoulder in line with the ball, take it at the top of the bounce (S46)",
+     "Choose early: step in and take it on the rise, or back up and let it fall into the waist-chest zone (S77, S78)"
+    ],
+    "numbers": {
+     "launch_angle_change_vs_waist_ball_deg": -3,
+     "start_below_ball_cm": [
+      30,
+      46
+     ],
+     "comfortable_contact_by_grip": "eastern: waist; semi-western: waist-shoulder; western: shoulder+"
+    },
+    "recreational_fault": "Swings low-to-high as usual with an open face -> ball flies long; or leans back and arms the ball",
+    "skeleton_sign": "Wrist at contact above shoulder height while the wrist's lowest point in the backswing was below hip height (big vertical travel); trunk leaning back; weight on rear foot",
+    "fix_cues_ko": [
+     "높은 공은 라켓을 어깨 높이로 미리 들어 두세요",
+     "밑에서 위로 말고, 옆으로 밀어 치세요",
+     "한 발 뒤로 물러나서 가슴 높이로 떨어뜨리고 치세요",
+     "면을 살짝 덮고 끝까지 휘두르세요"
+    ],
+    "source_ids": [
+     "S46",
+     "S47",
+     "S48",
+     "S77",
+     "S78",
+     "S54",
+     "CALC"
+    ]
+   },
+   {
+    "stroke": "backhand_2h",
+    "contact_zone": "chest to shoulder height is still playable thanks to the top hand",
+    "pro_adjustment": [
+     "Prepare higher, extend both arms forward through contact - too much elbow bend shortens the swing (S78)",
+     "Hit level through the ball rather than up (S47)",
+     "Step in and take it before it climbs above the shoulder, or back up (S77)"
+    ],
+    "numbers": {
+     "launch_angle_change_vs_waist_ball_deg": -3
+    },
+    "recreational_fault": "Elbows collapse into the body and the ball is pushed with the bottom hand; contact drifts behind the front hip",
+    "skeleton_sign": "Both wrists above shoulder line at contact with elbows strongly flexed (arm-extension ratio < 0.75) and wrists not ahead of the front hip",
+    "fix_cues_ko": [
+     "높은 공은 두 팔을 앞으로 쭉 펴면서 치세요",
+     "왼손으로 공을 눌러 준다는 느낌으로",
+     "공이 더 뜨기 전에 한 발 들어가서 치세요"
+    ],
+    "source_ids": [
+     "S78",
+     "S47",
+     "S77",
+     "CALC"
+    ]
+   },
+   {
+    "stroke": "backhand_1h",
+    "contact_zone": "above shoulder height the one-hander loses leverage (no second hand)",
+    "pro_adjustment": [
+     "Slice is the most practical answer for club one-handers (S87, S77, S78)",
+     "Take the ball early/on the rise around shoulder height and drive with legs and body rotation - rated the hardest option (S87, S77)",
+     "Back up and let the ball drop to a comfortable height (S77)",
+     "Prepare higher and pull across; a stronger (more extreme) backhand grip helps on high balls but hurts on low ones (S47, S77)"
+    ],
+    "numbers": {
+     "note": "Zhang & Fujii (5 collegiate men): at high impact the upper-trunk rotation velocity falls and racket resultant velocity at impact is lower; larger moment of inertia about the shoulder makes the arm harder to accelerate (S34)"
+    },
+    "recreational_fault": "Tries to drive a ball above the shoulder with a bent elbow and opens the shoulders -> weak, short or floated ball",
+    "skeleton_sign": "Hitting wrist above the hitting shoulder at contact; elbow included angle < 150 deg; shoulder line rotated open toward the net",
+    "fix_cues_ko": [
+     "어깨보다 높은 공은 무리하지 말고 슬라이스로 넘기세요",
+     "한 발 들어가서 공이 올라올 때 가슴 높이에서 치세요",
+     "시간이 있으면 뒤로 물러나 허리 높이로 떨어뜨리세요"
+    ],
+    "source_ids": [
+     "S34",
+     "S47",
+     "S87",
+     "S77",
+     "S78"
+    ]
+   }
+  ],
+  "low": [
+   {
+    "stroke": "forehand",
+    "contact_zone": "knee height and below",
+    "pro_adjustment": [
+     "Lower the centre of gravity with the knees, not by folding at the waist (S49)",
+     "Get the racket head below the ball early; arrive early and bend in the set-up (S49)",
+     "Path still rises but the ball needs more lift: a knee-high ball must launch ~3 deg higher than a waist-high ball just to clear the net (CALC)",
+     "Western grips struggle here; eastern is easiest on low balls (S45)",
+     "Deepest knee flexion occurs in defensive open-stance forehands (S27)"
+    ],
+    "numbers": {
+     "launch_angle_change_vs_waist_ball_deg": 3,
+     "knee_note": "degrees of knee flexion for low balls not found; loading-leg knee about 113 deg included angle on a normal forehand (S72)"
+    },
+    "recreational_fault": "Legs straight, bends at the waist and scoops; or hits a low ball with a closed face -> net (S54)",
+    "skeleton_sign": "Knee included angle > 160 deg while trunk forward lean > ~30 deg and wrist below knee height; hip height unchanged from ready position",
+    "fix_cues_ko": [
+     "허리 말고 무릎을 굽히세요",
+     "엉덩이를 공 높이까지 낮추세요",
+     "라켓 헤드가 공 밑으로 들어가게",
+     "낮은 공은 면을 세우고 위로 걷어 올리세요"
+    ],
+    "source_ids": [
+     "S49",
+     "S45",
+     "S27",
+     "S54",
+     "S72",
+     "CALC"
+    ]
+   },
+   {
+    "stroke": "backhand_2h",
+    "contact_zone": "knee height and below",
+    "pro_adjustment": [
+     "Bend the knees and keep the back straight; extending the top-hand (left) elbow lowers the racket head and helps on low balls (S74)",
+     "Keep the swing rising through contact; do not chop down"
+    ],
+    "numbers": {
+     "launch_angle_change_vs_waist_ball_deg": 3
+    },
+    "recreational_fault": "Stands tall and reaches down with the arms; racket face closes and the ball goes into the net",
+    "skeleton_sign": "Knee included angle > 160 deg with wrists below knee height; shoulders dipping forward",
+    "fix_cues_ko": [
+     "뒷무릎이 땅에 닿을 듯이 낮추세요",
+     "왼팔을 펴서 헤드를 공 밑으로",
+     "허리를 세운 채 다리로 내려가세요"
+    ],
+    "source_ids": [
+     "S74",
+     "S49",
+     "CALC"
+    ]
+   },
+   {
+    "stroke": "backhand_1h",
+    "contact_zone": "knee height and below (a relative strength of the one-hander and of the slice)",
+    "pro_adjustment": [
+     "Conservative grips (Federer, Dimitrov end) are comfortable on low balls (S60, S77)",
+     "Bend the front knee, keep the arm straight and lift; slice is a safe alternative"
+    ],
+    "numbers": {
+     "launch_angle_change_vs_waist_ball_deg": 3
+    },
+    "recreational_fault": "Drops the racket hand only, straight legs, pulls up and opens the shoulders",
+    "skeleton_sign": "Front knee included angle > 160 deg with wrist below knee; trunk flexed forward",
+    "fix_cues_ko": [
+     "앞무릎을 깊게 굽히세요",
+     "팔은 편 채로 다리로 들어 올리세요",
+     "어려우면 슬라이스로 낮게 깔아 주세요"
+    ],
+    "source_ids": [
+     "S60",
+     "S77",
+     "S49",
+     "CALC"
+    ]
+   }
+  ]
+ },
+ "players": [
+  {
+   "name": "Roger Federer",
+   "name_ko": "로저 페더러",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "modified eastern (between eastern and semi-western)",
+   "arm": "straight",
+   "style_notes": "Usually straight arm, but bends the elbow slightly when jammed; racket face ~11 deg closed at impact; compact, early contact",
+   "amateur_friendly": true,
+   "why": "Moderate grip and compact preparation are copyable; the straight arm itself needs precise spacing, so copy the turn and the contact in front, not the arm",
+   "verified": true,
+   "source_ids": [
+    "S61",
+    "S58",
+    "S59",
+    "S13"
+   ]
+  },
+  {
+   "name": "Rafael Nadal",
+   "name_ko": "라파엘 나달",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "semi-western to near-western (sources vary)",
+   "arm": "straight",
+   "style_notes": "Fully straightened, almost locked elbow; face ~15 deg closed at impact; extreme spin",
+   "amateur_friendly": false,
+   "why": "Extreme topspin style needs elite racket speed and strength; lasso finish and heavy grip are poor defaults for club players",
+   "verified": true,
+   "source_ids": [
+    "S61",
+    "S58",
+    "S59",
+    "S13"
+   ]
+  },
+  {
+   "name": "Carlos Alcaraz",
+   "name_ko": "카를로스 알카라스",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "semi-western",
+   "arm": "straight",
+   "style_notes": "Fully extended arm at contact (Mouratoglou); 78 mph and 3,208 rpm average in 2024",
+   "amateur_friendly": false,
+   "why": "Explosive, very fast swing with straight arm; timing demands are high",
+   "verified": true,
+   "source_ids": [
+    "S58",
+    "S17",
+    "S61"
+   ]
+  },
+  {
+   "name": "Novak Djokovic",
+   "name_ko": "노박 조코비치",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "between semi-western and western (bevels 4-5)",
+   "arm": "double_bend",
+   "style_notes": "Benchmark of control and repeatability; full turn with left arm stretched",
+   "amateur_friendly": true,
+   "why": "Double-bend structure tolerates imperfect spacing; but the near-western grip is harder on low balls - use a milder grip",
+   "verified": false,
+   "source_ids": [
+    "S61",
+    "S38"
+   ],
+   "verified_note": "Grip verified; double-bend arm supported by only one coaching source (another forum post says he moved toward a straighter arm)."
+  },
+  {
+   "name": "Jannik Sinner",
+   "name_ko": "야닉 시너",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "semi-western (some call it an eastern/semi-western hybrid)",
+   "arm": "double_bend",
+   "style_notes": "Elbow tucked toward torso at start of forward swing, slight bend at contact; 78 mph / 3,049 rpm vs tour 73 mph / 2,708 rpm",
+   "amateur_friendly": false,
+   "why": "Structure is sound (Mouratoglou: 'a little bent, like Sinner, is fine') but the racket speed and lag are not reproducible at club level",
+   "verified": true,
+   "source_ids": [
+    "S58",
+    "S16",
+    "S61"
+   ]
+  },
+  {
+   "name": "Juan Martin del Potro",
+   "name_ko": "후안 마르틴 델 포트로",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "eastern",
+   "arm": "straight",
+   "style_notes": "Flat, big forehand with eastern grip; listed among straight-arm hitters",
+   "amateur_friendly": true,
+   "why": "Eastern grip and flatter path are simple; best on waist-high balls, weaker on very high balls",
+   "verified": true,
+   "source_ids": [
+    "S76",
+    "S58"
+   ]
+  },
+  {
+   "name": "Daniil Medvedev",
+   "name_ko": "다닐 메드베데프",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Shoulder turn usually only ~90 deg because the left elbow stays bent and the arm never fully crosses the body",
+   "amateur_friendly": false,
+   "why": "Idiosyncratic; shows that elite results are possible with a reduced turn, but not a model",
+   "verified": true,
+   "source_ids": [
+    "S38"
+   ],
+   "verified_note": "Only the turn description is verified; grip and arm structure not checked."
+  },
+  {
+   "name": "Kei Nishikori",
+   "name_ko": "니시코리 케이",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "semi-western (memory, not verified)",
+   "arm": "n/a",
+   "style_notes": "Tight, compact backswing; sets weight on back foot before uncoiling; handles fast balls early; left arm high for balance",
+   "amateur_friendly": true,
+   "why": "Short take-back that stays on the hitting side = more time, cleaner contact; good model for average-height players",
+   "verified": true,
+   "source_ids": [
+    "S64"
+   ],
+   "verified_note": "Compactness verified; grip from memory."
+  },
+  {
+   "name": "Roberto Bautista Agut",
+   "name_ko": "로베르토 바우티스타 아굿",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "closer to eastern than western",
+   "arm": "n/a",
+   "style_notes": "Compact swing: elbow stays bent on the take-back, racket stays on the right side of the body; flat ball",
+   "amateur_friendly": true,
+   "why": "Lesser-known but very repeatable: moderate grip, short backswing, flat drive - close to what a good club forehand looks like",
+   "verified": true,
+   "source_ids": [
+    "S64"
+   ],
+   "verified_note": "From a video description and one article; no slow-motion measurement seen."
+  },
+  {
+   "name": "David Ferrer",
+   "name_ko": "다비드 페레르",
+   "sex": "M",
+   "stroke": "forehand",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Lower-elbow take-back kept well outside the body; great timing",
+   "amateur_friendly": true,
+   "why": "Compact and efficient for a smaller player; relies on footwork more than arm speed",
+   "verified": false,
+   "source_ids": [
+    "S64"
+   ],
+   "verified_note": "Mentioned only in a coach commentary."
+  },
+  {
+   "name": "Elena Rybakina",
+   "name_ko": "엘레나 리바키나",
+   "sex": "F",
+   "stroke": "forehand",
+   "grip": "semi-western (forum)",
+   "arm": "n/a",
+   "style_notes": "Compact take-back, racket head stays contained behind her, forward contact point, little head movement; 122.6 km/h and 2,286 rpm (AO 2023)",
+   "amateur_friendly": true,
+   "why": "Simple, quiet technique with flat-ish ball - pace comes from timing and height, not a complicated swing",
+   "verified": true,
+   "source_ids": [
+    "S63",
+    "S20"
+   ],
+   "verified_note": "Numbers verified (AO); technique description from one coaching blog and a forum."
+  },
+  {
+   "name": "Iga Swiatek",
+   "name_ko": "이가 시비옹테크",
+   "sex": "F",
+   "stroke": "forehand",
+   "grip": "western",
+   "arm": "n/a",
+   "style_notes": "Most 'ATP-like' compact swing on the WTA with heavy topspin (>3,200 rpm reported; another source says ~2,600)",
+   "amateur_friendly": false,
+   "why": "True western grip makes low balls and timing difficult for club players; copy the compact backswing, not the grip",
+   "verified": true,
+   "source_ids": [
+    "S61",
+    "S62",
+    "S82"
+   ]
+  },
+  {
+   "name": "Ashleigh Barty",
+   "name_ko": "애슐리 바티",
+   "sex": "F",
+   "stroke": "forehand",
+   "grip": "semi-western (forum)",
+   "arm": "n/a",
+   "style_notes": "Compact 'ATP-style' backswing with racket staying on the hitting side",
+   "amateur_friendly": true,
+   "why": "Short backswing, more topspin, easier to replicate than the long WTA-style swing",
+   "verified": false,
+   "source_ids": [
+    "S62"
+   ],
+   "verified_note": "Forum-level sources only."
+  },
+  {
+   "name": "Justine Henin",
+   "name_ko": "쥐스틴 에냉",
+   "sex": "F",
+   "stroke": "forehand",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Listed among WTA players with an ATP-style (compact, hitting-side) forehand",
+   "amateur_friendly": true,
+   "why": "Compact swing on a small frame",
+   "verified": false,
+   "source_ids": [
+    "S62"
+   ],
+   "verified_note": "Forum thread only."
+  },
+  {
+   "name": "Aryna Sabalenka",
+   "name_ko": "아리나 사발렌카",
+   "sex": "F",
+   "stroke": "forehand",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Flat power: 129 km/h average at US Open 2024 (above Alcaraz 127, Sinner 125, Djokovic 122); 2,341 rpm at AO 2023",
+   "amateur_friendly": false,
+   "why": "Low-margin, maximum-pace hitting with about 1,000 rpm less spin than Swiatek - the opposite of what a club player needs",
+   "verified": true,
+   "source_ids": [
+    "S21",
+    "S20",
+    "S82"
+   ]
+  },
+  {
+   "name": "Jessica Pegula",
+   "name_ko": "제시카 페굴라",
+   "sex": "F",
+   "stroke": "forehand",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Often described as flat and compact (memory), but a forum thread lists her with the long 'WTA-style' backswing group",
+   "amateur_friendly": false,
+   "why": "Not recommended as a model until verified on video",
+   "verified": false,
+   "source_ids": [
+    "S62",
+    "memory"
+   ],
+   "verified_note": "Conflicting; nothing reliable found."
+  },
+  {
+   "name": "Novak Djokovic",
+   "name_ko": "노박 조코비치",
+   "sex": "M",
+   "stroke": "backhand_2h",
+   "grip": "dominant hand continental + top hand forehand grip (memory)",
+   "arm": "n/a",
+   "style_notes": "Wrist angle fixed through contact, little scooping; can redirect late; widely treated as the benchmark",
+   "amateur_friendly": true,
+   "why": "Stable wrists and simple shape; copy the full shoulder turn and the firm top hand",
+   "verified": true,
+   "source_ids": [
+    "S66",
+    "S60"
+   ],
+   "verified_note": "Technique descriptions verified; grip from memory."
+  },
+  {
+   "name": "Andre Agassi",
+   "name_ko": "안드레 아가시",
+   "sex": "M",
+   "stroke": "backhand_2h",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Early preparation, short backswing, full shoulder turn; front arm bent / rear arm straight pattern (forum on Yandell's four variations)",
+   "amateur_friendly": true,
+   "why": "Short backswing + early turn is exactly what recreational players lack",
+   "verified": true,
+   "source_ids": [
+    "S66",
+    "S41"
+   ]
+  },
+  {
+   "name": "Alexander Zverev",
+   "name_ko": "알렉산더 즈베레프",
+   "sex": "M",
+   "stroke": "backhand_2h",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Contacts with the back (top-hand) arm straight or very close to it",
+   "amateur_friendly": true,
+   "why": "Clean, extended top arm; a tall-player version of a simple drive",
+   "verified": true,
+   "source_ids": [
+    "S75"
+   ]
+  },
+  {
+   "name": "Jannik Sinner",
+   "name_ko": "야닉 시너",
+   "sex": "M",
+   "stroke": "backhand_2h",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Both arms bent ('double-bend') structure; 73 mph and 2,235 rpm vs tour 66 mph / 1,977 rpm",
+   "amateur_friendly": true,
+   "why": "Standard bent/bent structure is the easiest to copy; ignore the pace",
+   "verified": true,
+   "source_ids": [
+    "S16",
+    "S60"
+   ]
+  },
+  {
+   "name": "Daniil Medvedev",
+   "name_ko": "다닐 메드베데프",
+   "sex": "M",
+   "stroke": "backhand_2h",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Flatter than most, low net clearance, reduced topspin",
+   "amateur_friendly": false,
+   "why": "Low-margin flat ball is unsafe for club players",
+   "verified": true,
+   "source_ids": [
+    "S60"
+   ]
+  },
+  {
+   "name": "Simona Halep",
+   "name_ko": "시모나 할렙",
+   "sex": "F",
+   "stroke": "backhand_2h",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Compact, balanced two-hander with early preparation (from memory)",
+   "amateur_friendly": true,
+   "why": "Efficient technique for an average-height player",
+   "verified": false,
+   "source_ids": [
+    "memory"
+   ],
+   "verified_note": "Not checked in this session."
+  },
+  {
+   "name": "Chung Hyeon",
+   "name_ko": "정현",
+   "sex": "M",
+   "stroke": "backhand_2h",
+   "grip": "not verified",
+   "arm": "n/a",
+   "style_notes": "Korean player known for a powerful two-handed backhand (Korean write-up title seen; content not read)",
+   "amateur_friendly": true,
+   "why": "Familiar reference for Korean players",
+   "verified": false,
+   "source_ids": [
+    "S73",
+    "memory"
+   ],
+   "verified_note": "Only the article title was seen."
+  },
+  {
+   "name": "Stan Wawrinka",
+   "name_ko": "스탄 바브린카",
+   "sex": "M",
+   "stroke": "backhand_1h",
+   "grip": "eastern backhand, between Federer's conservative and Gasquet's extreme grip",
+   "arm": "straight",
+   "style_notes": "Straight arm through and after contact; heavier and steadier ball than Almagro's",
+   "amateur_friendly": true,
+   "why": "Simplest arm structure (straightens early, stays straight); needs a full turn and some strength",
+   "verified": true,
+   "source_ids": [
+    "S65",
+    "S60"
+   ]
+  },
+  {
+   "name": "Roger Federer",
+   "name_ko": "로저 페더러",
+   "sex": "M",
+   "stroke": "backhand_1h",
+   "grip": "conservative eastern backhand",
+   "arm": "straight",
+   "style_notes": "Elbow bent ~60 deg at the bottom of the swing and late to straighten, which adds timing complexity",
+   "amateur_friendly": false,
+   "why": "Late-straightening elbow is hard to time; conservative grip is good for low balls/slice but weaker on high balls",
+   "verified": true,
+   "source_ids": [
+    "S65",
+    "S60"
+   ]
+  },
+  {
+   "name": "Richard Gasquet",
+   "name_ko": "리샤르 가스케",
+   "sex": "M",
+   "stroke": "backhand_1h",
+   "grip": "extreme eastern backhand",
+   "arm": "straight",
+   "style_notes": "Unusual take-back with open racket face; face closed at contact for heavy topspin; elbow bend only ~20 deg",
+   "amateur_friendly": false,
+   "why": "Extreme grip and big loop demand excellent timing",
+   "verified": true,
+   "source_ids": [
+    "S65",
+    "S60"
+   ]
+  },
+  {
+   "name": "Grigor Dimitrov",
+   "name_ko": "그리고르 디미트로프",
+   "sex": "M",
+   "stroke": "backhand_1h",
+   "grip": "conservative eastern backhand (same end of the spectrum as Federer)",
+   "arm": "straight",
+   "style_notes": "Classic shape",
+   "amateur_friendly": true,
+   "why": "Conservative grip is easy to switch to from a continental slice grip; expect trouble on high balls",
+   "verified": false,
+   "source_ids": [
+    "S60"
+   ],
+   "verified_note": "Only the grip placement is verified."
+  },
+  {
+   "name": "Justine Henin",
+   "name_ko": "쥐스틴 에냉",
+   "sex": "F",
+   "stroke": "backhand_1h",
+   "grip": "not verified",
+   "arm": "straight",
+   "style_notes": "Famous one-handed backhand on a small frame (memory)",
+   "amateur_friendly": true,
+   "why": "Shows the one-hander works without great height or strength if the turn and timing are right",
+   "verified": false,
+   "source_ids": [
+    "memory"
+   ],
+   "verified_note": "Not checked in this session."
+  }
+ ],
+ "faults": [
+  {
+   "id": "fh_late_preparation",
+   "stroke": "forehand",
+   "symptom_ko": "준비(테이크백)가 늦어 공에 쫓겨 침",
+   "skeleton_sign": "Shoulder-line turn still < 45 deg about 0.4-0.5 s before contact, or backswing end and forward swing start are < 0.1 s apart (heuristic; pros reach the full >= 90 deg turn before the forward swing)",
+   "likely_causes": [
+    "Unit turn starts after the bounce instead of when the ball's direction is clear",
+    "Racket taken back with the arm only",
+    "Slow first step / arriving late"
+   ],
+   "fix_cues_ko": [
+    "상대가 치는 순간 바로 어깨부터 돌리세요",
+    "공이 네트 넘어오기 전에 준비 끝!",
+    "라켓 말고 몸통을 먼저 돌리세요"
+   ],
+   "source_ids": [
+    "S68",
+    "S69",
+    "S38",
+    "S55"
+   ]
+  },
+  {
+   "id": "fh_no_unit_turn",
+   "stroke": "forehand",
+   "symptom_ko": "몸통 회전 없이 팔로만 침",
+   "skeleton_sign": "Shoulder-line rotation at end of backswing < 45 deg (elite >= 90-110); hip-shoulder separation near 0 (elite about 25-35 deg); wrist travels far behind the trunk while the chest still faces the net",
+   "likely_causes": [
+    "No left-hand (non-hitting) involvement in the take-back",
+    "Feet stay square to the net",
+    "Hips do not rotate (most common recreational fault per Feel Tennis)"
+   ],
+   "fix_cues_ko": [
+    "왼손으로 라켓 목을 잡고 같이 돌리세요",
+    "왼쪽 어깨가 턱 밑에 오게 돌리세요",
+    "왼팔을 옆줄 쪽으로 쭉 뻗으세요",
+    "배꼽이 옆 펜스를 보게 돌렸다가 치세요"
+   ],
+   "source_ids": [
+    "S38",
+    "S1",
+    "S68"
+   ]
+  },
+  {
+   "id": "fh_contact_late",
+   "stroke": "forehand",
+   "symptom_ko": "타점이 늦음 (몸 옆이나 뒤에서 맞음)",
+   "skeleton_sign": "At contact the hitting wrist is level with or behind the front hip / hitting-shoulder line along the hitting direction (vendor band: < 10 cm in front of the shoulder = late); arm-extension ratio low; trunk leaning back",
+   "likely_causes": [
+    "Late preparation",
+    "Waiting for the ball instead of moving to it",
+    "Too close to the ball"
+   ],
+   "fix_cues_ko": [
+    "20cm 더 앞에서 맞추세요",
+    "앞발 무릎 앞에서 치세요",
+    "공을 기다리지 말고 마중 나가세요",
+    "'바운드-준비 끝-앞에서' 리듬으로"
+   ],
+   "source_ids": [
+    "S44",
+    "S43",
+    "S68",
+    "S56",
+    "S57"
+   ]
+  },
+  {
+   "id": "fh_contact_too_far_front",
+   "stroke": "forehand",
+   "symptom_ko": "타점이 너무 앞 (팔만 뻗거나 손목으로 덮음)",
+   "skeleton_sign": "Wrist > ~40 cm ahead of the hitting shoulder with arm-extension ratio ~1.0 and trunk tipping forward over the front foot; forearm/wrist rolls over before contact (vendor band: > 40 cm = reaching)",
+   "likely_causes": [
+    "Lunging at short or slow balls",
+    "Swinging too early",
+    "Using the wrist to steer"
+   ],
+   "fix_cues_ko": [
+    "공을 반 박자 더 끌어놓고 치세요",
+    "손목으로 덮지 말고 면을 그대로 밀어 주세요",
+    "발로 다가가서 치세요, 팔로 뻗지 말고"
+   ],
+   "source_ids": [
+    "S43",
+    "S53",
+    "S69",
+    "S54"
+   ]
+  },
+  {
+   "id": "fh_elbow_jammed",
+   "stroke": "forehand",
+   "symptom_ko": "공과 너무 가까워 팔꿈치가 몸에 끼임",
+   "skeleton_sign": "Elbow included angle < ~90 deg at contact and elbow close to the ribs (arm-extension ratio < ~0.72); wrist laterally near the hip",
+   "likely_causes": [
+    "Poor spacing / no adjustment steps",
+    "Ball tracked with the body instead of beside it",
+    "Racket face closes -> net (Korean source)"
+   ],
+   "fix_cues_ko": [
+    "공과 한 팔 거리를 두세요",
+    "겨드랑이에 주먹 하나 들어갈 틈을 만드세요",
+    "잔발로 반 걸음 떨어지세요"
+   ],
+   "source_ids": [
+    "S44",
+    "S54",
+    "S3"
+   ]
+  },
+  {
+   "id": "fh_straight_legs",
+   "stroke": "forehand",
+   "symptom_ko": "무릎을 안 굽히고 서서 침",
+   "skeleton_sign": "Loading-leg knee included angle > ~160 deg at the end of the backswing (reference ~113 deg rear / 129-140 deg front) and no hip-height change between loading and contact",
+   "likely_causes": [
+    "Arriving late so no time to load",
+    "Habit of standing tall",
+    "Fatigue"
+   ],
+   "fix_cues_ko": [
+    "의자에 살짝 앉듯이 무릎을 굽히세요",
+    "치기 전에 앉았다가 일어나면서 치세요",
+    "엉덩이를 10cm 낮추세요"
+   ],
+   "source_ids": [
+    "S26",
+    "S72",
+    "S4",
+    "S49"
+   ]
+  },
+  {
+   "id": "fh_leaning_back",
+   "stroke": "forehand",
+   "symptom_ko": "상체가 뒤로 젖혀지고 체중이 뒷발에 남음",
+   "skeleton_sign": "At contact the shoulder midpoint is behind the hip midpoint along the hitting direction (trunk tilted back > ~5-10 deg) and the head is behind the rear hip; rear foot stays planted after contact",
+   "likely_causes": [
+    "Late preparation - chasing the ball",
+    "Ball too deep/high and no step back",
+    "Trying to lift the ball with the body"
+   ],
+   "fix_cues_ko": [
+    "가슴을 공 쪽으로 내미세요",
+    "코가 앞발 위에 오게",
+    "치고 나서 뒷발이 따라 나오게 하세요",
+    "깊은 공은 먼저 한 발 물러나세요"
+   ],
+   "source_ids": [
+    "S55",
+    "S69",
+    "S68"
+   ]
+  },
+  {
+   "id": "fh_falling_away",
+   "stroke": "forehand",
+   "symptom_ko": "치면서 몸이 옆으로 빠지거나 머리가 돌아감",
+   "skeleton_sign": "Head (nose) moves > ~10-15 cm sideways/up in the 0.1 s around contact; trunk side-bends away from the hitting side",
+   "likely_causes": [
+    "Looking at the target early",
+    "Over-rotating to create power",
+    "Poor balance / feet too close"
+   ],
+   "fix_cues_ko": [
+    "맞는 순간 머리를 타점에 남기세요",
+    "타점을 0.5초 더 보세요",
+    "두 발을 어깨보다 넓게"
+   ],
+   "source_ids": [
+    "S63",
+    "S43",
+    "S50"
+   ]
+  },
+  {
+   "id": "fh_opening_too_early",
+   "stroke": "forehand",
+   "symptom_ko": "몸(어깨)이 일찍 열려 팔이 끌려 나옴",
+   "skeleton_sign": "Shoulder line already parallel to the net > 0.1 s before contact; hips and shoulders rotate as one block (separation ~0); non-hitting arm drops/pulls away early; ball pulled cross-court or dragged wide",
+   "likely_causes": [
+    "Trying to hit hard with the shoulders",
+    "Left arm leaves too soon",
+    "Stepping across with the wrong foot"
+   ],
+   "fix_cues_ko": [
+    "왼손으로 공을 가리키고 있다가 치세요",
+    "골반이 먼저, 어깨는 나중에",
+    "맞을 때 가슴은 아직 45도"
+   ],
+   "source_ids": [
+    "S39",
+    "S69",
+    "S68"
+   ]
+  },
+  {
+   "id": "fh_stopped_follow_through",
+   "stroke": "forehand",
+   "symptom_ko": "팔로스루가 짧게 멈춤",
+   "skeleton_sign": "After contact the hitting wrist stops in front of the chest and never crosses the body midline / reaches the opposite shoulder; hand speed drops sharply within 0.1 s of contact",
+   "likely_causes": [
+    "Fear of hitting long",
+    "Guiding/pushing the ball",
+    "Swinging too flat or leading with the elbow"
+   ],
+   "fix_cues_ko": [
+    "라켓이 왼쪽 어깨까지 가게 끝까지 휘두르세요",
+    "팔꿈치가 상대를 가리키며 끝나게",
+    "세게가 아니라 길게 치세요"
+   ],
+   "source_ids": [
+    "S69",
+    "S39"
+   ]
+  },
+  {
+   "id": "fh_flat_swing_no_drop",
+   "stroke": "forehand",
+   "symptom_ko": "라켓이 공 밑으로 안 내려가고 수평으로만 휘두름",
+   "skeleton_sign": "Lowest wrist height during the forward swing is within ~10 cm of contact height (reference: racket path rises 20-30 deg; wrist normally starts well below contact)",
+   "likely_causes": [
+    "High take-back with no drop",
+    "Tight arm - racket head never falls",
+    "Trying to hit flat"
+   ],
+   "fix_cues_ko": [
+    "라켓을 공보다 30cm 아래에서 출발시키세요",
+    "아래에서 위로 쓸어 올리세요",
+    "네트 위 라켓 두 개 높이를 겨냥하세요"
+   ],
+   "source_ids": [
+    "S3",
+    "S5",
+    "S69",
+    "S67"
+   ]
+  },
+  {
+   "id": "fh_bend_at_waist",
+   "stroke": "forehand",
+   "symptom_ko": "낮은 공에 허리만 숙임",
+   "skeleton_sign": "Trunk forward lean > ~30 deg while knee included angle stays > 160 deg; wrist at or below knee height",
+   "likely_causes": [
+    "Late to the ball",
+    "Stiff legs"
+   ],
+   "fix_cues_ko": [
+    "허리 말고 무릎을 굽히세요",
+    "엉덩이를 공 높이로 낮추세요",
+    "등을 세우고 다리로 내려가세요"
+   ],
+   "source_ids": [
+    "S49"
+   ]
+  },
+  {
+   "id": "fh_idle_left_arm",
+   "stroke": "forehand",
+   "symptom_ko": "왼팔(비타격 팔)이 처져 있음",
+   "skeleton_sign": "Non-hitting wrist stays below the hip / beside the body during the backswing instead of extending across at about shoulder height",
+   "likely_causes": [
+    "Never taught to use the off arm",
+    "One-handed take-back"
+   ],
+   "fix_cues_ko": [
+    "왼팔을 옆줄 쪽으로 쭉 뻗으세요",
+    "왼손으로 공을 잡으러 간다고 생각하세요",
+    "치고 나서 왼손으로 라켓을 받으세요"
+   ],
+   "source_ids": [
+    "S38",
+    "S64"
+   ]
+  },
+  {
+   "id": "bh2_bottom_hand_dominant",
+   "stroke": "backhand_2h",
+   "symptom_ko": "오른손(아래 손)으로만 끌어 침",
+   "skeleton_sign": "Top-hand (left) elbow stays strongly flexed and behind the right wrist through contact; right arm straightens and pulls; little shoulder rotation; racket face tends to open",
+   "likely_causes": [
+    "Stroke learned as a 'one-hander with help'",
+    "Weak non-dominant side"
+   ],
+   "fix_cues_ko": [
+    "왼손으로 치는 포핸드라고 생각하세요",
+    "오른손은 얹어만 두세요",
+    "왼손만으로 미니 랠리 10개 하고 치세요"
+   ],
+   "source_ids": [
+    "S50",
+    "S73"
+   ]
+  },
+  {
+   "id": "bh2_insufficient_turn",
+   "stroke": "backhand_2h",
+   "symptom_ko": "어깨 턴이 부족함",
+   "skeleton_sign": "Shoulder alignment at end of backswing well below ~80 deg (elite 83.4 deg; vendor target 55-70 deg torso rotation); chin not over the front shoulder",
+   "likely_causes": [
+    "Late recognition of a backhand ball",
+    "Arms taken back without the trunk"
+   ],
+   "fix_cues_ko": [
+    "오른쪽 어깨 너머로 공을 보세요",
+    "등이 살짝 상대에게 보이게 돌리세요",
+    "공이 백 쪽이다 싶으면 바로 왼손으로 라켓을 당기세요"
+   ],
+   "source_ids": [
+    "S29",
+    "S43",
+    "S46",
+    "S73"
+   ]
+  },
+  {
+   "id": "bh2_contact_late",
+   "stroke": "backhand_2h",
+   "symptom_ko": "타점이 늦어 밀려 맞음",
+   "skeleton_sign": "Both wrists level with or behind the front hip at contact; elbows flexed and close to the trunk",
+   "likely_causes": [
+    "Turning only when the ball is close",
+    "Too close to the ball"
+   ],
+   "fix_cues_ko": [
+    "앞 골반 앞에서 맞추세요",
+    "한 뼘 더 앞에서!",
+    "옆으로 서는 걸 한 박자 빨리"
+   ],
+   "source_ids": [
+    "S46",
+    "S71",
+    "S50"
+   ]
+  },
+  {
+   "id": "bh2_arms_jammed",
+   "stroke": "backhand_2h",
+   "symptom_ko": "두 팔이 몸에 붙어 스윙이 작음",
+   "skeleton_sign": "Arm-extension ratio of both arms < ~0.75 at contact and wrists within ~20 cm of the trunk",
+   "likely_causes": [
+    "Standing too close",
+    "Fear of missing - poking at the ball"
+   ],
+   "fix_cues_ko": [
+    "두 팔을 앞으로 쭉 밀어 주세요",
+    "공과 팔 하나 거리를 두세요",
+    "치고 나서 라켓이 오른쪽 어깨 위로 넘어가게"
+   ],
+   "source_ids": [
+    "S78",
+    "S50",
+    "S33"
+   ]
+  },
+  {
+   "id": "bh2_no_hip_rotation",
+   "stroke": "backhand_2h",
+   "symptom_ko": "골반이 안 돌고 팔로만 침",
+   "skeleton_sign": "Hip line still side-on (> 60 deg to the net) at the finish; rear foot does not pivot",
+   "likely_causes": [
+    "Closed stance blocks the hips",
+    "Trying to stay sideways too long"
+   ],
+   "fix_cues_ko": [
+    "치면서 배꼽이 네트를 보게 돌리세요",
+    "뒷발 뒤꿈치가 들리게",
+    "마지막에 가슴이 상대를 보게"
+   ],
+   "source_ids": [
+    "S50",
+    "S68"
+   ]
+  },
+  {
+   "id": "bh2_upright_or_tilted",
+   "stroke": "backhand_2h",
+   "symptom_ko": "서서 치거나 머리·상체가 기울어짐",
+   "skeleton_sign": "Knee included angle > 160 deg at loading, or head/trunk tilted sideways > ~15 deg at contact",
+   "likely_causes": [
+    "No leg loading",
+    "Reaching for the ball"
+   ],
+   "fix_cues_ko": [
+    "무릎을 굽히고 허리는 세우세요",
+    "머리를 똑바로 세운 채 도세요"
+   ],
+   "source_ids": [
+    "S50",
+    "S49"
+   ]
+  },
+  {
+   "id": "bh1_shoulders_open_early",
+   "stroke": "backhand_1h",
+   "symptom_ko": "어깨(몸)가 일찍 열림",
+   "skeleton_sign": "Shoulder line rotated to < ~45 deg from the net (facing the net) at contact - reference: roughly side-on (about 90 deg) at contact; non-hitting arm swings forward with the stroke instead of staying back",
+   "likely_causes": [
+    "Eyes follow the ball to the target",
+    "Trying to add power with body rotation like a forehand",
+    "Non-hitting arm not used as a counterweight"
+   ],
+   "fix_cues_ko": [
+    "왼손을 뒤로 뻗어 가슴을 펴세요",
+    "치고 나서도 옆으로 서 있으세요",
+    "머리를 타점에 남기세요",
+    "방향은 손목이 아니라 어깨로 정하세요"
+   ],
+   "source_ids": [
+    "S40",
+    "S53",
+    "S51"
+   ]
+  },
+  {
+   "id": "bh1_bent_elbow_late_contact",
+   "stroke": "backhand_1h",
+   "symptom_ko": "팔꿈치가 굽은 채 늦게 맞음",
+   "skeleton_sign": "Elbow included angle < ~150 deg at contact (vendor reference 160-175) and wrist not clearly ahead of the front hip/foot",
+   "likely_causes": [
+    "Late preparation - the one-hander needs to start ~0.13 s before impact vs 0.08 s for the two-hander",
+    "Contact too close to the body",
+    "Tense arm, racket head never drops"
+   ],
+   "fix_cues_ko": [
+    "팔을 쭉 펴고 앞발 앞 30cm에서 맞추세요",
+    "칼을 뽑듯이 앞으로 뻗으세요",
+    "포핸드보다 더 앞에서!"
+   ],
+   "source_ids": [
+    "S52",
+    "S29",
+    "S53",
+    "S56",
+    "S65"
+   ]
+  },
+  {
+   "id": "bh1_insufficient_turn",
+   "stroke": "backhand_1h",
+   "symptom_ko": "테이크백 때 어깨가 덜 돌아감",
+   "skeleton_sign": "Shoulder alignment at end of backswing < ~90 deg (elite ~119 deg: back partly visible to the opponent); chin not near the hitting shoulder",
+   "likely_causes": [
+    "Letting go with the non-hitting hand too early",
+    "Late grip change"
+   ],
+   "fix_cues_ko": [
+    "등이 상대에게 보일 만큼 돌리세요",
+    "턱이 오른쪽 어깨에 닿게",
+    "왼손으로 라켓 목을 끝까지 잡고 빼세요"
+   ],
+   "source_ids": [
+    "S29",
+    "S40",
+    "S51"
+   ]
+  },
+  {
+   "id": "bh1_high_ball_forced",
+   "stroke": "backhand_1h",
+   "symptom_ko": "어깨 위 높은 공을 억지로 드라이브",
+   "skeleton_sign": "Hitting wrist above the hitting shoulder at contact with elbow bent and trunk leaning back",
+   "likely_causes": [
+    "No decision between rising ball, backing up, or slice",
+    "Conservative grip"
+   ],
+   "fix_cues_ko": [
+    "어깨보다 높으면 슬라이스로 넘기세요",
+    "한 발 들어가 가슴 높이에서 잡으세요",
+    "뒤로 물러나 떨어뜨리고 치세요"
+   ],
+   "source_ids": [
+    "S34",
+    "S47",
+    "S77",
+    "S78"
+   ]
+  },
+  {
+   "id": "bh1_straight_legs",
+   "stroke": "backhand_1h",
+   "symptom_ko": "무릎을 안 굽히고 팔로만 들어 올림",
+   "skeleton_sign": "Front knee included angle > 160 deg at loading; hips do not rise through contact",
+   "likely_causes": [
+    "Standing tall",
+    "Low balls handled with the arm"
+   ],
+   "fix_cues_ko": [
+    "앞무릎을 굽혔다가 펴면서 치세요",
+    "다리로 공을 들어 올리세요"
+   ],
+   "source_ids": [
+    "S49",
+    "S51"
+   ]
+  }
+ ],
+ "result_to_causes": [
+  {
+   "result_ko": "네트에 걸림",
+   "stroke": "forehand",
+   "causes_ko": [
+    "라켓면이 닫힌 채 맞음 (공과 너무 가깝거나 몸이 앞을 못 향함)",
+    "스윙이 수평이거나 위에서 아래로 내려옴 (라켓이 공 밑으로 안 들어감)",
+    "타점이 너무 앞이라 손목으로 덮음",
+    "낮은 공인데 무릎을 안 굽힘 (무릎 높이 공은 약 3도 더 띄워야 넘어감)",
+    "네트 위 여유를 너무 낮게 겨냥 (동호인 속도에서는 네트 위 1.5~3m가 필요)",
+    "맞는 순간 스윙을 멈춤"
+   ],
+   "fix_cues_ko": [
+    "네트 위 라켓 두 개 높이로 넘기세요",
+    "라켓을 공보다 30cm 아래에서 출발시키세요",
+    "무릎을 굽혀 공 밑으로 들어가세요",
+    "면은 그대로 두고 위로 쓸어 올리세요",
+    "공과 한 팔 거리를 두세요"
+   ],
+   "source_ids": [
+    "S54",
+    "S69",
+    "S49",
+    "S67",
+    "CALC"
+   ]
+  },
+  {
+   "result_ko": "길게 아웃(홈런)",
+   "stroke": "forehand",
+   "causes_ko": [
+    "타점이 늦어 라켓면이 열린 채 맞음 (이스턴·컨티넨탈 그립에서 특히)",
+    "준비가 늦어 체중이 뒤에 남고 상체가 젖혀짐",
+    "스윙 궤도가 너무 가파르게 위로 솟음 (롱 에러는 네트 에러보다 궤도가 약 3도 가파름)",
+    "높은 공을 평소처럼 밑에서 위로 침",
+    "임팩트 전에 손목이 풀려 면이 하늘을 봄, 그립을 너무 꽉 쥠",
+    "회전 없이 세게만 침 (플랫일수록 들어가는 각도 폭이 좁음)"
+   ],
+   "fix_cues_ko": [
+    "타점을 20cm 앞으로 당기세요",
+    "가슴을 공 쪽으로 내밀고 치세요",
+    "면을 5도만 덮고 끝까지 휘두르세요",
+    "높은 공은 어깨 높이에서 옆으로 밀어 치세요",
+    "힘을 20% 빼고 회전을 더 주세요"
+   ],
+   "source_ids": [
+    "S54",
+    "S55",
+    "S3",
+    "S11",
+    "S47",
+    "CALC"
+   ]
+  },
+  {
+   "result_ko": "옆으로 빠짐",
+   "stroke": "forehand",
+   "causes_ko": [
+    "타점이 늦으면 공이 오른쪽(오른손잡이 기준)으로 밀려 나감",
+    "몸이 일찍 열려 당겨 치면 왼쪽으로 빠짐",
+    "발이 안 가고 팔만 뻗어 라켓이 가로질러 당겨짐",
+    "손목으로 방향을 조절함",
+    "사이드라인을 너무 가깝게 겨냥 (1도 틀리면 베이스라인에서 약 40cm)"
+   ],
+   "fix_cues_ko": [
+    "어깨가 가리키는 쪽으로 공이 갑니다 - 어깨로 방향을 잡으세요",
+    "잔발로 한 걸음 더 다가가세요",
+    "맞을 때까지 왼손으로 공을 가리키세요",
+    "라인에서 2m 안쪽을 겨냥하세요"
+   ],
+   "source_ids": [
+    "S44",
+    "S68",
+    "S69",
+    "S15",
+    "CALC"
+   ]
+  },
+  {
+   "result_ko": "힘없이 짧음",
+   "stroke": "forehand",
+   "causes_ko": [
+    "몸통·골반 회전 없이 팔로만 침",
+    "타점이 몸 옆이나 뒤라서 밀어 침",
+    "다리가 서 있음 (무릎을 못 쓰면 라켓 속도가 약 29% 떨어짐)",
+    "팔로스루가 멈추거나 감속함",
+    "네트 위 높이가 낮음 (시속 70km로 네트 위 0.7m를 넘기면 서비스라인 앞에 떨어짐)",
+    "공과 너무 가까워 팔꿈치가 끼임"
+   ],
+   "fix_cues_ko": [
+    "왼쪽 어깨가 턱 밑에 오게 돌렸다가 치세요",
+    "앞발 무릎 앞에서 맞추세요",
+    "앉았다 일어나면서 치세요",
+    "라켓이 왼쪽 어깨까지 가게 끝까지",
+    "네트 위 2m 높이로 길게 보내세요"
+   ],
+   "source_ids": [
+    "S68",
+    "S26",
+    "S44",
+    "S67",
+    "CALC"
+   ]
+  },
+  {
+   "result_ko": "네트에 걸림",
+   "stroke": "backhand_2h",
+   "causes_ko": [
+    "서서 팔로만 내려 찍음 (낮은 공에 무릎을 안 굽힘)",
+    "오른손이 주도해 라켓이 위에서 아래로 내려옴",
+    "타점이 너무 앞이거나 손목으로 덮음",
+    "라켓 헤드가 공 밑으로 안 내려감",
+    "네트 위 여유를 너무 낮게 겨냥"
+   ],
+   "fix_cues_ko": [
+    "뒷무릎을 낮추고 헤드를 공 밑으로 넣으세요",
+    "왼손으로 아래에서 위로 쓸어 올리세요",
+    "네트 위 라켓 두 개 높이로",
+    "왼팔을 펴서 헤드를 떨어뜨리세요"
+   ],
+   "source_ids": [
+    "S50",
+    "S74",
+    "S49",
+    "CALC"
+   ]
+  },
+  {
+   "result_ko": "길게 아웃(홈런)",
+   "stroke": "backhand_2h",
+   "causes_ko": [
+    "타점이 늦어 면이 열림",
+    "아래 손(오른손)이 주도해 면이 열림",
+    "상체가 뒤로 젖혀짐",
+    "높은 공에 팔꿈치를 굽힌 채 걷어 올림"
+   ],
+   "fix_cues_ko": [
+    "앞 골반 앞에서 맞추세요",
+    "왼손으로 공을 덮어 준다는 느낌으로",
+    "가슴을 공 쪽으로 숙이세요",
+    "높은 공은 두 팔을 펴면서 앞으로 밀어 치세요"
+   ],
+   "source_ids": [
+    "S50",
+    "S46",
+    "S78"
+   ]
+  },
+  {
+   "result_ko": "옆으로 빠짐",
+   "stroke": "backhand_2h",
+   "causes_ko": [
+    "어깨 턴이 부족해 팔로 방향을 만듦",
+    "타점이 늦어 공이 왼쪽(오른손잡이 기준 다운더라인 바깥)으로 밀림",
+    "골반이 일찍 열려 크로스로 당겨짐",
+    "머리·상체가 기울어짐"
+   ],
+   "fix_cues_ko": [
+    "오른쪽 어깨 너머로 공을 보고 치세요",
+    "한 뼘 더 앞에서!",
+    "머리를 세운 채 제자리에서 도세요",
+    "라인에서 2m 안쪽을 겨냥하세요"
+   ],
+   "source_ids": [
+    "S46",
+    "S50",
+    "S29"
+   ]
+  },
+  {
+   "result_ko": "힘없이 짧음",
+   "stroke": "backhand_2h",
+   "causes_ko": [
+    "왼손이 일을 안 함 (오른손으로 끌기만 함)",
+    "골반 회전이 없음",
+    "두 팔이 몸에 붙어 스윙이 작음",
+    "팔로스루가 일찍 끊김",
+    "준비가 늦음"
+   ],
+   "fix_cues_ko": [
+    "왼손 포핸드라고 생각하고 왼손으로 치세요",
+    "치면서 배꼽이 네트를 보게",
+    "두 팔을 앞으로 쭉 밀어 주세요",
+    "라켓이 오른쪽 어깨 위로 넘어가게 끝까지"
+   ],
+   "source_ids": [
+    "S50",
+    "S73",
+    "S46"
+   ]
+  },
+  {
+   "result_ko": "네트에 걸림",
+   "stroke": "backhand_1h",
+   "causes_ko": [
+    "어깨가 일찍 열리며 라켓이 아래로 떨어짐",
+    "팔꿈치가 굽은 채 맞아 헤드가 못 올라옴",
+    "낮은 공에 무릎을 안 굽힘",
+    "라켓 헤드를 공 밑으로 못 떨어뜨림 (팔에 힘이 들어감)"
+   ],
+   "fix_cues_ko": [
+    "치고 나서도 옆으로 서 있으세요",
+    "팔을 펴고 아래에서 위로",
+    "앞무릎을 굽혔다 펴면서 치세요",
+    "팔 힘을 빼고 헤드를 떨어뜨렸다가 올리세요"
+   ],
+   "source_ids": [
+    "S40",
+    "S52",
+    "S65",
+    "S49"
+   ]
+  },
+  {
+   "result_ko": "길게 아웃(홈런)",
+   "stroke": "backhand_1h",
+   "causes_ko": [
+    "타점이 늦어 면이 열림",
+    "어깨보다 높은 공을 억지로 걷어 올림",
+    "상체가 뒤로 젖혀짐",
+    "그립이 포핸드 쪽에 가까워 면이 위를 봄"
+   ],
+   "fix_cues_ko": [
+    "앞발 앞 30cm에서 맞추세요",
+    "높은 공은 슬라이스로 처리하세요",
+    "백핸드 그립으로 확실히 돌려 잡으세요",
+    "가슴을 펴되 체중은 앞발에"
+   ],
+   "source_ids": [
+    "S53",
+    "S57",
+    "S47",
+    "S51"
+   ]
+  },
+  {
+   "result_ko": "옆으로 빠짐",
+   "stroke": "backhand_1h",
+   "causes_ko": [
+    "어깨가 일찍 열려 크로스로 당겨짐",
+    "타점이 늦어 다운더라인 쪽 바깥으로 밀림",
+    "손목으로 방향을 만듦",
+    "눈이 공을 따라가며 머리가 돌아감"
+   ],
+   "fix_cues_ko": [
+    "방향은 어깨로 정하세요",
+    "왼손을 뒤로 뻗어 몸이 도는 걸 막으세요",
+    "머리를 타점에 남기세요",
+    "포핸드보다 더 앞에서 맞추세요"
+   ],
+   "source_ids": [
+    "S53",
+    "S40",
+    "S56"
+   ]
+  },
+  {
+   "result_ko": "힘없이 짧음",
+   "stroke": "backhand_1h",
+   "causes_ko": [
+    "팔꿈치가 굽은 채 맞음 (원핸드에서 가장 흔한 실수)",
+    "어깨 턴이 부족함 (등이 안 보임)",
+    "준비가 늦음 (원핸드는 투핸드보다 스윙 시작이 빨라야 함)",
+    "다리를 안 쓰고 팔로만 들어 올림",
+    "어깨 높이 이상의 공"
+   ],
+   "fix_cues_ko": [
+    "팔을 쭉 펴고 치세요",
+    "등이 상대에게 보일 만큼 돌리세요",
+    "공이 백 쪽이다 싶으면 바로 그립 바꾸고 돌리세요",
+    "다리로 들어 올리세요"
+   ],
+   "source_ids": [
+    "S52",
+    "S29",
+    "S51",
+    "S34"
+   ]
+  }
+ ],
+ "stance_usage": [
+  {
+   "stroke": "forehand",
+   "stance": "open / semi-open",
+   "when_used": "Default rally stance in the pro game; fast or wide balls, on the run, little time; quicker recovery to the centre",
+   "numbers": "83.6% of 2,479 pro forehands; drops to 65.4% in favourable (time-rich) situations (S24)",
+   "recreational_note": "Fine to use, but it only works with a real shoulder turn - open stance without a turn is the classic arm-only forehand",
+   "source_ids": [
+    "S24",
+    "S83"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "stance": "neutral / square",
+   "when_used": "Slower or shorter balls, approach shots, whenever there is time to step in",
+   "numbers": "Median +6 km/h (lateral) and +4 km/h (diagonal-inside) ball speed vs open stance, no accuracy penalty (S25)",
+   "recreational_note": "Easiest stance for learning weight transfer and contact in front",
+   "source_ids": [
+    "S25",
+    "S83"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "stance": "closed (front foot across)",
+   "when_used": "Only when forced wide; blocks hip rotation",
+   "numbers": "none found",
+   "recreational_note": "Stepping across opens the body the wrong way and makes the swing arm-only (S69)",
+   "source_ids": [
+    "S83",
+    "S69"
+   ]
+  },
+  {
+   "stroke": "backhand_2h",
+   "stance": "neutral / closed",
+   "when_used": "Ball in the middle and time to set up",
+   "numbers": "Stance did not change joint force or moment at impact in a 12-player study; square stance = more linear momentum from trunk and upper arm, open stance = more shoulder angular momentum; advanced players produced larger joint forces than intermediates in every stance (S35)",
+   "recreational_note": "Step in with the front foot but let the hips turn through",
+   "source_ids": [
+    "S35",
+    "S83"
+   ]
+  },
+  {
+   "stroke": "backhand_2h",
+   "stance": "open / semi-open",
+   "when_used": "Pushed wide or on the run; returns; faster recovery",
+   "numbers": "see above",
+   "recreational_note": "Needs a full shoulder turn first",
+   "source_ids": [
+    "S35",
+    "S83"
+   ]
+  },
+  {
+   "stroke": "backhand_1h",
+   "stance": "closed (often extremely closed)",
+   "when_used": "Standard for the one-hander at every level",
+   "numbers": "none found",
+   "recreational_note": "Shoulders stay roughly side-on through contact and follow-through regardless of stance (S40); open-stance advice for other strokes does not apply",
+   "source_ids": [
+    "S40",
+    "S83"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "stroke": "forehand",
+   "item": "non-hitting arm",
+   "reference": "At the full turn the left arm is stretched across the body, parallel to the baseline; this adds 10-20 deg of shoulder turn (S38). Nishikori holds the left arm high for balance (S64).",
+   "source_ids": [
+    "S38",
+    "S64"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "item": "wrist at contact",
+   "reference": "Wrist stays laid back (extended) at impact on most forehands (S3, S38).",
+   "source_ids": [
+    "S3",
+    "S38"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "item": "weight transfer",
+   "reference": "Weight is set on the outside/back foot before uncoiling (S64); weight staying back at contact costs control and sends balls long (S69, S55).",
+   "source_ids": [
+    "S64",
+    "S69",
+    "S55"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "item": "head stability",
+   "reference": "Head stays still through contact (vendor: 'rock-solid head position', S43; Rybakina 'little head movement', S63). No measured tolerance found.",
+   "source_ids": [
+    "S43",
+    "S63"
+   ]
+  },
+  {
+   "stroke": "forehand",
+   "item": "follow-through",
+   "reference": "Two accepted finishes: extension outward and upward then an over-the-shoulder wrap, or a full 'windshield wiper' where the face turns over and the racket wraps around the shoulder (S39). A finish that stops low or out to the side signals a too-flat swing or leading with the elbow (S69).",
+   "source_ids": [
+    "S39",
+    "S69"
+   ]
+  },
+  {
+   "stroke": "backhand_2h",
+   "item": "top hand",
+   "reference": "Think of the top hand hitting a left-handed forehand with the bottom hand along for the ride (S50); Korean sources call the left-hand-dominant version the original model, though some modern advice is 'both hands equal' (S73).",
+   "source_ids": [
+    "S50",
+    "S73"
+   ]
+  },
+  {
+   "stroke": "backhand_2h",
+   "item": "turn and hips",
+   "reference": "Shoulders must rotate further than on a forehand to get the racket back (S50); lack of hip rotation is one of the most common faults (S50, S68).",
+   "source_ids": [
+    "S50",
+    "S68"
+   ]
+  },
+  {
+   "stroke": "backhand_2h",
+   "item": "contact and wrists",
+   "reference": "Contact slightly in front at waist height (S46); Djokovic's wrist angle is fixed through contact (S66).",
+   "source_ids": [
+    "S46",
+    "S66"
+   ]
+  },
+  {
+   "stroke": "backhand_1h",
+   "item": "non-hitting arm",
+   "reference": "Guides the racket back during the set-up and then stays back as a counterweight; letting it swing forward opens the body early (S51, S53).",
+   "source_ids": [
+    "S51",
+    "S53"
+   ]
+  },
+  {
+   "stroke": "backhand_1h",
+   "item": "arm and alignment",
+   "reference": "Hitting arm straight before contact; hips and shoulders stay perpendicular to the net or open only a little (S40). Bent arm at contact = short or wide ball (S52).",
+   "source_ids": [
+    "S40",
+    "S52"
+   ]
+  },
+  {
+   "stroke": "backhand_1h",
+   "item": "head and eyes",
+   "reference": "If the eyes follow the ball the shoulders open too early; keep the head at the contact point (S53).",
+   "source_ids": [
+    "S53"
+   ]
+  },
+  {
+   "stroke": "backhand_1h",
+   "item": "racket drop",
+   "reference": "Many club players never let the racket head drop because the hitting arm is too tense (S65).",
+   "source_ids": [
+    "S65"
+   ]
+  }
+ ],
+ "skeleton_proxies": {
+  "_note": "Engineering suggestions for a MediaPipe-only app. Threshold numbers here and in faults[].skeleton_sign are HEURISTIC starting values (not sourced) unless a source value is quoted; calibrate them on pro and club clips processed by the same pipeline.",
+  "landmarks_used": "MediaPipe Pose indices (from memory): 0 nose, 11/12 shoulders, 13/14 elbows, 15/16 wrists, 23/24 hips, 25/26 knees, 27/28 ankles. Use world (metric) landmarks, not image landmarks (S79).",
+  "proxies": [
+   {
+    "name": "contact_forward_norm",
+    "how": "(hitting wrist - hitting shoulder) projected on the hitting direction at the contact frame, divided by upper-arm+forearm length; also report wrist vs front-hip",
+    "reference": "Forehand: wrist clearly ahead of the shoulder/front hip; vendor band 20-40 cm ahead of shoulder (S43). 2HBH about at/just ahead of front hip (S71). 1HBH further ahead: 0.59 m vs 0.40 m (S70)."
+   },
+   {
+    "name": "arm_extension_ratio",
+    "how": "shoulder-to-wrist distance / (upper arm + forearm)",
+    "reference": "0.77 = 100 deg elbow (western), 0.91 = 130 deg (eastern), ~1.0 straight arm; 1HBH at contact should be >= 0.97; < 0.72 = jammed (CALC, S3)."
+   },
+   {
+    "name": "shoulder_turn_deg",
+    "how": "yaw of the shoulder line (11->12) relative to the baseline, from 3-D landmarks; side-view fallback: apparent shoulder width / true shoulder width",
+    "reference": "FH >= 90-110 at end of backswing (S38); 2HBH 83 (S29); 1HBH 119 (S29)."
+   },
+   {
+    "name": "separation_deg",
+    "how": "shoulder-line yaw minus hip-line (23->24) yaw",
+    "reference": "FH max about 25-35 (SD ~9-10) (S1); 2HBH ~20, 1HBH ~30 (S28)."
+   },
+   {
+    "name": "knee_included_angle_deg",
+    "how": "hip-knee-ankle angle of the loading leg at the end of the backswing",
+    "reference": "about 113 rear / 129-140 front on a forehand (S72, small sample); straight-leg fault > 160 (heuristic)."
+   },
+   {
+    "name": "trunk_tilt_deg",
+    "how": "angle of hip-midpoint -> shoulder-midpoint vector from vertical, signed along the hitting direction",
+    "reference": "no sourced value; backward tilt at contact is the 'leaning back' sign (S55)."
+   },
+   {
+    "name": "head_stability_cm",
+    "how": "displacement of nose landmark from 0.1 s before to 0.1 s after contact",
+    "reference": "no sourced value; Rybakina described as 'little head movement' (S63)."
+   },
+   {
+    "name": "swing_rise_proxy",
+    "how": "contact wrist height minus lowest wrist height in the forward swing; wrist path angle over the last 3-4 frames before contact",
+    "reference": "racket path rises 20-30 deg in topspin drives (S3, S5, S7); the hand rises less than the racket head, so compare against pro clips rather than absolute degrees."
+   },
+   {
+    "name": "rotation_speed_deg_s",
+    "how": "time derivative of shoulder-line and hip-line yaw near contact (needs >= 60 fps)",
+    "reference": "ATP pelvis 295, trunk 453 deg/s at impact vs 168 / 292 for high-performance players (S2)."
+   },
+   {
+    "name": "follow_through_reach",
+    "how": "does the hitting wrist cross the body midline and reach the opposite shoulder within ~0.3 s after contact",
+    "reference": "over-the-shoulder or wiper finish both acceptable (S39)."
+   }
+  ]
+ },
+ "sources": [
+  {
+   "id": "S1",
+   "title": "Key factors and timing patterns in the tennis forehand of different skill levels",
+   "authors": "Landlinger J, Lindinger S, Stoggl T, Wagner H, Muller E",
+   "year": 2010,
+   "url": "https://www.jssm.org/jssm-09-643.xml-Fulltext",
+   "type": "paper"
+  },
+  {
+   "id": "S2",
+   "title": "Kinematic differences of elite and high-performance tennis players in the cross court and down the line forehand (Sports Biomechanics 9(4))",
+   "authors": "Landlinger J, Lindinger S, Stoggl T, Wagner H, Muller E",
+   "year": 2010,
+   "url": "https://doi.org/10.1080/14763141.2010.535841",
+   "type": "paper"
+  },
+  {
+   "id": "S3",
+   "title": "Mechanics and learning practices associated with the tennis forehand: a review (JSSM 12:225-231)",
+   "authors": "Reid M, Elliott B, Crespo M",
+   "year": 2013,
+   "url": "https://www.jssm.org/jssm-12-225.xml-Fulltext",
+   "type": "paper"
+  },
+  {
+   "id": "S4",
+   "title": "Tennis forehand kinematics change as post-impact ball speed is altered (Sports Biomechanics 10(4):415-426)",
+   "authors": "Seeley MK, Funk MD, Denning WM, Hager RL, Hopkins JT",
+   "year": 2011,
+   "url": "https://www.tandfonline.com/doi/full/10.1080/14763141.2011.629305",
+   "type": "paper"
+  },
+  {
+   "id": "S5",
+   "title": "A biomechanical comparison of the topspin and backspin forehand approach shots in tennis (J Sports Sci 7(3))",
+   "authors": "Elliott B, Marsh T",
+   "year": 1989,
+   "url": "https://www.tandfonline.com/doi/abs/10.1080/02640418908729842",
+   "type": "paper"
+  },
+  {
+   "id": "S6",
+   "title": "Influence of tennis racquet kinematics on ball topspin angular velocity and accuracy during the forehand groundstroke (JSSM 16:505-513)",
+   "authors": "Kwon S, Pfister R, Hager RL, Hunter I, Seeley MK",
+   "year": 2017,
+   "url": "https://www.jssm.org/jssm-16-505.xml-Fulltext",
+   "type": "paper"
+  },
+  {
+   "id": "S7",
+   "title": "Topspin generation in tennis (Sports Engineering)",
+   "authors": "Cross R",
+   "year": 2019,
+   "url": "https://link.springer.com/article/10.1007/s12283-019-0295-4",
+   "type": "paper"
+  },
+  {
+   "id": "S8",
+   "title": "Tennis Warehouse University racquet performance analyzer (model assumptions) and 'Physics of the tennis kick serve'",
+   "authors": "Lindsey C, Cross R (TWU)",
+   "year": null,
+   "url": "https://twu.tennis-warehouse.com/learning_center/racquetanalyzerTWU.php?graph=time",
+   "type": "article"
+  },
+  {
+   "id": "S9",
+   "title": "Unforced errors and error reduction in tennis (Br J Sports Med 40(5))",
+   "authors": "Brody H",
+   "year": 2006,
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2577482/",
+   "type": "paper"
+  },
+  {
+   "id": "S10",
+   "title": "TennisOne: Windows of Acceptance I/II; Reducing Errors of Depth",
+   "authors": "Brody H",
+   "year": null,
+   "url": "https://tennisone.tennisplayer.net/club/lessons/brody/windows/accept.php",
+   "type": "article"
+  },
+  {
+   "id": "S11",
+   "title": "Vertical plane margins for error in the topspin forehand of intermediate tennis players (Medicina Sportiva 9(3):83-86)",
+   "authors": "Blackwell J, Knudson D",
+   "year": 2005,
+   "url": "https://www.researchgate.net/publication/240168038_VERTICAL_PLANE_MARGINS_FOR_ERROR_IN_THE_TOPSPIN_FOREHAND_OF_INTERMEDIATE_TENNIS_PLAYERS",
+   "type": "paper"
+  },
+  {
+   "id": "S12",
+   "title": "Variability of impact kinematics and margin for error in the tennis forehand of advanced players (Sports Engineering)",
+   "authors": "Knudson D, Blackwell J",
+   "year": 2005,
+   "url": "https://link.springer.com/article/10.1007/BF02844005",
+   "type": "paper"
+  },
+  {
+   "id": "S13",
+   "title": "TennisSpeed Research: A Roadmap to a Hall-of-Fame Forehand, Part 1 (racket face at impact) and Part 11 answer key",
+   "authors": "TennisSpeed Research (blog)",
+   "year": 2011,
+   "url": "https://tennisspeedresearch.blogspot.com/2011/05/roadmap-to-hall-of-fame-forehand-part-1.html",
+   "type": "article"
+  },
+  {
+   "id": "S14",
+   "title": "Ball Trajectories (University of Sydney physics notes)",
+   "authors": "Cross R",
+   "year": null,
+   "url": "https://physics.usyd.edu.au/~cross/TRAJECTORIES/42.%20Ball%20Trajectories.pdf",
+   "type": "article"
+  },
+  {
+   "id": "S15",
+   "title": "The One-Degree Error",
+   "authors": "Feel Tennis (Tomaz Mencinger)",
+   "year": null,
+   "url": "https://www.feeltennis.net/one-degree-error/",
+   "type": "article"
+  },
+  {
+   "id": "S16",
+   "title": "Jannik Sinner's 1-2 baseline punch underpins his standout season (ATP / Tennis Data Innovations)",
+   "authors": "ATP Tour",
+   "year": 2024,
+   "url": "https://www.atptour.com/en/news/sinner-2024-insights",
+   "type": "stats"
+  },
+  {
+   "id": "S17",
+   "title": "How Carlos Alcaraz is 'pushing opponents to the limit' (ATP insights)",
+   "authors": "ATP Tour",
+   "year": 2024,
+   "url": "https://www.atptour.com/en/news/alcaraz-2024-insights",
+   "type": "stats"
+  },
+  {
+   "id": "S18",
+   "title": "Why Joao Fonseca's ferocious forehand is a shot to fear (Infosys ATP Beyond the Numbers)",
+   "authors": "ATP Tour",
+   "year": 2025,
+   "url": "https://www.atptour.com/en/news/fonseca-infosys-atp-beyond-the-numbers-march-2025",
+   "type": "stats"
+  },
+  {
+   "id": "S19",
+   "title": "Grigor Dimitrov's Grip & Rip (Infosys ATP Beyond the Numbers)",
+   "authors": "ATP Tour",
+   "year": 2024,
+   "url": "https://www.atptour.com/en/news/dimitrov-infosys-atp-beyond-the-numbers-october-2024",
+   "type": "stats"
+  },
+  {
+   "id": "S20",
+   "title": "Sabalenka v Rybakina: a battle of fearsome forehands (AO 2023 Hawk-Eye figures)",
+   "authors": "Australian Open",
+   "year": 2023,
+   "url": "https://ausopen.com/articles/news/sabalenka-v-rybakina-battle-fearsome-forehands",
+   "type": "stats"
+  },
+  {
+   "id": "S21",
+   "title": "The secret to an 80-mph forehand? Aryna Sabalenka talks technique (US Open 2024 forehand speeds; also claytenis.com feature)",
+   "authors": "Tennis.com",
+   "year": 2024,
+   "url": "https://www.tennis.com/news/articles/the-secret-to-an-80-mph-forehand-aryna-sabalenka-talks-technique-biomechanics-in-wuhan",
+   "type": "stats"
+  },
+  {
+   "id": "S22",
+   "title": "Tennis Conditioning Blueprint 2021: Tennis Match KPIs (summary of Australian Open Hawk-Eye studies)",
+   "authors": "Athletic Performance Academy",
+   "year": 2021,
+   "url": "https://athleticperformanceacademy.co.uk/wp-content/uploads/2022/06/Tennis-Match-KPIs.pdf",
+   "type": "stats"
+  },
+  {
+   "id": "S23",
+   "title": "The Real Data Behind Every NTRP Level (86M shots, 250k sessions)",
+   "authors": "SwingVision",
+   "year": 2026,
+   "url": "https://blog.swing.vision/2026/09/01/the-real-data-behind-every-ntrp-level/",
+   "type": "stats"
+  },
+  {
+   "id": "S24",
+   "title": "Contextual cues and stance decision-making in tennis forehand professional tennis players (Int J Sports Sci Coaching)",
+   "authors": "Triolet C, Delabarre L, Vignais N, Teulier C",
+   "year": 2025,
+   "url": "https://dx.doi.org/10.1177/17479541251388815",
+   "type": "paper"
+  },
+  {
+   "id": "S25",
+   "title": "Three Reasons for Playing the Tennis Forehand in Square Stance (J Funct Morphol Kinesiol 10(2):215)",
+   "authors": "Caprioli L et al.",
+   "year": 2025,
+   "url": "https://doi.org/10.3390/jfmk10020215",
+   "type": "paper"
+  },
+  {
+   "id": "S26",
+   "title": "The role of knee positioning and range-of-motion on the closed-stance forehand tennis swing (JSSM 7:114-124)",
+   "authors": "Nesbit SM, Serrano M, Elzinga M",
+   "year": 2008,
+   "url": "https://www.researchgate.net/publication/258036331_The_Role_of_Knee_Positioning_and_Range-of-Motion_on_the_Closed-Stance_Forehand_Tennis_Swing",
+   "type": "paper"
+  },
+  {
+   "id": "S27",
+   "title": "Influence of the forehand stance on knee biomechanics: implications for potential injury risks in tennis players (J Sports Sci 39(9))",
+   "authors": "Martin C, Sorel A, Touzard P, Bideau B et al.",
+   "year": 2021,
+   "url": "https://hal.science/hal-03100646",
+   "type": "paper"
+  },
+  {
+   "id": "S28",
+   "title": "Biomechanics and tennis (Br J Sports Med 40(5):392-396)",
+   "authors": "Elliott B",
+   "year": 2006,
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2577481/",
+   "type": "paper"
+  },
+  {
+   "id": "S29",
+   "title": "The one- and two-handed backhands in tennis (Sports Biomechanics 1(1):47-68)",
+   "authors": "Reid M, Elliott B",
+   "year": 2002,
+   "url": "https://www.semanticscholar.org/paper/The-one-and-two-handed-backhands-in-tennis.-Reid-Elliott/f7ede101f67a039eb1832c498e523c050be522ae",
+   "type": "paper"
+  },
+  {
+   "id": "S30",
+   "title": "Performance factors related to the different tennis backhand groundstrokes: a review (JSSM 14:194-202)",
+   "authors": "Genevois C, Reid M, Rogowski I, Crespo M",
+   "year": 2015,
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4306773/",
+   "type": "paper"
+  },
+  {
+   "id": "S31",
+   "title": "The kinematics of trunk and upper extremities in one-handed and two-handed backhand stroke (J Hum Kinet 30:37-47)",
+   "authors": "Stepien A, Bober T, Zawadzki J",
+   "year": 2011,
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3588639/",
+   "type": "paper"
+  },
+  {
+   "id": "S32",
+   "title": "Effects of one and two handed tennis backhands hit with varied power levels on torso rotation (ISBS)",
+   "authors": "Fanchiang HD, Finch A, Ariel G",
+   "year": 2013,
+   "url": "https://ojs.ub.uni-konstanz.de/cpa/article/view/5589/5083",
+   "type": "paper"
+  },
+  {
+   "id": "S33",
+   "title": "Upper limb kinematics during the topspin double-handed backhand stroke / effect of grip position (ISBS 2020; Sports Biomechanics 21(9))",
+   "authors": "Busuttil N, Reid M et al.",
+   "year": 2020,
+   "url": "https://commons.nmu.edu/isbs/vol38/iss1/111/",
+   "type": "paper"
+  },
+  {
+   "id": "S34",
+   "title": "Tennis one-handed backhand stroke at different impact heights (ISBS 39)",
+   "authors": "Zhang S, Fujii N",
+   "year": 2021,
+   "url": "https://commons.nmu.edu/isbs/vol39/iss1/82/",
+   "type": "paper"
+  },
+  {
+   "id": "S35",
+   "title": "Comparison of ball-and-racket impact force in two-handed backhand stroke stances for different-skill-level tennis players (JSSM 15:301)",
+   "authors": "Wang LH et al.",
+   "year": 2016,
+   "url": "https://www.jssm.org/jssm-15-301.xml-Fulltext",
+   "type": "paper"
+  },
+  {
+   "id": "S36",
+   "title": "Effects of grip style and contact point on force production in a tennis forehand groundstroke (Cureus 16(11):e74019)",
+   "authors": "Esser et al.",
+   "year": 2024,
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11658165/",
+   "type": "paper"
+  },
+  {
+   "id": "S37",
+   "title": "A low carrying angle is measured in elite tennis players just before ball impact during the forehand (KSSTA)",
+   "authors": "Arrigoni P et al.",
+   "year": 2024,
+   "url": "https://pubmed.ncbi.nlm.nih.gov/38226669/",
+   "type": "paper"
+  },
+  {
+   "id": "S38",
+   "title": "Tennisplayer.net: Novak Djokovic's Forehand - The Full Turn and Backswing; Daniil Medvedev Forehand; Building the Modern Forehand",
+   "authors": "Yandell J",
+   "year": null,
+   "url": "https://media.tennisplayer.net/members/avancedtennis/john_yandell/djokovic_forehand/part_03.html",
+   "type": "article"
+  },
+  {
+   "id": "S39",
+   "title": "Tennisplayer.net: Two Forehands; Tomas Berdych's Forehand (shoulder rotation at contact, finishes, contact heights)",
+   "authors": "Yandell J",
+   "year": null,
+   "url": "https://www.tennisplayer.net/public/avancedtennis/john_yandell/modern_tennis/two_forehands/?public=true",
+   "type": "article"
+  },
+  {
+   "id": "S40",
+   "title": "Tennisplayer.net: The Extreme Closed Stance - Pro One Handed Backhand; True Alignment: The One Handed Backhand",
+   "authors": "Yandell J",
+   "year": null,
+   "url": "https://www.tennisplayer.net/public/avancedtennis/john_yandell/modern_backhand_stances/one_hander/",
+   "type": "article"
+  },
+  {
+   "id": "S41",
+   "title": "Tennisplayer.net: The Two-Handed Backhand - The 4 Variations / The Forward Swing",
+   "authors": "Yandell J",
+   "year": null,
+   "url": "https://www.tennisplayer.net/article/the-two-handed-backhand-the-4-variations/",
+   "type": "article"
+  },
+  {
+   "id": "S42",
+   "title": "Tennis Quick Tip - Contact Point",
+   "authors": "Pat Cash Tennis",
+   "year": 2014,
+   "url": "https://www.patcash.co.uk/2014/02/tennis-quick-tip-contact-point/",
+   "type": "article"
+  },
+  {
+   "id": "S43",
+   "title": "OnCourtAI: Tennis Forehand / Backhand Analysis Metrics Explained (vendor thresholds, not peer-reviewed)",
+   "authors": "OnCourtAI",
+   "year": null,
+   "url": "https://www.oncourtai.co.uk/tennis-forehand-analysis",
+   "type": "article"
+  },
+  {
+   "id": "S44",
+   "title": "How to Improve Your Tennis Forehand - Tips, Drills & Common Mistakes (coaching guide; some statements may be from clairecartertennis.com forehand guide surfaced in the same search)",
+   "authors": "TorqAI / Claire Carter Tennis",
+   "year": null,
+   "url": "https://torqai.org/tennis/guides/improve-forehand",
+   "type": "article"
+  },
+  {
+   "id": "S45",
+   "title": "Ultimate Tennis Grip System Guide (contact height/position by grip); UTR and tennismindset grip guides",
+   "authors": "Tennis Nation",
+   "year": null,
+   "url": "https://www.tennisnation.com/lessons-classes/ultimate-tennis-grip-system-guide/",
+   "type": "article"
+  },
+  {
+   "id": "S46",
+   "title": "High forehand ball - tips; Mastering the two-handed backhand stroke",
+   "authors": "Mouratoglou Academy",
+   "year": null,
+   "url": "https://www.mouratoglou.com/en/conseils-coaching/coaching-corner/tennis-technique/high-forehand-ball-tips-and-tricks-for-improvement/",
+   "type": "article"
+  },
+  {
+   "id": "S47",
+   "title": "How To Deal With High Balls To Backhand And Forehand",
+   "authors": "Feel Tennis",
+   "year": null,
+   "url": "https://www.feeltennis.net/how-to-deal-with-high-balls/",
+   "type": "article"
+  },
+  {
+   "id": "S48",
+   "title": "How To Hit High Forehands in Tennis",
+   "authors": "Serve and Volley Tennis",
+   "year": null,
+   "url": "https://serveandvolleytennis.com/how-to-hit-high-forehands-in-tennis/",
+   "type": "article"
+  },
+  {
+   "id": "S49",
+   "title": "Tip: How to Return a Low Ball with Topspin (plus chair drill for low balls, physicaleducationupdate.com; tennisnation 'taking the ball early')",
+   "authors": "Tennis.com",
+   "year": null,
+   "url": "https://www.tennis.com/news/articles/tip-how-to-return-a-low-ball-with-topspin",
+   "type": "article"
+  },
+  {
+   "id": "S50",
+   "title": "The Two-Handed Backhand: Technique and Drills; TopspinPro two-handed backhand guide; Feel Tennis '4 keys' 2HBH errors",
+   "authors": "Claire Carter Tennis / TopspinPro / Feel Tennis",
+   "year": null,
+   "url": "https://www.clairecartertennis.com/two-handed-backhand-technique/",
+   "type": "article"
+  },
+  {
+   "id": "S51",
+   "title": "Tennis One-Handed Backhand (7 Common Mistakes)",
+   "authors": "TopspinPro",
+   "year": null,
+   "url": "https://topspinpro.com/blog/how-to-hit-a-tennis-one-handed-backhand/",
+   "type": "article"
+  },
+  {
+   "id": "S52",
+   "title": "Tennis Backhand Tips (bent arm at contact is the most common one-hander error)",
+   "authors": "Online Tennis Instruction",
+   "year": null,
+   "url": "https://www.onlinetennisinstruction.com/tennis-backhand-tips/",
+   "type": "article"
+  },
+  {
+   "id": "S53",
+   "title": "tenniseye.com: 원핸드 백핸드 장단점 / 원핸드 백핸드 정복 (타점 앞발 앞 약 30cm) / 포핸드 타점 거리 Q&A",
+   "authors": "테니스아이 (tenniseye.com)",
+   "year": null,
+   "url": "https://tenniseye.com/backhand/99743",
+   "type": "article"
+  },
+  {
+   "id": "S54",
+   "title": "라켓 면(헤드)의 조작 - 테니스의 이론",
+   "authors": "서원테니스클럽 (Daum 카페)",
+   "year": null,
+   "url": "https://m.cafe.daum.net/seowontennisclub/9xyC/14",
+   "type": "article"
+  },
+  {
+   "id": "S55",
+   "title": "하늘로 날리는 테니스 포핸드 고쳐보자!; tenniseye '포핸드시 볼이 잘 뜨는 것을 방지하는 법'",
+   "authors": "dicalsk.com / tenniseye.com",
+   "year": null,
+   "url": "https://tenniseye.com/freeboard/100372",
+   "type": "article"
+  },
+  {
+   "id": "S56",
+   "title": "KATO: 원핸드 백핸드의 타점과 가로스윙; 포핸드 타점(앞무릎 약간 앞)",
+   "authors": "(사)한국테니스발전협의회 KATO",
+   "year": null,
+   "url": "https://kato.kr/views/1740",
+   "type": "article"
+  },
+  {
+   "id": "S57",
+   "title": "아라테 초급자 레슨: 테니스 포핸드기술 총론 / 양손 백핸드 / 한손 백핸드",
+   "authors": "인도웹 아라테",
+   "year": null,
+   "url": "https://indoweb.org/love/bbs/board.php?bo_table=alatte_begin&wr_id=1610",
+   "type": "article"
+  },
+  {
+   "id": "S58",
+   "title": "Patrick Mouratoglou explains exactly what makes Carlos Alcaraz's forehand so special (straight-arm list)",
+   "authors": "The Tennis Gazette",
+   "year": null,
+   "url": "https://www.thetennisgazette.com/news/patrick-mouratoglou-explains-exactly-what-makes-carlos-alcarazs-forehand-so-special/",
+   "type": "article"
+  },
+  {
+   "id": "S59",
+   "title": "Tennis Forehand Technique: Straight Arm vs Bent Arm",
+   "authors": "Pat Cash Tennis",
+   "year": 2019,
+   "url": "https://www.patcash.co.uk/2019/04/tennis-forehand-technique-straight-arm-vs-bent-arm/",
+   "type": "article"
+  },
+  {
+   "id": "S60",
+   "title": "A Thread of Order: The Two-Handed Backhand...Again; The One-Handed Backhand; The Top Strokes of 2023",
+   "authors": "Clarke H (Substack)",
+   "year": null,
+   "url": "https://hughclarke.substack.com/p/the-two-handed-backhandagain",
+   "type": "article"
+  },
+  {
+   "id": "S61",
+   "title": "A modern approach to tennis forehand grips; Swiatek, Nadal, Djokovic and the Western Forehand (NY Tennis Magazine); allcourt.club grip guide",
+   "authors": "Pelotista / New York Tennis Magazine",
+   "year": null,
+   "url": "https://pelotista.com/blog/tennis-forehand-grip-guide",
+   "type": "article"
+  },
+  {
+   "id": "S62",
+   "title": "How To Hit The Perfect ATP Tennis Forehand In 3 Steps (ATP- vs WTA-style backswing); Talk Tennis thread 'WTA players with ATP forehands'",
+   "authors": "Top Tennis Training",
+   "year": null,
+   "url": "https://www.top-tennis-training.com/how-to-hit-the-perfect-atp-tennis-forehand-in-3-steps/",
+   "type": "article"
+  },
+  {
+   "id": "S63",
+   "title": "Spartak to WTA Elite: Rybakina's Mechanics and Bold Switch",
+   "authors": "tennisacademy.app",
+   "year": null,
+   "url": "https://tennisacademy.app/blog/spartak-to-wta-elite-rybakinas-mechanics-and-bold-switch",
+   "type": "article"
+  },
+  {
+   "id": "S64",
+   "title": "Unlocking Nishikori's Forehand (TennisSup); Develop A More Compact Forehand (TopspinPro); Bautista Agut forehand notes",
+   "authors": "TennisSup / TopspinPro",
+   "year": null,
+   "url": "https://topspinpro.com/blog/compact-forehand/",
+   "type": "article"
+  },
+  {
+   "id": "S65",
+   "title": "The Four Horsemen - The Backhands of Federer, Gasquet, Wawrinka and Almagro",
+   "authors": "Tactical Tennis",
+   "year": null,
+   "url": "https://www.tacticaltennis.com/the-four-horsemen-the-backhands-of-federer-gasquet-wawrinka-and-almagro/",
+   "type": "article"
+  },
+  {
+   "id": "S66",
+   "title": "Top 5 Best Backhands of All Time and What We Can Learn From Their Technique",
+   "authors": "FD Tennis",
+   "year": 2020,
+   "url": "https://www.fdtennis.com.au/2020/09/top-5-best-backhands-of-all-time-and-what-we-can-learn-from-their-technique/",
+   "type": "article"
+  },
+  {
+   "id": "S67",
+   "title": "1 Trick to Eliminate 90% of Net Misses (Fault Tolerant Tennis); How Much Height to Hit Over the Net (Eric Hechtman)",
+   "authors": "Fault Tolerant Tennis / Hechtman E",
+   "year": null,
+   "url": "https://faulttoleranttennis.com/1-trick-to-eliminate-90-of-net-misses/",
+   "type": "article"
+  },
+  {
+   "id": "S68",
+   "title": "Feel Tennis: How To Fix Your Forehand Fundamentals; How Ideal Contact Point Makes Your Technique Work; How To Prepare Early And Stop Hitting The Ball Late; shoulder rotation",
+   "authors": "Feel Tennis",
+   "year": null,
+   "url": "https://www.feeltennis.net/forehand-fundamentals/",
+   "type": "article"
+  },
+  {
+   "id": "S69",
+   "title": "Nine Common Forehand Errors in Tennis: A Coach's Guide; optimumtennis.net forehand guide; LiveAbout forehand repair",
+   "authors": "Martin tennis coach (Substack) / Optimum Tennis",
+   "year": null,
+   "url": "https://martintenniscoach.substack.com/p/nine-common-forehand-errors-in-tennis",
+   "type": "article"
+  },
+  {
+   "id": "S70",
+   "title": "Tennis Backhand: One-Handed vs Two-Handed Guide (quotes 0.59 m vs 0.40 m contact-in-front figure without naming the study)",
+   "authors": "MyTennisExpert",
+   "year": null,
+   "url": "https://mytennisexpert.com/techniques/strokes/backhand/",
+   "type": "article"
+  },
+  {
+   "id": "S71",
+   "title": "Podcast #169: Two Handed Backhand Essentials",
+   "authors": "Essential Tennis",
+   "year": null,
+   "url": "https://www.essentialtennis.com/podcast-169-two-handed-backhand-essentials/",
+   "type": "article"
+  },
+  {
+   "id": "S72",
+   "title": "A Technical Study of Tennis Forehand Topspin Based on Sports Mechanics (ResearchGate 370696154; knee/hip angles after backswing, 6 players per group)",
+   "authors": "(authors not captured)",
+   "year": 2023,
+   "url": "https://www.researchgate.net/publication/370696154_A_Technical_Study_of_Tennis_Forehand_Topspin_Based_on_Sports_Mechanics",
+   "type": "paper"
+  },
+  {
+   "id": "S73",
+   "title": "투핸드 백핸드 샷 (왼손 주도형) - 콜롬보 한인 테니스 카페; 정현 테니스 양손 백핸드",
+   "authors": "Daum 카페 / brunch",
+   "year": null,
+   "url": "https://m.cafe.daum.net/korean.tennis.club/Lz8i/6?svc=cafeapi",
+   "type": "article"
+  },
+  {
+   "id": "S74",
+   "title": "Korean Journal of Sport Biomechanics 21(1):39-46 - 양손 백핸드 포워드 스윙 시 왼쪽 팔꿈치 신전/굴곡 그룹 비교 (고교 우수선수)",
+   "authors": "한국운동역학회지",
+   "year": 2011,
+   "url": "https://koreascience.kr/article/JAKO201121539232635.pdf",
+   "type": "paper"
+  },
+  {
+   "id": "S75",
+   "title": "Freeze Frame: Alexander Zverev's backhand",
+   "authors": "Tennis.com Baseline",
+   "year": null,
+   "url": "http://baseline.tennis.com/article/65081/freeze-frame-alexander-zverevs-backhand",
+   "type": "article"
+  },
+  {
+   "id": "S76",
+   "title": "Wikipedia: Forehand; Grip (tennis); Backhand",
+   "authors": "Wikipedia",
+   "year": null,
+   "url": "https://en.wikipedia.org/wiki/Forehand",
+   "type": "article"
+  },
+  {
+   "id": "S77",
+   "title": "The high backhand (Scott Murphy); Talk Tennis threads on high balls to one-handed backhand",
+   "authors": "Murphy S",
+   "year": null,
+   "url": "https://www.scottmurphytennis.net/scott-shots/high-backhand/",
+   "type": "article"
+  },
+  {
+   "id": "S78",
+   "title": "높은 볼 백핸드 - 류비치치 (tenniseye); 테니스 백핸드 리턴: 높은 볼 리턴 노하우 (day1ers)",
+   "authors": "tenniseye.com / day1ers.com",
+   "year": null,
+   "url": "https://tenniseye.com/servebio/466376",
+   "type": "article"
+  },
+  {
+   "id": "S79",
+   "title": "Multi-Task Tennis Stroke Biomechanics Analysis Using MediaPipe Pose (arXiv 2606.15992)",
+   "authors": "Hazarika J",
+   "year": 2026,
+   "url": "https://arxiv.org/abs/2606.15992",
+   "type": "paper"
+  },
+  {
+   "id": "S80",
+   "title": "The potential of human pose estimation for motion capture in sports: a validation study (Sports Engineering)",
+   "authors": "(authors not captured)",
+   "year": 2024,
+   "url": "https://link.springer.com/article/10.1007/s12283-024-00460-w",
+   "type": "paper"
+  },
+  {
+   "id": "S81",
+   "title": "Why Jannik Sinner's forehand is unique (ESPN, 2024: Tour avg 2,708 rpm)",
+   "authors": "ESPN",
+   "year": 2024,
+   "url": "https://www.espn.com/tennis/story/_/id/41111494/us-open-2024-jannik-sinner-forehand-unique",
+   "type": "stats"
+  },
+  {
+   "id": "S82",
+   "title": "The best forehands of 2024",
+   "authors": "Tennisnerd",
+   "year": 2024,
+   "url": "https://www.tennisnerd.net/articles/the-best-forehands-of-2024/39724",
+   "type": "article"
+  },
+  {
+   "id": "S83",
+   "title": "Tennis Stances / When to use open vs neutral stance (tennisinstruction.com, feeltennis open-vs-neutral, tennisnation backhand guide)",
+   "authors": "Tennis Instruction / Feel Tennis / Tennis Nation",
+   "year": null,
+   "url": "https://tennisinstruction.com/tennis-stances/",
+   "type": "article"
+  },
+  {
+   "id": "S84",
+   "title": "The Straight Arm And Double Bend Tennis Forehand Technique; USPTA 'Three L's in a world-class forehand' (elbow bend guidance)",
+   "authors": "Tennis Instruction / USPTA ADDvantage",
+   "year": null,
+   "url": "https://tennisinstruction.com/straight-arm-forehand-technique/",
+   "type": "article"
+  },
+  {
+   "id": "S85",
+   "title": "Mechanisms of speed-accuracy trade-off in tennis topspin forehand of college players (Sports Biomechanics)",
+   "authors": "(authors not captured)",
+   "year": 2024,
+   "url": "https://www.tandfonline.com/doi/full/10.1080/14763141.2024.2381105",
+   "type": "paper"
+  },
+  {
+   "id": "S86",
+   "title": "포핸드 샷의 기본 - 2. 그립 (테니스코리아 클리닉) 및 그립 상식 글",
+   "authors": "테니스코리아",
+   "year": null,
+   "url": "https://www.tennis.co.kr/news/articleView.html?idxno=51565",
+   "type": "article"
+  },
+  {
+   "id": "S87",
+   "title": "The One-Handed Backhand: Technique and Drills (high-ball options table)",
+   "authors": "Claire Carter Tennis",
+   "year": null,
+   "url": "https://www.clairecartertennis.com/one-handed-backhand/",
+   "type": "article"
+  },
+  {
+   "id": "CALC",
+   "title": "Own simulation run in this session: 2-D ball flight with drag (Cd 0.55) + Magnus lift (Cl = 1/(2 + v/(R*omega))), and a rigid racket-face impact model (apparent COR 0.40, tangential retention 0.60). Coefficients are recalled Cross/Lindsey-style values, not fetched. Script: scratchpad/work/traj.py, impact.py",
+   "authors": "(this agent)",
+   "year": 2026,
+   "url": "file:///tmp/claude-0/-home-user-Seoul-Tennis-court/bdb9c418-44a2-5d47-9984-442c54dc1e19/scratchpad/work/traj.py",
+   "type": "stats"
+  },
+  {
+   "id": "memory",
+   "title": "Model prior knowledge, NOT verified against a page or search result in this session - treat as low confidence",
+   "authors": "(this agent)",
+   "year": null,
+   "url": "",
+   "type": "article"
+  }
+ ]
+}
