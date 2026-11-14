@@ -5,7 +5,7 @@ import * as Track from './track.js';
 import * as Draw from './draw.js';
 import * as G from './geom.js';
 import { cleanFrames } from './clean.js';
-import { detectSwings, mainSwing, withContact } from './swing.js';
+import { detectSwings, mainSwing, withContact, withStroke } from './swing.js';
 import { swingMetrics } from './metrics.js';
 import { advise, matchReference } from './advice.js';
 import * as Phys from './physics.js';
@@ -246,6 +246,8 @@ function renderResult() {
       <div id="resultNote">${a.resultNote ? `<div class="callout">${esc(a.resultNote)}</div>` : ''}</div></div>
 
     <div class="sec"><h3>잰 값</h3><dl class="kv">${measures(m).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
+    <div class="sec"><h3>종류가 다르게 잡혔나요?</h3><p class="small muted" style="margin:4px 0 10px">바꾸면 그 종류로 다시 봅니다.</p>
+      ${seg('kind', [['serve', '서브'], ['forehand', '포핸드'], ['backhand', '백핸드']], m.stroke)}</div>
     ${m.stroke === 'serve' ? `${serveStyle(m)}<div class="sec"><h2>내 타점에서 들어가는 각도</h2><div id="physHere"></div></div>` : ''}
     <div class="btns">
       <button class="btn" id="shareShot" ${a.score == null ? 'disabled' : ''}>결과 공유</button>
@@ -261,7 +263,14 @@ function renderResult() {
     shot.swing = withContact(fr, shot.swing, fr[k].t); shot.moment = 'contact';
     renderResult();
   });
-  bindSegs(el, (k, v) => { if (k !== 'result') return; shot.result = v; const r = advise(m, ctxFor(shot)); $('#resultNote', el).innerHTML = r.resultNote ? `<div class="callout">${esc(r.resultNote)}</div>` : (v === 'good' ? '<div class="callout info">좋아요. 이 스윙의 느낌을 기억해 두세요.</div>' : ''); });
+  bindSegs(el, (k, v) => {
+    if (k === 'kind') {                                        // 종류를 바로잡으면 그 종류로 다시 분석
+      if (v === shot.swing.stroke) return;
+      const again = withStroke(shot.frames, shot.swing, v);
+      if (again) { shot.swing = again; shot.moment = 'contact'; shot.refIdx = 0; shot.result = null; renderResult(); window.scrollTo(0, 0); }
+      return;
+    }
+    if (k !== 'result') return; shot.result = v; const r = advise(m, ctxFor(shot)); $('#resultNote', el).innerHTML = r.resultNote ? `<div class="callout">${esc(r.resultNote)}</div>` : (v === 'good' ? '<div class="callout info">좋아요. 이 스윙의 느낌을 기억해 두세요.</div>' : ''); });
   $('#shareShot', el).addEventListener('click', () => shareShot());
   $('#saveRef', el).addEventListener('click', () => saveAsRef());
   const again = $('#another', el);

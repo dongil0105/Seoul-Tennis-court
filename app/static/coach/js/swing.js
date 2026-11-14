@@ -105,7 +105,8 @@ export function detectSwings(frames, opts = {}) {
     const sw = analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke: opts.stroke });
     if (sw) out.push(sw);
   }
-  return out;
+  // 서브 바로 앞(1.4초 안)에 잡힌 다른 스윙은 서브의 준비 동작(팔을 뒤로 돌려 올리는 것)이다 → 뺀다
+  return out.filter((a) => a.stroke === 'serve' || !out.some((b) => b.stroke === 'serve' && b.tc > a.tc && b.tc - a.tc < 1.4 * sf));
 }
 
 function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverride }) {
@@ -126,7 +127,12 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   side = back.length ? side / back.length / h : 0;
   const grip = near(-0.25, 0.0);
   const together = grip.length ? grip.filter((i) => G.dist(W(i, J.lWr), W(i, J.rWr)) < 0.13 * h).length / grip.length : 0;
-  const auto = upMax > 0.11 * h ? 'serve' : side >= 0 ? 'forehand' : 'backhand';
+  // 서브: 임팩트 무렵 손목이 머리 위로 올라가 있고, 그 직전(0.15초 전)에 이미 손이 어깨 위에 있었거나 반대 팔(토스)이 머리 위로 올라갔었다.
+  // 원핸드 백핸드·높은 포핸드의 피니시도 손이 머리 위로 가지만, 치기 직전에는 손이 허리께에 있고 토스도 없다.
+  const pPre = G.poseAt(frames, tp - 0.15 * sf);
+  const preAboveShoulder = pPre.w[S.hit.sh][1] - pPre.w[S.hit.wr][1] > 0.02 * h;
+  const tossUp = Math.max(-9, ...win(tp - 1.5 * sf, tp - 0.15 * sf).map((i) => W(i, J.nose)[1] - W(i, S.off.wr)[1])) > 0.03 * h;
+  const auto = upMax > 0.11 * h && (preAboveShoulder || tossUp) ? 'serve' : side >= 0 ? 'forehand' : 'backhand';
   const kind = stroke || auto;
   const twoHanded = kind !== 'serve' && together >= 0.6;      // 임팩트 전 0.25초 동안 두 손이 계속 붙어 있었나
   const uncertain = !stroke && auto !== 'serve' && Math.abs(side) < 0.02;
@@ -207,6 +213,11 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
 /** 사용자가 임팩트 순간을 직접 고쳤을 때: 그 시각으로 핵심 순간·방향을 다시 잡는다 */
 export function withContact(frames, swing, tc) {
   return analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke: swing.stroke, tcOverride: tc });
+}
+
+/** 사용자가 종류(서브·포핸드·백핸드)를 바로잡았을 때: 그 종류로 임팩트·핵심 순간을 다시 잡는다 */
+export function withStroke(frames, swing, stroke) {
+  return analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke });
 }
 
 /** 스윙 하나만 담긴 짧은 영상: 가장 빠른 스윙 하나를 고른다 */
