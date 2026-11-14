@@ -4,7 +4,8 @@
 영상은 서버로 오지 않는다. 화면 파일은 app/static/coach/ 아래에 있다.
 
 공개 범위: settings.coach_private 가 true 면 열쇠를 넣은 기기에서만 열린다.
-  · 열쇠를 넣는 법: /coach?k=<열쇠> 주소를 한 번 열거나, 잠금 화면에서 열쇠 코드를 넣는다 → 그 기기에 쿠키로 기억한다.
+  · 열쇠를 넣는 법: /coach#k=<열쇠> 주소를 한 번 열거나, 잠금 화면에서 열쇠 코드를 넣는다 → 그 기기에 쿠키로 기억한다.
+    (# 뒤는 서버로 오지 않는다. 잠금 화면의 작은 스크립트가 읽어서 POST 로 보낸다 → 열쇠가 서버 접근 기록에 남지 않는다.)
   · 열쇠가 없는 기기: /coach 는 '준비 중' 화면, /static/coach 의 파일은 404, 코트 오픈 화면의 스윙 코치 탭은 보이지 않는다.
   · 열쇠 자체는 저장소에 없다(SHA-256 만 설정에 있다).
 """
@@ -71,9 +72,11 @@ def allowed(request: Request) -> bool:
 
 def _remember(response: Response, request: Request, key: object) -> None:
     """이 기기에 열쇠를 기억시킨다(자바스크립트가 읽지 못하는 쿠키, https 에서만 보낸다)."""
-    proto = request.headers.get("x-forwarded-proto", request.url.scheme).split(",")[0].strip()
+    # 내 컴퓨터에서 http 로 띄운 개발 서버만 예외로 두고 항상 Secure 를 붙인다.
+    # (배포 환경은 프록시 뒤라 서버가 보는 주소가 http 일 수 있다. 요청 머리말은 누구나 지어낼 수 있어서 믿지 않는다.)
+    local = request.url.scheme == "http" and request.url.hostname in ("127.0.0.1", "localhost", "testserver")
     response.set_cookie(COOKIE, normalize_key(key), max_age=COOKIE_AGE, path="/", httponly=True,
-                        secure=proto == "https", samesite="lax")
+                        secure=not local, samesite="lax")
 
 
 _LOCK_HEADERS = {"Cache-Control": "no-store", "Content-Security-Policy": CSP, "Referrer-Policy": "no-referrer",
@@ -113,7 +116,7 @@ button{{height:48px;padding:0 18px;border:0;border-radius:12px;background:#18231
 <form method="post" action="/coach/unlock">
 <input name="key" type="password" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="열쇠 코드" placeholder="열쇠 코드" required>
 <button type="submit">열기</button></form>{note}</details>
-</main></body></html>"""
+</main><script src="/coach/unlock.js" defer></script></body></html>"""
     return HTMLResponse(html, status_code=403, headers=_LOCK_HEADERS)
 
 
@@ -126,12 +129,9 @@ def _unlocked(request: Request, key: object) -> RedirectResponse:
 
 @router.get("/coach", response_class=HTMLResponse)
 @router.get("/coach/", response_class=HTMLResponse, include_in_schema=False)
-def coach(request: Request, k: str | None = None) -> Response:
-    if settings.coach_private:
-        if k is not None:                                   # /coach?k=<열쇠> — 내 기기에서 한 번 여는 주소
-            return _unlocked(request, k) if key_ok(k) else _lock_page(wrong=True)
-        if not allowed(request):
-            return _lock_page()
+def coach(request: Request) -> Response:
+    if settings.coach_private and not allowed(request):
+        return _lock_page()
     try:
         html = (_DIR / "index.html").read_text(encoding="utf-8")
     except OSError:
@@ -150,14 +150,41 @@ def coach(request: Request, k: str | None = None) -> Response:
     return res
 
 
+_MAX_FORM = 2048
+
+
 @router.post("/coach/unlock", include_in_schema=False)
 async def coach_unlock(request: Request) -> Response:
-    """잠금 화면에서 열쇠 코드를 넣었을 때."""
+    """잠금 화면에서 열쇠 코드를 넣었을 때(본문으로 받는다 — 주소에 넣지 않으므로 접근 기록에 남지 않는다)."""
     if not settings.coach_private:
         return RedirectResponse("/coach", status_code=303)
-    body = (await request.body())[:2048].decode("utf-8", "replace")
-    key = (parse_qs(body).get("key") or [""])[0]
+    body = b""
+    async for chunk in request.stream():                    # 큰 본문을 다 읽지 않는다
+        body += chunk
+        if len(body) > _MAX_FORM:
+            return Response(status_code=413, headers={"Cache-Control": "no-store", "Connection": "close"})
+    key = (parse_qs(body.decode("utf-8", "replace")).get("key") or [""])[0]
     return _unlocked(request, key) if key_ok(key) else _lock_page(wrong=True)
+
+
+# 잠금 화면이 부르는 스크립트: 주소의 #k=<열쇠> 를 읽어 위 폼으로 보낸다. 열쇠나 스윙 코치의 내용은 들어 있지 않다.
+_UNLOCK_JS = """(function () {
+  var m = /[#&]k=([^&]+)/.exec(location.hash || '');
+  if (!m) return;
+  var form = document.querySelector('form[action="/coach/unlock"]');
+  var input = form && form.querySelector('input[name=key]');
+  if (!input) return;
+  try { history.replaceState(null, '', location.pathname); } catch (e) { /* 주소를 못 고쳐도 계속 */ }
+  try { input.value = decodeURIComponent(m[1]); } catch (e) { input.value = m[1]; }
+  form.submit();
+})();
+"""
+
+
+@router.get("/coach/unlock.js", include_in_schema=False)
+def coach_unlock_js() -> Response:
+    return Response(_UNLOCK_JS, media_type="application/javascript",
+                    headers={"Cache-Control": "no-cache", "X-Content-Type-Options": "nosniff"})
 
 
 @router.get("/coach/manifest.webmanifest", include_in_schema=False)
@@ -194,28 +221,33 @@ class CoachStatic(StaticFiles):
             full, _ = self.lookup_path(path)               # 주소를 어떻게 썼든 '실제로 내줄 파일'을 보고 판단한다
             rel = os.path.relpath(full, os.path.realpath(_DIR)).replace(os.sep, "/") if full else ""
             if rel not in OPEN_STATIC:
-                raise HTTPException(status_code=404)
+                raise HTTPException(status_code=404, headers={"Cache-Control": "no-store"})
         return await super().get_response(path, scope)
 
 
 class SiteStatic(StaticFiles):
-    """기존 /static. 스윙 코치 폴더는 여기로 내주지 않는다(/static//coach/… 처럼 주소를 비틀어 잠금을 돌아가지 못하게)."""
+    """기존 /static. 스윙 코치 폴더는 여기로 내주지 않는다(/static//coach/… 처럼 주소를 비틀어 잠금을 돌아가지 못하게).
+    코트 오픈 화면 원본(dashboard.html)도 내주지 않는다 — 그 화면은 / 에서만 나가고, 거기서 기기에 따라 탭을 뺀다."""
 
     def lookup_path(self, path: str):
         full, st = super().lookup_path(path)
         if full:
+            real = os.path.realpath(full)
             coach_dir = os.path.realpath(_DIR)
-            if os.path.commonpath([os.path.realpath(full), coach_dir]) == coach_dir:
+            if os.path.commonpath([real, coach_dir]) == coach_dir or real == os.path.realpath(_DIR.parent / "dashboard.html"):
                 return "", None
         return full, st
 
 
 def cache_header_for(path: str) -> str | None:
-    """정적 파일 캐시 정책. 자세 인식 엔진·모델(수십 MB)은 버전이 바뀌지 않는 한 그대로라 오래 보관한다."""
+    """정적 파일 캐시 정책. 자세 인식 엔진·모델(수십 MB)은 버전이 바뀌지 않는 한 그대로라 오래 보관한다.
+    비공개일 때는 public 대신 private: 그 기기의 브라우저만 보관하고, 중간의 공유 캐시는 보관하지 못한다
+    (공유 캐시가 내 기기에 내준 파일을 열쇠 없는 사람에게 다시 내주면 안 된다)."""
+    if not path.startswith("/static/coach/"):
+        return None
+    scope = "private" if settings.coach_private else "public"
     if path.startswith("/static/coach/vendor/"):
-        return "public, max-age=2592000, immutable"
+        return f"{scope}, max-age=2592000, immutable"
     if path.startswith("/static/coach/data/"):
-        return "public, max-age=3600"
-    if path.startswith("/static/coach/"):
-        return "no-cache"
-    return None
+        return f"{scope}, max-age=3600"
+    return "private, no-cache" if settings.coach_private else "no-cache"

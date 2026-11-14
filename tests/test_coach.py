@@ -110,10 +110,16 @@ def test_reference_data_shape():
         assert len(s["w"]) == 33 and len(s["lm"]) == 33 and len(s["feat"]) == 36
 
 
-def test_cache_policy():
-    assert "immutable" in coach.cache_header_for("/static/coach/vendor/models/pose_landmarker_full.task")
-    assert coach.cache_header_for("/static/coach/js/app.js") == "no-cache"
+def test_cache_policy(monkeypatch):
+    # 비공개: 그 기기의 브라우저만 보관한다(중간의 공유 캐시가 열쇠 없는 사람에게 다시 내주지 못하게 private)
+    assert coach.cache_header_for("/static/coach/vendor/models/pose_landmarker_full.task") == "private, max-age=2592000, immutable"
+    assert coach.cache_header_for("/static/coach/data/reference.json") == "private, max-age=3600"
+    assert coach.cache_header_for("/static/coach/js/app.js") == "private, no-cache"
     assert coach.cache_header_for("/static/dashboard.html") is None
+    monkeypatch.setattr(settings, "coach_private", False)          # 공개로 바꾸면 예전 정책
+    assert coach.cache_header_for("/static/coach/vendor/models/pose_landmarker_full.task") == "public, max-age=2592000, immutable"
+    assert coach.cache_header_for("/static/coach/data/reference.json") == "public, max-age=3600"
+    assert coach.cache_header_for("/static/coach/js/app.js") == "no-cache"
 
 
 def test_main_app_serves_coach_with_cache_headers():
@@ -125,7 +131,14 @@ def test_main_app_serves_coach_with_cache_headers():
     assert c.get("/coach").status_code == 200
     r = c.get("/static/coach/vendor/tasks-vision/VERSION")
     assert r.status_code == 200 and "immutable" in r.headers["cache-control"]
-    assert c.get("/static/coach/js/geom.js").headers["cache-control"] == "no-cache"
+    js = c.get("/static/coach/js/geom.js")
+    assert js.headers["cache-control"] == "private, no-cache" and "Cookie" in js.headers["vary"]
+    assert "private" in r.headers["cache-control"] and "Cookie" in r.headers["vary"]
+    # 다시 확인(304)·일부만 받기(206)에도 같은 정책이 붙는다
+    again = c.get("/static/coach/js/geom.js", headers={"If-None-Match": js.headers["etag"]})
+    assert again.status_code == 304 and again.headers["cache-control"] == "private, no-cache"
+    part = c.get("/static/coach/vendor/tasks-vision/VERSION", headers={"Range": "bytes=0-1"})
+    assert part.status_code == 206 and part.headers["cache-control"].startswith("private")
     # 큰 파일은 압축해서 보낸다(받는 쪽이 gzip 을 받겠다고 했을 때)
     wasm = c.get("/static/coach/vendor/tasks-vision/wasm/vision_wasm_internal.js", headers={"Accept-Encoding": "gzip"})
     assert wasm.status_code == 200 and wasm.headers.get("content-encoding") == "gzip" and "immutable" in wasm.headers["cache-control"]
@@ -240,43 +253,66 @@ def test_locked_static_files_are_not_served():
     assert c.get("/coach/manifest.webmanifest").status_code == 200
     # 기존 화면의 파일은 그대로
     assert c.get("/static/icon-192.png").status_code == 200
+    # 코트 오픈 화면 원본은 / 에서만 나간다(원본에는 스윙 코치 탭이 들어 있다)
+    assert c.get("/static/dashboard.html").status_code == 404 and c.get("/").status_code == 200
+    assert _raw_status(main_app, "/static/./dashboard.html") != 200 and _raw_status(main_app, "/static//dashboard.html") != 200
+    locked = c.get("/static/coach/js/app.js")
+    assert locked.headers["cache-control"] == "no-store"            # 잠긴 응답은 어디에도 보관하지 않는다
     # 내 기기에서는 같은 주소가 열린다
     mine = coach.normalize_key(KEY)
     assert _raw_status(main_app, "/static/coach/js/app.js", cookie=mine) == 200
     assert _raw_status(main_app, "/static//coach/js/app.js", cookie=mine) != 200      # 비튼 주소는 누구에게도 내주지 않는다
 
 
-def test_unlock_with_link_remembers_this_device():
+def test_unlock_link_keeps_the_key_out_of_server_logs():
+    """여는 주소는 /coach#k=<열쇠> — # 뒤는 서버로 오지 않는다. 잠금 화면의 스크립트가 읽어서 POST 로 보낸다."""
     c = _client(unlocked=False)
-    r = c.get("/coach?k=test2-key34-abcde-fgh56", follow_redirects=False)       # 소문자·줄표가 있어도 된다
-    assert r.status_code == 303 and r.headers["location"] == "/coach"           # 주소 줄에 열쇠가 남지 않는다
+    r = c.get(f"/coach?k={KEY}", follow_redirects=False)                # ? 뒤는 접근 기록에 남으므로 받지 않는다
+    assert r.status_code == 403 and "set-cookie" not in r.headers
+    assert c.get("/coach").status_code == 403
+    assert '<script src="/coach/unlock.js" defer></script>' in r.text
+    js = c.get("/coach/unlock.js")
+    assert js.status_code == 200 and "javascript" in js.headers["content-type"]
+    assert "location.hash" in js.text and "form.submit()" in js.text and "history.replaceState" in js.text
+    assert coach.normalize_key(KEY) not in js.text and KEY_HASH not in js.text       # 스크립트에 열쇠가 들어 있지 않다
+
+
+def test_unlock_with_code_form_remembers_this_device():
+    c = _client(unlocked=False)
+    r = c.post("/coach/unlock", data={"key": "test2-key34-abcde-fgh56"}, follow_redirects=False)      # 소문자·줄표가 있어도 된다
+    assert r.status_code == 303 and r.headers["location"] == "/coach"
     cookie = r.headers["set-cookie"]
     assert cookie.startswith(f"{coach.COOKIE}=") and "HttpOnly" in cookie and "samesite=lax" in cookie.lower()
-    assert "Max-Age=" in cookie and "Secure" not in cookie                      # 테스트는 http 라 Secure 가 붙지 않는다
+    assert "Max-Age=" in cookie and "Secure" not in cookie                      # 내 컴퓨터의 http 개발 서버만 Secure 를 뺀다
     assert c.get("/coach").status_code == 200                                   # 이 기기에서는 이제 열린다
     assert c.get("/static/coach/js/app.js").status_code == 200
-    # https(배포 환경: 프록시가 X-Forwarded-Proto 를 붙인다)에서는 Secure 쿠키
-    r = _client(unlocked=False).get(f"/coach?k={KEY}", headers={"X-Forwarded-Proto": "https"}, follow_redirects=False)
-    assert "Secure" in r.headers["set-cookie"]
 
 
-def test_unlock_with_code_form():
-    c = _client(unlocked=False)
-    r = c.post("/coach/unlock", data={"key": KEY}, follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/coach" and coach.COOKIE in r.headers["set-cookie"]
+def test_unlock_over_https_behind_proxy():
+    """배포 환경: 항상 Secure 쿠키. 요청 머리말(X-Forwarded-Proto)로 낮출 수 없다. 연 뒤 화면·파일까지 열린다."""
+    c = TestClient(_app(), base_url="https://court.example")
+    r = c.post("/coach/unlock", data={"key": KEY}, headers={"X-Forwarded-Proto": "http"}, follow_redirects=False)
+    assert r.status_code == 303 and "Secure" in r.headers["set-cookie"]
     assert c.get("/coach").status_code == 200
+    assert c.get("/static/coach/js/app.js").status_code == 200
+    # 프록시 뒤에서 서버가 보는 주소가 http 여도(호스트가 실제 사이트면) Secure
+    plain = TestClient(_app(), base_url="http://court.example")
+    assert "Secure" in plain.post("/coach/unlock", data={"key": KEY}, follow_redirects=False).headers["set-cookie"]
 
 
 def test_wrong_key_stays_locked():
     c = _client(unlocked=False)
-    for r in (c.get("/coach?k=WRONG-KEY", follow_redirects=False), c.get("/coach?k=", follow_redirects=False),
-              c.post("/coach/unlock", data={"key": "nope"}, follow_redirects=False), c.post("/coach/unlock", content=b"", follow_redirects=False)):
+    for r in (c.post("/coach/unlock", data={"key": "nope"}, follow_redirects=False), c.post("/coach/unlock", data={"key": ""}, follow_redirects=False),
+              c.post("/coach/unlock", content=b"", follow_redirects=False)):
         assert r.status_code == 403 and "코드가 맞지 않아요" in r.text
         assert "set-cookie" not in r.headers
     assert c.get("/coach").status_code == 403
     bad = _client(unlocked=False)
     bad.cookies.set(coach.COOKIE, "WRONGWRONGWRONG")
     assert bad.get("/coach").status_code == 403 and bad.get("/static/coach/js/app.js").status_code == 404
+    # 터무니없이 큰 본문은 읽다가 그만둔다
+    big = c.post("/coach/unlock", content=b"key=" + b"A" * 100_000, follow_redirects=False)
+    assert big.status_code == 413 and "set-cookie" not in big.headers
 
 
 def test_broken_key_setting_locks_everyone_out(monkeypatch):
@@ -284,7 +320,7 @@ def test_broken_key_setting_locks_everyone_out(monkeypatch):
     for broken in ("", "abc", None):
         monkeypatch.setattr(settings, "coach_key_sha256", broken)
         assert _client().get("/coach").status_code == 403
-        assert _client(unlocked=False).get("/coach?k=", follow_redirects=False).status_code == 403
+        assert _client(unlocked=False).post("/coach/unlock", data={"key": KEY}, follow_redirects=False).status_code == 403
 
 
 def test_court_page_hides_coach_from_others():

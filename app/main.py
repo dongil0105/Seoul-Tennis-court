@@ -51,10 +51,12 @@ app.include_router(push.router)
 async def static_cache_headers(request, call_next):
     """스윙 코치의 큰 파일(자세 인식 엔진·모델)을 휴대폰이 다시 받지 않게 캐시 머리말을 붙인다."""
     response = await call_next(request)
-    if response.status_code == 200:
+    if response.status_code in (200, 206, 304):
         policy = coach.cache_header_for(request.url.path)
         if policy:
             response.headers["Cache-Control"] = policy
+            if policy.startswith("private"):                # 기기(쿠키)에 따라 달라지는 응답이라고 알린다
+                response.headers.add_vary_header("Cookie")
     return response
 
 
