@@ -4,7 +4,7 @@
 // 공·라켓은 보지 못한다. 치는 손목이 타점을 대신한다. 그래서 임팩트 시각은 '예측'이고,
 // 그 예측이 얼마나 틀릴 수 있는지(tcErr 초, posErr 미터)를 같이 돌려준다. 화면에서 사용자가 한 프레임씩 고칠 수 있다(withContact).
 import * as G from './geom.js';
-import { swingFeatures, predictStroke } from './classify.js';
+import { swingSequence, predictStroke } from './classify.js';
 
 const { J } = G;
 const GAP = 0.25;                       // 이보다 긴 빈 구간(사람을 놓친 구간)은 이어 붙이지 않는다
@@ -157,21 +157,21 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   // (두 손이 떨어져 있었다고 포핸드라고 하지는 않는다 — 양손 백핸드를 치는 사람도 백핸드 발리·슬라이스는 한 손으로 친다.)
   const glued = bh === '2h' && together >= 0.6;
   if (auto !== 'serve' && glued) { auto = 'backhand'; by = 'hands'; }
-  // 학습한 분류기: 실제 영상(THETIS)과 모션캡처(Tennis-MoCap)의 스윙으로 배운 것. 포핸드쪽/백핸드쪽/머리 위를 가르는 정확도가
-  // 규칙보다 높다(실제 영상 62 → 86%, 모션캡처 87 → 95%, 사람 단위 검증). 확신이 낮으면(0.55 미만) 규칙을 따른다.
+  // 학습한 분류기: 실제 영상(THETIS 1,980개)과 실제로 공을 친 모션캡처(Tennis-MoCap)의 스윙으로 배운 것(js/classify.js).
+  // 사람 단위 검증에서 포핸드쪽/백핸드쪽/머리 위를 가르는 정확도가 두 자료 모두 97%대다. 확신이 낮으면(0.55 미만) 규칙을 따른다.
   let sub = null, ml = null, unsure = false;
   if (model && !stroke) {
-    const P = predictStroke(model, swingFeatures(frames, tp, hand, h, sf)).prob;
-    const pf = P.forehand + P.fvolley, pb = P.backhand + P.bvolley, po = P.serve + P.smash, top = Math.max(pf, pb, po);
+    // 5종류: 포핸드·백핸드·포핸드 발리·백핸드 발리·머리 위(서브·스매시). 큰 갈래(포핸드쪽/백핸드쪽/머리 위)는 확률을 묶어서 본다.
+    const P = predictStroke(model, swingSequence(frames, tp, hand, h, sf, v)).prob;
+    const pf = P.forehand + P.fvolley, pb = P.backhand + P.bvolley, po = P.overhead, top = Math.max(pf, pb, po);
     const modelKind = po === top ? 'serve' : pf === top ? 'forehand' : 'backhand';
-    ml = { pf, pb, po, volley: P.fvolley + P.bvolley, smash: P.smash };
+    ml = { pf, pb, po, volley: P.fvolley + P.bvolley };
     if (glued && po < 0.8) { auto = 'backhand'; by = 'hands'; }
     else if (top >= 0.55) { auto = modelKind; by = 'model'; }
     else if (modelKind !== auto) unsure = true;                // 분류기도 흐리고 규칙과도 엇갈린다
-    // 세부 종류: 분류기가 고른 묶음이 확실하고(0.55 이상) 그 안에서 발리·스매시 쪽이 뚜렷이 높을 때만(틀리면 사용자가 바로잡는다)
+    // 발리: 분류기가 고른 갈래가 확실하고(0.55 이상) 그 안에서 발리 쪽이 뚜렷이 높을 때만(틀리면 사용자가 바로잡는다)
     if (by === 'model' || (by === 'hands' && pb >= 0.55)) {
-      if (auto === 'serve' && P.smash >= 0.7 * po) sub = 'smash';
-      else if (auto === 'forehand' && P.fvolley >= 0.7 * pf) sub = 'volley';
+      if (auto === 'forehand' && P.fvolley >= 0.7 * pf) sub = 'volley';
       else if (auto === 'backhand' && !glued && P.bvolley >= 0.7 * pb) sub = 'volley';
     }
   }

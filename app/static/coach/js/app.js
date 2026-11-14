@@ -14,6 +14,7 @@ import { serveHeightCard, groundHeightCard, speedCard, renderPhysicsView } from 
 import { shotSpeed, speedSummary, calibration } from './speed.js';
 import { adviceFigure } from './figures.js';
 import { buildDiag } from './diag.js';
+import { validModel } from './classify.js';
 import { $, $$, esc, show, currentView, initNav, navState, setNavTag, onLeave, toast, sheet, seg, bindSegs, loadProfile, saveProfile, hasProfile, loadMyRefs, saveMyRefs, loadSpeedCal, saveSpeedCal } from './ui.js';
 
 const video = $('#video');
@@ -56,7 +57,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 onLeave((from) => { if (from === 'result') video.pause(); });
 // 학습한 분류기 모델. 분석은 이걸 받은 뒤에 시작한다(받지 못하면 규칙으로만 간다).
 const modelReady = fetch('/static/coach/data/stroke_model.json').then((r) => (r.ok ? r.json() : null))
-  .then((mdl) => { S.model = mdl && Array.isArray(mdl.W) && Array.isArray(mdl.mean) && mdl.n_feat === mdl.mean.length ? mdl : null; }).catch(() => { S.model = null; });
+  .then((mdl) => { S.model = validModel(mdl) ? mdl : null; }).catch(() => { S.model = null; });
 fetch('/static/coach/data/reference.json').then((r) => (r.ok ? r.json() : null)).then((ref) => {
   S.ref = ref;
   if (ref) $('#refInfo').textContent = `선수 사진 ${ref.used}장의 자세를 기준으로 견줍니다(위키미디어 공용, 자유 이용 허가 사진).`;

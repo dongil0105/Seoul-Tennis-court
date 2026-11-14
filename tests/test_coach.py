@@ -111,15 +111,19 @@ def test_reference_data_shape():
 
 
 def test_stroke_model_shape():
-    """학습한 분류기 모델: 종류 6가지, 특징 수가 맞고, 원본 자료(영상·사람 이름)는 들어 있지 않다."""
+    """학습한 분류기 모델: 종류 5가지, 특징 수가 맞고, 원본 자료(영상·사람 이름)는 들어 있지 않다."""
     path = STATIC / "coach" / "data" / "stroke_model.json"
     assert path.is_file()
     m = json.loads(path.read_text(encoding="utf-8"))
-    assert sorted(m["classes"]) == ["backhand", "bvolley", "forehand", "fvolley", "serve", "smash"]
-    n = m["n_feat"]
-    assert n == 107 and len(m["mean"]) == n and len(m["scale"]) == n and len(m["b"]) == 6
-    assert all(len(row) == n for row in m["W"]) and all(v > 0 for v in m["scale"])
-    assert path.stat().st_size < 40_000
+    assert m["kind"] == "stroke-mlp"
+    assert sorted(m["classes"]) == ["backhand", "bvolley", "forehand", "fvolley", "overhead"]
+    n, hid = m["n_feat"], len(m["b1"])
+    assert n == 660 and len(m["mean"]) == n and len(m["scale"]) == n and all(v > 0 for v in m["scale"])
+    assert len(m["W1"]) == hid and all(len(row) == n for row in m["W1"])
+    assert len(m["W2"]) == 5 and all(len(row) == hid for row in m["W2"]) and len(m["b2"]) == 5
+    assert path.stat().st_size < 600_000
+    text = path.read_text(encoding="utf-8")
+    assert ".avi" not in text and ".bvh" not in text
     assert _client().get("/static/coach/data/stroke_model.json").status_code == 200
     assert _client(unlocked=False).get("/static/coach/data/stroke_model.json").status_code == 404
 
