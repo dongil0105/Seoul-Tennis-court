@@ -116,3 +116,17 @@ export function loadMyRefs() {
   try { const v = JSON.parse(localStorage.getItem(REFKEY) || '[]'); return Array.isArray(v) ? v.filter(validRef).map((r) => ({ ...r, mine: true, thumb: null })) : []; } catch (_) { return []; }
 }
 export function saveMyRefs(list) { try { localStorage.setItem(REFKEY, JSON.stringify(list.slice(-60))); return true; } catch (_) { return false; } }
+
+// ── 공 속도 보정(사용자가 실제로 잰 속도로 맞춘 비율). 서브·포핸드·백핸드를 따로 맞춘다. 이 휴대폰에만 저장한다. ──
+const CAL_KEY = 'coach.speedcal.v2';
+export function loadSpeedCal() {
+  const ok = (x) => (Number.isFinite(x) && x >= 0.5 && x <= 2 ? x : 1);
+  try {
+    const v = JSON.parse(localStorage.getItem(CAL_KEY) || '{}');
+    return { serve: ok(v.serve), forehand: ok(v.forehand), backhand: ok(v.backhand) };
+  } catch (_) { return { serve: 1, forehand: 1, backhand: 1 }; }
+}
+/** 저장했으면 true. 저장 공간이 막혀 있으면 false */
+export function saveSpeedCal(cal) {
+  try { localStorage.setItem(CAL_KEY, JSON.stringify(cal)); return true; } catch (_) { return false; }
+}

@@ -190,6 +190,10 @@ details.more summary{font-size:14px;font-weight:600;color:var(--ink-2);cursor:po
 .pattern span.num,.pattern b span{display:inline;margin-top:0;font-size:inherit;color:inherit}
 .pattern b .hl,.hl{color:var(--ball)}
 .bars.gap div{grid-template-columns:64px 1fr 108px}
+.bars.spd div{grid-template-columns:118px 1fr 72px}
+.bars.spd i b{background:var(--line-2)}
+.bars.spd .me i b{background:var(--ball)}
+.bars.spd .me span,.bars.spd .me em{color:var(--ink);font-weight:700}
 /* 아래 탭: 코트 오픈 ↔ 스윙 코치. 처음 화면에서만 보인다(분석 중·결과 화면에서는 '뒤로'로 돌아온다) */
 .tabs{display:none;position:fixed;left:50%;bottom:0;z-index:30;transform:translateX(-50%);grid-template-columns:1fr 1fr;width:100%;max-width:520px;
   padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--line);background:rgba(11,18,16,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}

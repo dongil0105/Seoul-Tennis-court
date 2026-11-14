@@ -10,9 +10,10 @@ import { swingMetrics } from './metrics.js';
 import { advise, matchReference } from './advice.js';
 import * as Reach from './reach.js';
 import { summarize, countText, spreadText, baseTitle, dropServePrep } from './summary.js';
-import { serveHeightCard, groundHeightCard, renderPhysicsView } from './physview.js';
+import { serveHeightCard, groundHeightCard, speedCard, renderPhysicsView } from './physview.js';
+import { shotSpeed, speedSummary, calibration } from './speed.js';
 import { adviceFigure } from './figures.js';
-import { $, $$, esc, show, currentView, initNav, navState, setNavTag, onLeave, toast, sheet, seg, bindSegs, loadProfile, saveProfile, hasProfile, loadMyRefs, saveMyRefs } from './ui.js';
+import { $, $$, esc, show, currentView, initNav, navState, setNavTag, onLeave, toast, sheet, seg, bindSegs, loadProfile, saveProfile, hasProfile, loadMyRefs, saveMyRefs, loadSpeedCal, saveSpeedCal } from './ui.js';
 
 const video = $('#video');
 const S = {
@@ -163,8 +164,8 @@ function renderSetup() {
       <div class="field"><div class="label">끝 <b class="num" id="t1v">${fmtTime(d)}</b></div><input type="range" id="t1" min="0" max="${d}" step="${d > 30 ? 0.5 : 0.1}" value="${d}" aria-label="끝 시각"></div>` : ''}
     <p class="small muted" style="margin-top:12px" id="spanNote"></p>
     <details class="more"><summary>슬로모션으로 찍은 영상인가요?</summary>
-      <div style="margin-top:10px">${seg('speed', [['auto', '알아서'], ['1', '일반'], ['4', '슬로모션'], ['8', '아주 느린 슬로모션']], S.opt.speed)}</div>
-      <p class="small muted" style="margin-top:8px">${SHORT_SEC}초보다 짧은 영상에만 적용됩니다. 보통은 '알아서'로 두면 됩니다.</p></details>
+      <div style="margin-top:10px">${seg('speed', [['auto', '알아서'], ['1', '일반'], ['4', '슬로 4배'], ['8', '슬로 8배']], S.opt.speed)}</div>
+      <p class="small muted" style="margin-top:8px">${SHORT_SEC}초보다 짧은 영상에만 적용됩니다. 보통은 '알아서'로 두면 됩니다. 휴대폰 슬로모션은 보통 4배(초당 120장)나 8배(초당 240장)입니다. 공 속도를 보려면 배수를 직접 골라 주세요.</p></details>
     <div class="btns"><button class="btn" id="go">분석 시작</button></div>
     <p class="small muted" style="margin-top:12px">치는 손: ${S.profile.hand === 'L' ? '왼손' : '오른손'} · 키 ${S.profile.heightCm}cm · <button id="editPf" style="text-decoration:underline">바꾸기</button></p>`;
   show('setup');
@@ -401,7 +402,7 @@ async function analyzeShort(v, i, { signal, job, label, onP }) {
   // 치는 손 설정이 반대인지: 반대 손목이 훨씬 빨리 움직였으면 알려 준다(투핸드는 두 손이 같이 움직이니 제외)
   const other = S.profile.hand === 'L' ? 'R' : 'L';
   const handWarn = swings.length === 1 && !swings[0].twoHanded && Math.max(...wristSpeed(frames, other)) > 1.4 * Math.max(...wristSpeed(frames, S.profile.hand));
-  return { shots: swings.map((sw) => makeShot(frames, sw, step, i, { handWarn })) };
+  return { shots: swings.map((sw) => makeShot(frames, sw, step, i, { handWarn, sfGiven: sfOpt() > 0 })) };
 }
 
 /** 긴 영상: 먼저 가벼운 모델로 빠르게 훑어 스윙 시각을 찾고, 그 장면만 정밀 모델로 다시 읽는다. */
@@ -452,7 +453,7 @@ async function analyzeLong(v, i, { signal, job, label, onP }) {
     const sw = fr.length >= 10 ? mainSwing(fr, { hand: S.profile.hand, sf: 1 }) : null;
     console.debug(`[coach] ${c.tc.toFixed(1)}초: 읽은 프레임 ${raw.length} → 다듬은 뒤 ${fr.length} → ${sw ? sw.stroke : '스윙 못 찾음'}`);
     if (!sw || sw.suspect) continue;
-    shots.push(makeShot(fr, sw, step, i));
+    shots.push(makeShot(fr, sw, step, i, { sfGiven: sfOpt() === 1, sfIgnored: sfOpt() > 1 }));   // 긴 영상은 일반 속도로 보고 분석한다(공 속도 어림이 이 표시를 본다)
   }
   return { shots, partial, why: shots.length ? null : '스윙을 자세히 읽지 못했어요.' };
 }
@@ -479,6 +480,7 @@ function renderResult() {
   const m = swingMetrics(shot.frames, shot.swing, vm.width, vm.height);
   const a = advise(m, ctxFor(shot));
   shot.m = m; shot.a = a;
+  shot.speed = shotSpeed(shot, { heightCm: S.profile.heightCm, serveType: shot.serveType || S.opt.serveType, cal: loadSpeedCal() });   // '잰 값' 목록에 쓰려고 먼저 계산
   const stype = shot.serveType || S.opt.serveType;
   const family = m.stroke === 'serve' ? 'serve' : 'ground';
   const moments = MOMENTS[family].filter(([k]) => shot.swing.keys[k] != null);
@@ -515,8 +517,9 @@ function renderResult() {
       ${seg('kind', [['serve', '서브'], ['forehand', '포핸드'], ['backhand', '백핸드']], m.stroke)}</div>
     ${m.stroke === 'serve' ? `<div class="sec"><h3>어떤 서브였나요?</h3><p class="small muted" style="margin:4px 0 10px">종류에 따라 맞는 타점 높이와 자리가 다릅니다.</p>
       ${seg('stype', [['flat', '플랫'], ['slice', '슬라이스'], ['kick', '킥(스핀)']], stype)}</div>
+      <div class="sec"><h2>공 속도 <span class="muted" style="font-size:15px;font-weight:600">어림</span></h2><div id="speedHere"></div></div>
       <div class="sec"><h2>내 타점 높이</h2><div id="physHere"></div></div>${serveStyle(m)}` : ''}
-    ${m.stroke !== 'serve' ? '<div class="sec"><h2>내 타점</h2><div id="physHere"></div></div>' : ''}
+    ${m.stroke !== 'serve' ? '<div class="sec"><h2>공 속도 <span class="muted" style="font-size:15px;font-weight:600">어림</span></h2><div id="speedHere"></div></div><div class="sec"><h2>내 타점</h2><div id="physHere"></div></div>' : ''}
     <div class="btns">
       <button class="btn" id="shareShot" ${a.score == null ? 'disabled' : ''}>결과 공유</button>
       <button class="btn ghost sm" id="saveRef">이 스윙을 내 기준 자세로 저장</button>
@@ -544,11 +547,14 @@ function renderResult() {
   $('#saveRef', el).addEventListener('click', () => saveAsRef());
   const again = $('#another', el);
   if (again) again.addEventListener('click', () => { show('home', { push: false }); history.replaceState(navState('home'), '', location.pathname); });
+  const sp = shot.speed;                                          // 손목 속도로 어림한 공 속도(위에서 계산)
+  speedCard($('#speedHere', el), sp, m.stroke, { onCal: sp.ok ? () => calSheet(sp, m.stroke) : null,
+    onClear: !sp.ok && loadSpeedCal()[m.stroke] !== 1 ? () => setCal(m.stroke, 1, '맞춘 값을 지웠어요') : null });   // 맞춘 값 때문에 숫자가 안 나올 때도 지울 수 있게
   if (m.stroke === 'serve') {
-    serveHeightCard($('#physHere', el), { heightCm: S.profile.heightCm, wristRatio: m.wristHeightGround > 0 ? m.wristHeightGround : null, jump: m.jump, type: stype, hand: S.profile.hand, level: S.profile.level });
+    serveHeightCard($('#physHere', el), { heightCm: S.profile.heightCm, wristRatio: m.wristHeightGround > 0 ? m.wristHeightGround : null, jump: m.jump, type: stype, hand: S.profile.hand, level: S.profile.level, speed: sp.ok ? sp.kmh : NaN });
   } else {
     groundHeightCard($('#physHere', el), { heightCm: S.profile.heightCm, wristRatio: m.wristHeightGround, front: m.view === 'side' ? m.contactFront : NaN,
-      kind: m.stroke === 'forehand' ? 'forehand' : m.twoHanded ? 'backhand2' : 'backhand1', level: S.profile.level });
+      kind: m.stroke === 'forehand' ? 'forehand' : m.twoHanded ? 'backhand2' : 'backhand1', level: S.profile.level, speed: sp.ok ? sp.kmh : NaN });
   }
   paintMoment();
 }
@@ -560,6 +566,32 @@ function serveStyle(m) {
     pinpoint: ['핀포인트 스탠스', '뒷발을 앞발 옆으로 끌어와 위로 솟는 방식입니다. 높이 뛰기 좋지만 타이밍과 균형이 더 어렵습니다. 끌어온 뒷발이 앞발을 지나치지 않게 하세요.', '같은 방식: 즈베레프 · 알카라스 · 메드베데프 · 세레나 윌리엄스 · 시비옹테크 · 시너(2023년 말부터)'],
   }[m.stanceType];
   return stance ? `<div class="sec"><h3>서브 방식</h3><div class="pattern"><b>${stance[0]}로 보입니다</b><span>${stance[1]}</span><span style="margin-top:6px">${stance[2]}</span></div></div>` : '';
+}
+
+/** 맞춘 비율을 이 휴대폰에 저장하고 지금 결과를 다시 그린다. 저장하지 못하면 false */
+function setCal(stroke, value, msg) {
+  const cal = loadSpeedCal();
+  cal[stroke] = value;
+  if (!saveSpeedCal(cal)) { toast('저장하지 못했어요(저장 공간이 막혀 있어요)', 3500); return false; }
+  const y = window.scrollY; renderResult(); window.scrollTo(0, y);
+  toast(msg);
+  return true;
+}
+
+/** 공 속도 보정: 스피드건이나 다른 앱으로 잰 실제 속도를 알려 주면, 그 비율을 이 휴대폰에 저장해 같은 스트로크의 속도에 곱한다 */
+function calSheet(est, stroke) {
+  const what = STROKE[stroke] || '이 스트로크';
+  sheet(`<h2>공 속도 맞추기</h2><p class="small muted">이 스윙의 실제 공 속도를 알고 있다면(스피드건·다른 앱으로 잰 값) 넣어 주세요. 그 비율로 ${what} 속도를 맞춥니다. 한 번 맞춘다고 정확해지는 것은 아니고, 내 영상에 더 가깝게 옮기는 것입니다. 이 휴대폰에만 저장됩니다.</p>
+    <div class="field"><label for="calV">이 스윙의 실제 속도 (km/h)</label><input class="input num" id="calV" type="number" inputmode="numeric" min="25" max="230" placeholder="${est.kmh}"></div>
+    <div class="btns"><button class="btn" id="calSave">맞추기</button>${loadSpeedCal()[stroke] !== 1 ? '<button class="btn ghost sm" id="calClear">맞춘 값 지우기</button>' : ''}</div>`, (el, close) => {
+    $('#calSave', el).addEventListener('click', () => {
+      const f = calibration(est, Number($('#calV', el).value));
+      if (!f) { toast(`${what}에서 나올 수 있는 속도이면서, 어림값의 절반~2배 사이여야 해요`, 4000); return; }
+      if (setCal(stroke, f, '지금 결과와 다음 분석에 적용했어요')) close();
+    });
+    const clr = $('#calClear', el);
+    if (clr) clr.addEventListener('click', () => { if (setCal(stroke, 1, '맞춘 값을 지웠어요')) close(); });
+  });
 }
 
 /** 조언에 붙이는 그림 한 칸(맞는 그림이 없으면 빈 문자열) */
@@ -590,6 +622,7 @@ function measures(m) {
     if (Number.isFinite(m.chestAtBackswing)) out.push(['백스윙 때 어깨 턴', `${Math.round(m.chestAtBackswing)}°`]);
     if (Number.isFinite(m.chestAtContact)) out.push(['임팩트 때 가슴 방향', `${Math.round(m.chestAtContact)}° (0 = 정면)`]);
   }
+  if (S.shot && S.shot.speed && S.shot.speed.ok) out.unshift(['공 속도(손목 속도로 어림)', `약 ${S.shot.speed.kmh}km/h (${S.shot.speed.lo}~${S.shot.speed.hi})`]);
   out.push(['찍은 방향', { side: '옆', behind: '뒤', front: '앞', unknown: '알 수 없음' }[m.view]]);
   if (m.sf > 1.5) out.push(['영상 속도', `슬로모션 약 ${Math.round(m.sf)}배${m.sfAuto ? '(어림)' : ''}`]);
   return out;
@@ -757,9 +790,13 @@ function renderSession() {
   };
   const figFor = (p) => figBox(p.item, shots[p.shot].m);
   const first = sum.priorities[0], rest = sum.priorities.slice(1);
+  // 속도 줄 끝에 붙이는 말: 몇 개 기준인지, 어떤 가정으로 계산했는지
+  const spdNote = (x) => { const n = [x.n < x.of ? `${x.of}개 중 어림할 수 있었던 ${x.n}개` : '', x.assumed ? '일반 속도 영상으로 보고 계산' : ''].filter(Boolean); return n.length ? ` <span class="muted">(${n.join(' · ')})</span>` : ''; };
   const block = (b) => {
     const sp = spreadText(b, H);
+    const spd = speedSummary(b.list.map((i) => shotSpeed(shots[i], { heightCm: H, cal: loadSpeedCal() })));
     return `<div class="sec"><h2>${b.label} <span class="muted num" style="font-size:15px;font-weight:600">${b.n}개${b.avg != null ? ` · 평균 ${b.avg}점` : ''}</span></h2>
+      ${spd ? `<p class="small" style="margin-top:6px">공 속도(어림${spd.cal ? ' · 맞춤' : ''}) ${spd.n > 1 ? `평균 약 <b class="num">${spd.avg}km/h</b> · 가장 큰 값 약 <b class="num">${spd.max}km/h</b>` : `약 <b class="num">${spd.avg}km/h</b>`}${spdNote(spd)}</p>` : ''}
       ${sp ? `<p class="small muted" style="margin-top:6px">${esc(sp)}</p>` : ''}
       ${b.patterns.slice(0, 3).map((p) => `<div class="pattern"><b>${esc(p.title)}</b><span>${p.of > 1 ? `${p.of}개 중 ${p.n}개에서 · ` : ''}${esc(p.cue)}</span></div>`).join('')
         || `<div class="pattern"><b>되풀이되는 문제는 보이지 않아요</b><span>${b.n > 1 ? '샷마다 다른 점만 아래에서 확인하세요.' : '아래 샷을 눌러 자세히 보세요.'}</span></div>`}
