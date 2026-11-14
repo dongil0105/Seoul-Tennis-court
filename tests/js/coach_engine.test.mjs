@@ -436,3 +436,35 @@ test('진단 파일: 뼈대 숫자와 설정만 담고, 되돌리면 엔진이 �
   assert.equal(back.stroke, sw.stroke);
   assert.ok(Math.abs(back.tc - sw.tc) < 0.02, `임팩트 ${back.tc} vs ${sw.tc}`);
 });
+
+test('학습한 분류기: 모델 파일이 엔진과 맞고, 확률을 내며, 합성 포핸드·서브를 같은 종류로 본다', async () => {
+  const fs = await import('node:fs');
+  const { swingFeatures, predictStroke, N_FEAT, STEPS } = await import('../../app/static/coach/js/classify.js');
+  const model = JSON.parse(fs.readFileSync(new URL('../../app/static/coach/data/stroke_model.json', import.meta.url), 'utf8'));
+  assert.equal(model.n_feat, N_FEAT);
+  assert.equal(model.mean.length, N_FEAT); assert.equal(model.scale.length, N_FEAT);
+  assert.deepEqual([...model.classes].sort(), ['backhand', 'bvolley', 'forehand', 'fvolley', 'serve', 'smash']);
+  assert.ok(model.W.length === 6 && model.W.every((w) => w.length === N_FEAT) && model.b.length === 6);
+  assert.ok(model.scale.every((x) => x > 0));
+  const fr = forehand(), sw0 = mainSwing(fr, { hand: 'R' });
+  const feat = swingFeatures(fr, fr[sw0.ip].t, 'R', sw0.h);
+  assert.equal(feat.length, STEPS.length * 8 + 3);
+  assert.ok(feat.every(Number.isFinite));
+  const p = predictStroke(model, feat);
+  assert.ok(Math.abs(Object.values(p.prob).reduce((a, b) => a + b, 0) - 1) < 1e-9);
+  // 엔진에 모델을 주면: 종류는 그대로(포핸드·서브), 어떻게 갈랐는지와 분류기 값이 남는다
+  const withModel = mainSwing(fr, { hand: 'R', model });
+  assert.equal(withModel.stroke, 'forehand');
+  assert.ok(withModel.ml && withModel.ml.pf + withModel.ml.pb + withModel.ml.po > 0.99);
+  assert.equal(mainSwing(serve(), { hand: 'R', model }).stroke, 'serve');
+  // 사용자가 '포핸드 발리'로 바로잡으면 세부 종류가 붙고, 점수를 내지 않는다
+  const fixed = withStroke(fr, withModel, 'forehand', 'volley');
+  assert.equal(fixed.sub, 'volley'); assert.equal(fixed.auto, withModel.auto);
+  const m = swingMetrics(fr, fixed, 1920, 1080);
+  assert.equal(m.sub, 'volley');
+  assert.equal(advise(m, {}).score, null);
+  // 왼손잡이는 좌우를 뒤집어 같은 특징이 나온다
+  const mirror = fr.map((f) => G.mirrorPose(f));
+  const fl = swingFeatures(mirror.map((f, i) => ({ t: fr[i].t, ...f })), fr[sw0.ip].t, 'L', sw0.h);
+  assert.ok(feat.every((x, i) => Math.abs(x - fl[i]) < 1e-6), '왼손잡이 특징이 오른손잡이와 같다');
+});

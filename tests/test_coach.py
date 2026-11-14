@@ -110,6 +110,20 @@ def test_reference_data_shape():
         assert len(s["w"]) == 33 and len(s["lm"]) == 33 and len(s["feat"]) == 36
 
 
+def test_stroke_model_shape():
+    """학습한 분류기 모델: 종류 6가지, 특징 수가 맞고, 원본 자료(영상·사람 이름)는 들어 있지 않다."""
+    path = STATIC / "coach" / "data" / "stroke_model.json"
+    assert path.is_file()
+    m = json.loads(path.read_text(encoding="utf-8"))
+    assert sorted(m["classes"]) == ["backhand", "bvolley", "forehand", "fvolley", "serve", "smash"]
+    n = m["n_feat"]
+    assert n == 107 and len(m["mean"]) == n and len(m["scale"]) == n and len(m["b"]) == 6
+    assert all(len(row) == n for row in m["W"]) and all(v > 0 for v in m["scale"])
+    assert path.stat().st_size < 40_000
+    assert _client().get("/static/coach/data/stroke_model.json").status_code == 200
+    assert _client(unlocked=False).get("/static/coach/data/stroke_model.json").status_code == 404
+
+
 def test_cache_policy(monkeypatch):
     # 비공개: 그 기기의 브라우저만 보관한다(중간의 공유 캐시가 열쇠 없는 사람에게 다시 내주지 못하게 private)
     assert coach.cache_header_for("/static/coach/vendor/models/pose_landmarker_full.task") == "private, max-age=2592000, immutable"

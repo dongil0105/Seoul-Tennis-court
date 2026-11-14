@@ -24,7 +24,7 @@ const S = {
   abort: null, job: 0, shot: null, session: null, from: 'home', afterBack: null,
 };
 const STROKE = { serve: '서브', forehand: '포핸드', backhand: '백핸드' };
-const strokeName = (m) => (m.stroke === 'backhand' ? (m.twoHanded ? '투핸드 백핸드' : '원핸드 백핸드') : STROKE[m.stroke]);
+const strokeName = (m) => (m.sub === 'smash' ? '스매시' : m.sub === 'volley' ? `${STROKE[m.stroke]} 발리` : m.stroke === 'backhand' ? (m.twoHanded ? '투핸드 백핸드' : '원핸드 백핸드') : STROKE[m.stroke]);
 const MOMENTS = {
   serve: [['trophy', '트로피'], ['contact', '임팩트'], ['finish', '피니시'], ['load', '무릎 굽힘'], ['toss', '토스']],
   ground: [['backswing', '백스윙'], ['contact', '임팩트'], ['finish', '피니시'], ['ready', '준비']],
@@ -51,6 +51,7 @@ async function wakeOn() { try { if ('wakeLock' in navigator && !wake) wake = awa
 function wakeOff() { try { if (wake) wake.release(); } catch (_) { /* 무시 */ } wake = null; }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && currentView() === 'working') wakeOn(); });
 onLeave((from) => { if (from === 'result') video.pause(); });
+fetch('/static/coach/data/stroke_model.json').then((r) => (r.ok ? r.json() : null)).then((mdl) => { if (mdl && Array.isArray(mdl.W) && mdl.n_feat === mdl.mean.length) S.model = mdl; }).catch(() => {});
 fetch('/static/coach/data/reference.json').then((r) => (r.ok ? r.json() : null)).then((ref) => {
   S.ref = ref;
   if (ref) $('#refInfo').textContent = `선수 사진 ${ref.used}장의 자세를 기준으로 견줍니다(위키미디어 공용, 자유 이용 허가 사진).`;
@@ -409,7 +410,7 @@ async function analyzeShort(v, i, { signal, job, label, onP }) {
   if (job !== S.job) return { shots: [] };
   const frames = cleanFrames(raw.filter(G.validPose), v.meta.width / v.meta.height);
   if (frames.length < 10) return { shots: [], why: '영상에서 사람을 찾지 못했어요.' };
-  const opts = { hand: S.profile.hand, sf: sfOpt(), backhand: S.profile.backhand };
+  const opts = { hand: S.profile.hand, sf: sfOpt(), backhand: S.profile.backhand, model: S.model };
   const all = detectSwings(frames, opts);
   console.debug(`[coach] ${label}짧은 영상: 스윙 후보 ${all.length}개`, all.map((x) => `${x.tc.toFixed(1)}초 ${x.stroke} 속도 ${x.peak.toFixed(1)}${x.suspect ? ' (준비 동작)' : ''}${x.uncertain ? ' (종류 불확실)' : ''}`).join(' · '));
   let swings = all.filter((s) => !s.suspect);
@@ -466,7 +467,7 @@ async function analyzeLong(v, i, { signal, job, label, onP }) {
       pick: (poses, t) => follow(poses, Track.readColors(smallCtx, video, poses), st2, t),
       onProgress: (p) => onP(0.55 + 0.45 * (k + p) / top.length) });
     const fr = cleanFrames(raw.filter(G.validPose), aspect);
-    const sw = fr.length >= 10 ? mainSwing(fr, { hand: S.profile.hand, sf: 1, backhand: S.profile.backhand }) : null;
+    const sw = fr.length >= 10 ? mainSwing(fr, { hand: S.profile.hand, sf: 1, backhand: S.profile.backhand, model: S.model }) : null;
     console.debug(`[coach] ${c.tc.toFixed(1)}초: 읽은 프레임 ${raw.length} → 다듬은 뒤 ${fr.length} → ${sw ? sw.stroke : '스윙 못 찾음'}`);
     if (!sw || sw.suspect) continue;
     shots.push(makeShot(fr, sw, step, i, { sfGiven: sfOpt() === 1, sfIgnored: sfOpt() > 1 }));   // 긴 영상은 일반 속도로 보고 분석한다(공 속도 예측이 이 표시를 본다)
@@ -530,7 +531,7 @@ function renderResult() {
 
     <div class="sec"><h3>잰 값</h3><dl class="kv">${measures(m).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
     <div class="sec"><h3>종류가 다르게 잡혔나요?</h3><p class="small muted" style="margin:4px 0 10px">바꾸면 그 종류로 다시 봅니다.</p>
-      ${seg('kind', [['serve', '서브'], ['forehand', '포핸드'], ['backhand', '백핸드']], m.stroke)}</div>
+      ${seg('kind', [['serve', '서브'], ['serve:smash', '스매시'], ['forehand', '포핸드'], ['forehand:volley', '포핸드 발리'], ['backhand', '백핸드'], ['backhand:volley', '백핸드 발리']], m.stroke + (m.sub ? `:${m.sub}` : ''))}</div>
     ${m.stroke === 'serve' ? `<div class="sec"><h3>어떤 서브였나요?</h3><p class="small muted" style="margin:4px 0 10px">종류에 따라 맞는 타점 높이와 자리가 다릅니다.</p>
       ${seg('stype', [['flat', '플랫'], ['slice', '슬라이스'], ['kick', '킥(스핀)']], stype)}</div>
       <div class="sec"><h2>공 속도 <span class="muted" style="font-size:15px;font-weight:600">예측</span></h2><div id="speedHere"></div></div>
@@ -554,8 +555,9 @@ function renderResult() {
   bindSegs(el, (k, v) => {
     if (k === 'stype') { shot.serveType = v; const y = window.scrollY; renderResult(); window.scrollTo(0, y); return; }   // 서브 종류를 바꾸면 그 종류의 기준으로 다시 본다
     if (k === 'kind') {                                        // 종류를 바로잡으면 그 종류로 다시 분석
-      if (v === shot.swing.stroke) return;
-      const again = withStroke(shot.frames, shot.swing, v);
+      const [kind, sub = null] = v.split(':');
+      if (kind === shot.swing.stroke && sub === (shot.swing.sub || null)) return;
+      const again = withStroke(shot.frames, shot.swing, kind, sub);
       if (again) { shot.swing = again; shot.moment = 'contact'; shot.refIdx = 0; shot.result = null; renderResult(); window.scrollTo(0, 0); }
       return;
     }
@@ -568,7 +570,9 @@ function renderResult() {
   const sp = shot.speed;                                          // 손목 속도로 예측한 공 속도(위에서 계산)
   speedCard($('#speedHere', el), sp, m.stroke, { onCal: sp.ok ? () => calSheet(sp, m.stroke) : null,
     onClear: !sp.ok && loadSpeedCal()[m.stroke] !== 1 ? () => setCal(m.stroke, 1, '맞춘 값을 지웠어요') : null });   // 맞춘 값 때문에 숫자가 안 나올 때도 지울 수 있게
-  if (m.stroke === 'serve') {
+  if (m.sub) {
+    $('#physHere', el).innerHTML = `<div class="callout info">${m.sub === 'smash' ? '스매시' : '발리'}의 타점 기준은 아직 만드는 중이에요.</div>`;
+  } else if (m.stroke === 'serve') {
     serveHeightCard($('#physHere', el), { heightCm: S.profile.heightCm, wristRatio: m.wristHeightGround > 0 ? m.wristHeightGround : null, jump: m.jump, type: stype, hand: S.profile.hand, level: S.profile.level, speed: sp.ok ? sp.kmh : NaN });
   } else {
     groundHeightCard($('#physHere', el), { heightCm: S.profile.heightCm, wristRatio: m.wristHeightGround, front: m.view === 'side' ? m.contactFront : NaN,

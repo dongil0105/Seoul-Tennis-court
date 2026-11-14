@@ -160,6 +160,12 @@ test('서브 준비 동작이 스트로크로 잡힌 것은 뺀다', () => {
   assert.equal(dropServePrep([sh('forehand', 1), sh('backhand', 2)]).length, 2);
   assert.equal(dropServePrep([sh('forehand', 10), sh('serve', 20, 0, 4)]).length, 1);
   assert.equal(dropServePrep([sh('forehand', 5), sh('serve', 20, 0, 4)]).length, 2);
+  // 준비 동작이 머리 위 동작(서브·스매시)으로 잡힌 것도 뺀다: 서브 3초 안쪽 앞, 손목 속도가 그 서브의 0.8배 미만
+  const ov = (tc, peak, sub = null) => ({ vid: 0, m: { stroke: 'serve', sub }, swing: { tc, sf: 1, peak } });
+  assert.deepEqual(dropServePrep([ov(7.2, 7.2, 'smash'), ov(9.6, 10.4)]).map((s) => s.swing.tc), [9.6]);
+  // 속도가 비슷한 머리 위 스윙이 이어지면(스매시 연습) 둘 다 남는다. 3초보다 떨어져 있어도 남는다
+  assert.equal(dropServePrep([ov(7.2, 9.5, 'smash'), ov(9.6, 10.4, 'smash')]).length, 2);
+  assert.equal(dropServePrep([ov(2.0, 5.0), ov(9.6, 10.4)]).length, 2);
 });
 
 test('방향이 반대인 문제는 한데 합치지 않는다(늦은 타점 / 너무 앞선 타점)', () => {

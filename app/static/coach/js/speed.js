@@ -40,6 +40,7 @@ export function estimateSpeed(o) {
   const k = K[o.stroke];
   if (!k) return no('종류를 알 수 없어요');
   if (o.suspect) return no('공을 치는 스윙이 아닌 것 같아요');
+  if (o.sub) return no('발리·스매시는 아직 속도를 예측하지 않아요');
   if (!(o.peak > 0) || !(o.bodyH > 0.5) || !(o.heightCm > 100)) return no('손목 속도를 재지 못했어요');
   if (Number.isFinite(o.vis) && o.vis < 0.6) return no('팔이 또렷하게 보이지 않아 속도를 예측할 수 없어요');
   // 슬로모션: 배수를 사용자가 알려 줬으면 그만큼 곱한다. 영상에서 예측한 배수는 '보통 속도로 쳤다'고 가정한 값이라 속도 계산에 쓸 수 없다.
@@ -87,7 +88,7 @@ export function shotSpeed(shot, { heightCm, serveType, cal } = {}) {
   const sw = shot.swing || {}, m = shot.m || {};
   const stroke = m.stroke || sw.stroke;
   return estimateSpeed({ cal: cal ? cal[stroke] : 1, stroke, serveType: serveType || shot.serveType || 'flat', peak: sw.peak, bodyH: sw.h, heightCm,
-    sf: sw.sf, sfAuto: sw.sfAuto, sfGiven: !!shot.sfGiven, sfIgnored: !!shot.sfIgnored, ...gapAtPeak(shot), vis: m.vis, view: m.view, suspect: m.suspect || sw.suspect });
+    sf: sw.sf, sfAuto: sw.sfAuto, sfGiven: !!shot.sfGiven, sfIgnored: !!shot.sfIgnored, ...gapAtPeak(shot), vis: m.vis, view: m.view, suspect: m.suspect || sw.suspect, sub: m.sub || sw.sub || null });
 }
 
 /**

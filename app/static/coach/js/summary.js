@@ -2,8 +2,10 @@
 //
 // 샷 하나 = { m: swingMetrics 결과, a: advise 결과, vid: 영상 번호 }.
 // 종합은 '되풀이되는 것'을 본다: 한 번 나온 문제보다 열 번 중 여덟 번 나온 문제가 먼저다.
-const KINDS = ['serve', 'forehand', 'backhand'];
-const KIND_LABEL = { serve: '서브', forehand: '포핸드', backhand: '백핸드' };
+const KINDS = ['serve', 'smash', 'forehand', 'backhand', 'volley'];
+const KIND_LABEL = { serve: '서브', smash: '스매시', forehand: '포핸드', backhand: '백핸드', volley: '발리' };
+/** 종합에서 묶는 종류: 발리·스매시는 따로 */
+export const kindOf = (m) => (m.sub === 'volley' ? 'volley' : m.sub === 'smash' ? 'smash' : m.stroke);
 export const gradeOf = (score) => (score >= 88 ? '아주 좋아요' : score >= 76 ? '좋아요' : score >= 62 ? '조금만 다듬으면' : '기본부터 하나씩');
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : NaN);
@@ -19,9 +21,12 @@ export const baseTitle = (t) => String(t || '').replace(/\s+—\s+.*$/, '');
 export function dropServePrep(shots) {
   const serves = shots.filter((s) => s.m.stroke === 'serve');
   if (!serves.length) return shots;
-  return shots.filter((s) => s.m.stroke === 'serve' || !serves.some((v) => {
+  return shots.filter((s) => !serves.some((v) => {
+    if (v === s) return false;
     const sf = v.swing.sf || 1;
-    return (v.vid ?? 0) === (s.vid ?? 0) && s.swing.tc > v.swing.tc - 3 * sf && s.swing.tc < v.swing.tc + 1.2 * sf;
+    const near = (v.vid ?? 0) === (s.vid ?? 0) && s.swing.tc > v.swing.tc - 3 * sf && s.swing.tc < v.swing.tc + 1.2 * sf;
+    // 준비 동작이 머리 위 동작(서브·스매시)으로 잡힌 것도 뺀다: 그 서브보다 앞에 있고 손목 속도가 0.8배에 못 미칠 때
+    return near && (s.m.stroke !== 'serve' || (s.swing.tc < v.swing.tc && s.swing.peak < 0.8 * v.swing.peak));
   }));
 }
 
@@ -33,7 +38,7 @@ function medianItem(occ) {
 
 /** 스트로크 한 종류의 요약 */
 function block(kind, shots, idx) {
-  const list = idx.filter((i) => shots[i].m.stroke === kind);
+  const list = idx.filter((i) => kindOf(shots[i].m) === kind);
   const rated = list.filter((i) => shots[i].a.score != null);
   const clear = rated.filter((i) => shots[i].m.vis >= 0.6);
   const pool = clear.length >= 2 ? clear : rated;

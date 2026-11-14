@@ -4,6 +4,7 @@
 // 공·라켓은 보지 못한다. 치는 손목이 타점을 대신한다. 그래서 임팩트 시각은 '예측'이고,
 // 그 예측이 얼마나 틀릴 수 있는지(tcErr 초, posErr 미터)를 같이 돌려준다. 화면에서 사용자가 한 프레임씩 고칠 수 있다(withContact).
 import * as G from './geom.js';
+import { swingFeatures, predictStroke } from './classify.js';
 
 const { J } = G;
 const GAP = 0.25;                       // 이보다 긴 빈 구간(사람을 놓친 구간)은 이어 붙이지 않는다
@@ -56,7 +57,8 @@ export function bodyScale(frames) {
 /**
  * 스윙 찾기. frames = [{t, lm, w}] (사람이 안 잡힌 프레임은 빼고, clean.js 로 다듬어서 넘긴다).
  * opts: hand 'R'|'L'(꼭 알려 준다), stroke(사용자가 고른 종류로 고정), sf(슬로모션 배수. 안 주면 예측하고 sfAuto 로 표시),
- *       backhand '1h'|'2h'(사용자가 알려 준 백핸드 종류. 주면 포핸드/백핸드를 가르는 데 쓰고, 양손 여부를 추측하지 않는다)
+ *       backhand '1h'|'2h'(사용자가 알려 준 백핸드 종류. 주면 포핸드/백핸드를 가르는 데 쓰고, 양손 여부를 추측하지 않는다),
+ *       model(학습한 분류기: data/stroke_model.json. 주면 종류를 분류기로 가르고 발리·스매시를 sub 로 표시한다. 안 주면 규칙으로만)
  * 돌려주는 것: 스윙 배열. 못 찾으면 [].
  */
 export function detectSwings(frames, opts = {}) {
@@ -104,14 +106,17 @@ export function detectSwings(frames, opts = {}) {
       if (frames[i].t - frames[i - 1].t > GAP * Math.max(1, sf / 2)) { broken = true; break; }
     }
     if (broken) continue;
-    const sw = analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke: opts.stroke, bh });
+    const sw = analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke: opts.stroke, bh, model: opts.model || null });
     if (sw) out.push(sw);
   }
-  // 서브 바로 앞(1.4초 안)에 잡힌 다른 스윙은 서브의 준비 동작(팔을 뒤로 돌려 올리는 것)이다 → 뺀다
-  return out.filter((a) => a.stroke === 'serve' || !out.some((b) => b.stroke === 'serve' && b.tc > a.tc && b.tc - a.tc < 1.4 * sf));
+  // 서브 바로 앞(1.4초 안)에 잡힌 다른 스윙은 서브의 준비 동작(팔을 뒤로 돌려 올리는 것)이다 → 뺀다.
+  // 준비 동작(토스·테이크백)이 머리 위 동작(서브·스매시)으로 잡히기도 한다: 서브 3초 안쪽 앞에 있고 손목 속도가 그 서브의 0.8배에 못 미치면 뺀다
+  // (스매시 연습처럼 진짜 머리 위 스윙이 이어질 때는 속도가 비슷해서 남는다).
+  const prepOf = (a, b) => b !== a && b.stroke === 'serve' && b.tc > a.tc && (a.stroke !== 'serve' ? b.tc - a.tc < 1.4 * sf : b.tc - a.tc < 3 * sf && a.peak < 0.8 * b.peak);
+  return out.filter((a) => !out.some((b) => prepOf(a, b)));
 }
 
-function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverride, bh = null }) {
+function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverride, bh = null, model = null, subFixed }) {
   const S = G.sides(hand), sign = hand === 'L' ? -1 : 1;
   const tp = frames[ip].t;
   const win = (t0, t1) => { const r = []; for (let i = i0; i <= i1; i++) if (frames[i].t >= t0 && frames[i].t <= t1) r.push(i); return r; };
@@ -149,9 +154,24 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   // 양손 백핸드라고 알려 줬으면 '두 손이 붙어 있었나'로 가른다: 붙어 있으면 백핸드, 떨어져 있으면 포핸드.
   // 손목 사이 거리만 보므로 자세 인식이 좌우를 뒤바꿔도, 뒤에서 찍어도 통한다(몸의 어느 쪽인지 보는 side 는 그럴 때 틀린다).
   let by = fhSide ? 'side' : swept ? 'sweep' : 'side';
-  if (auto !== 'serve' && bh === '2h') {
-    if (together >= 0.6) { auto = 'backhand'; by = 'hands'; } else if (together <= 0.2) { auto = 'forehand'; by = 'hands'; }
+  // (두 손이 떨어져 있었다고 포핸드라고 하지는 않는다 — 양손 백핸드를 치는 사람도 백핸드 발리·슬라이스는 한 손으로 친다.)
+  const glued = bh === '2h' && together >= 0.6;
+  if (auto !== 'serve' && glued) { auto = 'backhand'; by = 'hands'; }
+  // 학습한 분류기: 실제 영상(THETIS)과 모션캡처(Tennis-MoCap)의 스윙으로 배운 것. 포핸드쪽/백핸드쪽/머리 위를 가르는 정확도가
+  // 규칙보다 높다(실제 영상 62 → 86%, 모션캡처 87 → 95%, 사람 단위 검증). 확신이 낮으면(0.55 미만) 규칙을 따른다.
+  let sub = null, ml = null;
+  if (model && !stroke) {
+    const P = predictStroke(model, swingFeatures(frames, tp, hand, h, sf)).prob;
+    const pf = P.forehand + P.fvolley, pb = P.backhand + P.bvolley, po = P.serve + P.smash, top = Math.max(pf, pb, po);
+    ml = { pf, pb, po, volley: P.fvolley + P.bvolley, smash: P.smash };
+    if (glued && po < 0.8) { auto = 'backhand'; by = 'hands'; }
+    else if (top >= 0.55) { auto = po === top ? 'serve' : pf === top ? 'forehand' : 'backhand'; by = 'model'; }
+    // 세부 종류: 같은 묶음 안에서 발리·스매시일 가능성이 뚜렷이 높을 때만(틀리면 사용자가 바로잡는다)
+    if (auto === 'serve' && P.smash >= 0.7 * po) sub = 'smash';
+    else if (auto === 'forehand' && P.fvolley >= 0.7 * pf) sub = 'volley';
+    else if (auto === 'backhand' && !glued && P.bvolley >= 0.7 * pb) sub = 'volley';
   }
+  if (stroke) sub = subFixed || null;                          // 사용자가 종류를 바로잡았으면 세부 종류도 그대로 따른다
   const kind = stroke || auto;
   // 양손 여부: 알려 줬으면 그대로(백핸드일 때만), 아니면 임팩트 전 0.25초 동안 두 손이 계속 붙어 있었나로 추측
   const twoHanded = bh ? kind === 'backhand' && bh === '2h' : kind !== 'serve' && together >= 0.6;
@@ -250,18 +270,22 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   const vis = around.length
     ? around.reduce((s, i) => s + G.vis(frames[i], S.hit.wr, S.hit.el, S.hit.sh, J.lHip, J.rHip, J.lKnee, J.rKnee), 0) / around.length : 0;
 
-  return { i0, i1, ip, ic, tc, tcErr, posErr, sf, sfAuto, h, peak: v[ip], stroke: kind, auto, uncertain, suspect, twoHanded, hand, bh, by, together, side, sweep, upMax: upMax / h, fwdChest, acrossBody, gazeGo, fwdStart,
+  return { i0, i1, ip, ic, tc, tcErr, posErr, sf, sfAuto, h, peak: v[ip], stroke: kind, sub, auto, autoSub: stroke ? undefined : sub, ml, model, uncertain, suspect, twoHanded, hand, bh, by, together, side, sweep, upMax: upMax / h, fwdChest, acrossBody, gazeGo, fwdStart,
     dir: d, dirKnown, dirX, view, keys, vis, conf: vis, _v: v };
 }
 
 /** 사용자가 임팩트 순간을 직접 고쳤을 때: 그 시각으로 핵심 순간·방향을 다시 잡는다 */
 export function withContact(frames, swing, tc) {
-  return analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke: swing.stroke, tcOverride: tc, bh: swing.bh });
+  const sw = analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke: swing.stroke, tcOverride: tc, bh: swing.bh, subFixed: swing.sub });
+  if (sw) { sw.auto = swing.auto; sw.autoSub = swing.autoSub; sw.ml = swing.ml; sw.model = swing.model; }
+  return sw;
 }
 
 /** 사용자가 종류(서브·포핸드·백핸드)를 바로잡았을 때: 그 종류로 임팩트·핵심 순간을 다시 잡는다 */
-export function withStroke(frames, swing, stroke) {
-  return analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke, bh: swing.bh });
+export function withStroke(frames, swing, stroke, sub = null) {
+  const sw = analyze(frames, swing._v, { i0: swing.i0, i1: swing.i1, ip: swing.ip, sf: swing.sf, sfAuto: swing.sfAuto, hand: swing.hand, h: swing.h, stroke, bh: swing.bh, subFixed: sub });
+  if (sw) { sw.auto = swing.auto; sw.autoSub = swing.autoSub; sw.ml = swing.ml; sw.model = swing.model; }        // 엔진이 처음에 부른 종류는 남겨 둔다(진단 파일의 정답 비교용)
+  return sw;
 }
 
 /** 스윙 하나만 담긴 짧은 영상: 가장 빠른 스윙 하나를 고른다 */

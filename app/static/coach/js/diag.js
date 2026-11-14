@@ -50,7 +50,9 @@ export function buildDiag(o) {
     const sw = s.swing || {};
     shots.push({
       track, vid: s.vid,
-      stroke: sw.stroke, auto: sw.auto, fixed: sw.stroke !== sw.auto,          // fixed = 사용자가 종류를 바로잡았다(= 정답)
+      stroke: sw.stroke, sub: sw.sub || null, auto: sw.auto, autoSub: sw.autoSub || null,
+      fixed: sw.stroke !== sw.auto || (sw.sub || null) !== (sw.autoSub || null),          // fixed = 사용자가 종류를 바로잡았다(= 정답)
+      ml: sw.ml ? { pf: r(sw.ml.pf, 1000), pb: r(sw.ml.pb, 1000), po: r(sw.ml.po, 1000), volley: r(sw.ml.volley, 1000), smash: r(sw.ml.smash, 1000) } : null,
       ...pick(sw, ['twoHanded', 'bh', 'by', 'side', 'sweep', 'together', 'upMax', 'fwdChest', 'acrossBody', 'gazeGo', 'suspect', 'uncertain',
         'view', 'tc', 'tcErr', 'peak', 'h', 'sf', 'sfAuto', 'hand', 'i0', 'i1', 'ip', 'ic']),
       keys: sw.keys ? pick(sw.keys, Object.keys(sw.keys)) : null,
