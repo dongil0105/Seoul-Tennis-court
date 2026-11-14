@@ -1,0 +1,10 @@
+{
+  "note": "종류를 아는 영상 목록(위키미디어 공용의 시범 영상). seq = commons_videos.py 가 받은 파일 이름(확장자 제외). 영상의 제목이 종류를 말해 준다.",
+  "clips": [
+    { "seq": "0181c1e0cf625739", "title": "File:0DRIVE.ogv", "stroke": "forehand", "hand": "R", "backhand": "2h" },
+    { "seq": "d7480fb25e22c3f1", "title": "File:0SAQUE.ogv", "stroke": "serve", "hand": "R", "backhand": "2h" },
+    { "seq": "c3604d69c795b6c0", "title": "File:Saque_con_pelota.ogv", "stroke": "serve", "hand": "R", "backhand": "2h" },
+    { "seq": "afabad6b49d88599", "title": "File:0REVES_2_MANOS.ogv", "stroke": "backhand", "hand": "R", "backhand": "2h" },
+    { "seq": "54cb983fc7cfb6b7", "title": "File:0REVES_1_MANO.ogv", "stroke": "backhand", "hand": "R", "backhand": "1h" }
+  ]
+}
