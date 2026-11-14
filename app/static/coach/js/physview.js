@@ -35,7 +35,7 @@ export function serveCalculator(root, init = {}) {
   const s = { height: init.height || 2.5, speed: init.speed || 130, type: init.type || 'flat', target: 'T', court: 'deuce', hand: init.hand || 'R' };
   root.innerHTML = `
     <div class="phys">
-      <div class="small muted">네트를 넘고 서비스 박스에 들어가는 발사 각도의 폭</div>
+      <div class="small muted">네트를 넘고 서비스 박스에 들어가는, 공이 떠나는 각도(위아래)의 폭</div>
       <div class="big"><b class="num" id="pw">—</b><span id="pwUnit">도</span></div>
       <div class="small" id="pwSay"></div>
       <div id="pTraj"></div>
@@ -58,9 +58,9 @@ export function serveCalculator(root, init = {}) {
     const upW = up && up.feasible ? up.windowDeg : 0;
     let say;
     if (!w) say = '이 높이·속도로는 플랫으로 넣을 수 없어요. 속도를 줄이거나, 회전을 걸거나, 타점을 높여야 합니다.';
-    else if (w < 1) say = `여유가 거의 없어요(라켓 면 ±${f1(w / 2)}도). 선수들도 이 속도에서는 회전을 섞습니다.`;
-    else if (w < 2.5) say = `라켓 면이 ±${f1(w / 2)}도만 어긋나도 폴트입니다.`;
-    else say = `라켓 면 ±${f1(w / 2)}도까지 괜찮아요. 넉넉한 편입니다.`;
+    else if (w < 1) say = '여유가 거의 없어요. 공이 떠나는 각도가 1도만 달라져도 폴트입니다. 선수들도 이 속도에서는 회전을 섞습니다.';
+    else if (w < 2.5) say = `공이 떠나는 각도가 이 ${f1(w)}도 안에 들어와야 합니다. 빠듯한 편입니다.`;
+    else say = `공이 떠나는 각도가 이 ${f1(w)}도 안에 들어오면 됩니다. 넉넉한 편입니다.`;
     if (upW > w) say += ` 타점을 10cm 높이면 ${f1(upW)}도(${w ? `+${Math.round((upW / w - 1) * 100)}%` : '가능해짐'}).`;
     $('#pwSay', root).textContent = say;
     $('#pTraj', root).innerHTML = trajectory(r);
@@ -70,7 +70,7 @@ export function serveCalculator(root, init = {}) {
     const best = r && r.best;
     $('#pFoot', root).textContent = best && r.feasible
       ? `가장 안전하게 치면 네트 위 ${Math.round(best.netClearanceCm)}cm로 지나 네트에서 ${f1(best.landingDepthM)}m 지점에 떨어집니다. 이 코스에서 공이 넘는 네트 높이는 ${Math.round(r.netHeightOnPathCm)}cm(${s.target === 'wide' ? '와이드는 네트가 높은 쪽을 지나고 서비스 박스 모서리까지 더 멉니다' : s.target === 'T' ? 'T존은 네트가 가장 낮은 가운데를 지납니다' : '가운데와 옆줄 사이'}). 공기 저항과 회전을 넣은 계산이고, 실제는 바람·공 상태에 따라 달라집니다.`
-      : '중력 없이 일직선으로 넣으려면 타점이 2.6m 넘게 높아야 합니다. 대부분의 동호인은 내리찍을 수 없고, 수평이거나 살짝 위로 보내야 들어갑니다.';
+      : '중력이 없다면 일직선으로 넣는 데 타점이 2.6m 넘게 필요합니다. 실제로는 공이 떨어지므로 그보다 낮아도 들어가지만, 낮고 빠를수록 이 폭이 좁아집니다.';
   };
   $('#rH', root).addEventListener('input', (e) => { s.height = Number(e.target.value); draw(); });
   $('#rS', root).addEventListener('input', (e) => { s.speed = Number(e.target.value); draw(); });
@@ -89,7 +89,7 @@ export function groundCalculator(root, init = {}) {
       <div class="field"><div class="label">공 속도 <b class="num" id="gS"></b></div><input type="range" id="grS" min="50" max="140" step="5" value="${s.speed}" aria-label="공 속도"></div>
       <div class="field"><div class="label">탑스핀 <b class="num" id="gR"></b></div><input type="range" id="grR" min="0" max="3200" step="100" value="${s.rpm}" aria-label="탑스핀"></div>
       <div class="field"><div class="label">타점 높이 <b class="num" id="gH"></b></div><input type="range" id="grH" min="0.3" max="1.6" step="0.05" value="${s.height}" aria-label="타점 높이"></div>
-      <p class="small muted" style="margin-top:12px">라켓 면 1도가 공 높이 1도를 바꿉니다(스윙 궤도는 1도에 0.3도쯤). 그래서 네트·아웃은 대부분 면의 문제입니다.</p>
+      <p class="small muted" style="margin-top:12px">공이 떠나는 각도는 라켓 면과 스윙 궤도가 함께 정합니다. 계산해 보면 면이 궤도보다 3배쯤 크게 작용합니다(면 1도 ≈ 공 1도). 이 폭은 계산값이고, 실제 허용 오차는 이보다 좁게 보세요.</p>
     </div>`;
   const draw = () => {
     let r = null;
@@ -100,7 +100,7 @@ export function groundCalculator(root, init = {}) {
     $('#gR', root).textContent = s.rpm ? `${s.rpm}rpm` : '없음(플랫)';
     $('#gH', root).textContent = `${Math.round(s.height * 100)}cm`;
     $('#gSay', root).textContent = !w ? '이 조건으로는 넣기 어렵습니다.'
-      : `라켓 면 ±${f1(w / 2)}도까지 들어갑니다. ${s.speed <= 90 ? '동호인 속도에서는 여유가 넉넉하니, 낮게 깔기보다 네트 위 1~2m로 넘기는 편이 깊이 들어갑니다.' : '속도가 빠를수록 여유가 줄어듭니다. 탑스핀이 여유를 되찾아 줍니다.'}`;
+      : `공이 떠나는 각도가 이 ${f1(w)}도 안에 들어오면 됩니다. ${s.speed <= 90 ? '이 속도에서는 여유가 넉넉하니, 낮게 깔기보다 네트 위로 높이 넘기는 편이 깊이 들어갑니다.' : '속도가 빠를수록 여유가 줄어듭니다. 탑스핀이 여유를 되찾아 줍니다.'}`;
   };
   for (const [id, key] of [['grS', 'speed'], ['grR', 'rpm'], ['grH', 'height']]) $(`#${id}`, root).addEventListener('input', (e) => { s[key] = Number(e.target.value); draw(); });
   draw();

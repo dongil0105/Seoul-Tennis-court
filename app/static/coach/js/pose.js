@@ -2,6 +2,7 @@
 import { FilesetResolver, PoseLandmarker } from '../vendor/tasks-vision/vision_bundle.mjs';
 
 const BASE = new URL('../vendor/', import.meta.url).href;
+const VER = '1.2.3-1';            // vendor 파일을 바꾸면 이 값도 바꾼다(휴대폰이 오래 보관한 옛 파일을 쓰지 않게)
 const cache = new Map();
 
 let delegate = null;          // 한 번 정하면 계속 쓴다: 'GPU' | 'CPU'
@@ -14,9 +15,10 @@ let delegate = null;          // 한 번 정하면 계속 쓴다: 'GPU' | 'CPU'
 export async function getPose({ model = 'full', poses = 1, probe = null } = {}) {
   const key = `${model}:${poses}`;
   if (cache.has(key)) return cache.get(key);
-  const fileset = await FilesetResolver.forVisionTasks(`${BASE}tasks-vision/wasm`);
+  void FilesetResolver;
+  const fileset = { wasmLoaderPath: `${BASE}tasks-vision/wasm/vision_wasm_internal.js?v=${VER}`, wasmBinaryPath: `${BASE}tasks-vision/wasm/vision_wasm_internal.wasm?v=${VER}` };
   const make = (d) => PoseLandmarker.createFromOptions(fileset, {
-    baseOptions: { modelAssetPath: `${BASE}models/pose_landmarker_${model}.task`, delegate: d },
+    baseOptions: { modelAssetPath: `${BASE}models/pose_landmarker_${model}.task?v=${VER}`, delegate: d },
     runningMode: 'VIDEO', numPoses: poses,
     minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5,
   });
@@ -58,53 +60,87 @@ export function detect(pl, source) {
   return lm.map((p, i) => ({ lm: p, w: w[i] }));
 }
 
-/** 영상 파일을 <video> 로 열어 길이·크기를 안다. 열 수 없는 형식이면 오류. */
+let openToken = 0;
+/**
+ * 영상 파일을 <video> 로 열어 길이·크기를 안다. 열 수 없는 형식이거나 20초 안에 준비되지 않으면 오류.
+ * 연달아 고르면 앞의 것은 '취소됨'으로 끝난다(뒤의 영상 이벤트를 앞의 것이 가로채지 않게).
+ */
 export function openVideo(video, file) {
+  const token = ++openToken;
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
-    const done = () => { cleanup(); resolve({ url, duration: video.duration, width: video.videoWidth, height: video.videoHeight }); };
-    const fail = () => { cleanup(); URL.revokeObjectURL(url); reject(new Error('이 영상은 이 브라우저에서 열 수 없어요. 다른 영상으로 해 보세요.')); };
-    const cleanup = () => { video.removeEventListener('loadeddata', done); video.removeEventListener('error', fail); };
-    video.addEventListener('loadeddata', done);
-    video.addEventListener('error', fail);
+    let settled = false;
+    const end = (err) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer); clearInterval(poll);
+      for (const ev of ['loadeddata', 'canplay', 'loadedmetadata']) video.removeEventListener(ev, check);
+      video.removeEventListener('error', onErr);
+      if (err) { URL.revokeObjectURL(url); reject(err); }
+      else resolve({ url, duration: video.duration, width: video.videoWidth, height: video.videoHeight });
+    };
+    const check = () => {
+      if (token !== openToken) { end(new DOMException('다른 영상을 골랐습니다', 'AbortError')); return; }
+      if (video.readyState >= 2 && video.videoWidth > 0 && Number.isFinite(video.duration)) end();
+    };
+    const onErr = () => end(new Error('이 영상은 이 브라우저에서 열 수 없어요. 다른 영상으로 해 보세요.'));
+    const timer = setTimeout(() => end(new Error('영상을 여는 데 너무 오래 걸려요. 더 짧은 영상으로 해 보세요.')), 20000);
+    const poll = setInterval(check, 250);                      // 어떤 휴대폰은 loadeddata 를 안 보낸다
+    for (const ev of ['loadeddata', 'canplay', 'loadedmetadata']) video.addEventListener(ev, check);
+    video.addEventListener('error', onErr);
     video.muted = true; video.playsInline = true; video.preload = 'auto';
     video.src = url;
     video.load();
   });
 }
 
-/** 영상의 한 시각으로 옮기고 그 화면이 준비될 때까지 기다린다 */
-export function seek(video, t) {
+// 영상 위치 옮기기는 한 번에 하나씩만 한다. 화면 여러 곳이 같은 <video> 를 쓰므로, 겹치면 서로의 화면을 덮어쓴다.
+let seekChain = Promise.resolve();
+function seekNow(video, t) {
   return new Promise((resolve) => {
     const tt = Math.min(Math.max(0, t), Math.max(0, (video.duration || 0) - 0.001));
-    if (Math.abs(video.currentTime - tt) < 1e-4 && video.readyState >= 2) { resolve(); return; }
+    if (Math.abs(video.currentTime - tt) < 1e-4 && video.readyState >= 2 && !video.seeking) { resolve(true); return; }
     let finished = false;
-    const done = () => { if (finished) return; finished = true; video.removeEventListener('seeked', done); clearTimeout(timer); resolve(); };
-    const timer = setTimeout(done, 1500);                     // 어떤 기기는 seeked 를 안 보낸다
-    video.addEventListener('seeked', done);
-    video.currentTime = tt;
+    const done = (ok) => { if (finished) return; finished = true; video.removeEventListener('seeked', onSeeked); clearTimeout(timer); resolve(ok); };
+    const onSeeked = () => done(Math.abs(video.currentTime - tt) < 0.25);
+    const timer = setTimeout(() => done(!video.seeking && Math.abs(video.currentTime - tt) < 0.25), 2500);   // seeked 를 안 보내는 기기
+    video.addEventListener('seeked', onSeeked);
+    try { video.currentTime = tt; } catch (_) { done(false); }
   });
 }
+/** 영상의 한 시각으로 옮기고 그 화면이 준비될 때까지 기다린다. 돌려주는 값: 그 화면이 맞게 준비됐으면 true. */
+export function seek(video, t) {
+  const run = seekChain.then(() => seekNow(video, t));
+  seekChain = run.catch(() => false);
+  return run;
+}
 
-/** 초당 프레임 수를 어림한다: 잠깐 재생해 보며 화면이 바뀌는 간격을 잰다. 못 재면 30. */
+/**
+ * 초당 프레임 수를 어림한다: 잠깐 재생해 보며 화면이 바뀌는 간격을 잰다. 못 재면 30.
+ * (화면 주사율보다 촘촘한 영상은 주사율까지만 잡힌다 — 그 간격으로 읽으면 충분하다.)
+ */
 export async function measureFps(video) {
   if (!('requestVideoFrameCallback' in HTMLVideoElement.prototype)) return 30;
   const times = [];
   await seek(video, Math.min(0.2, (video.duration || 1) / 4));
   await new Promise((resolve) => {
-    let n = 0;
-    const stop = () => { video.pause(); resolve(); };
-    const tick = (_now, meta) => { times.push(meta.mediaTime); if (++n >= 12) stop(); else video.requestVideoFrameCallback(tick); };
-    video.requestVideoFrameCallback(tick);
+    let stopped = false, handle = 0;
+    const stop = () => {
+      if (stopped) return;
+      stopped = true; clearTimeout(timer);
+      if (handle && video.cancelVideoFrameCallback) video.cancelVideoFrameCallback(handle);
+      video.pause(); resolve();
+    };
+    const tick = (_now, meta) => { if (stopped) return; times.push(meta.mediaTime); if (times.length >= 14) stop(); else handle = video.requestVideoFrameCallback(tick); };
+    const timer = setTimeout(stop, 1500);
+    handle = video.requestVideoFrameCallback(tick);
     video.play().catch(stop);
-    setTimeout(stop, 1500);
   });
   const d = [];
   for (let i = 1; i < times.length; i++) if (times[i] > times[i - 1]) d.push(times[i] - times[i - 1]);
   if (d.length < 4) return 30;
   d.sort((a, b) => a - b);
-  const fps = 1 / d[d.length >> 1];
-  return Math.min(120, Math.max(15, Math.round(fps)));
+  return Math.min(120, Math.max(15, Math.round(1 / d[d.length >> 1])));
 }
 
 /**
@@ -117,7 +153,7 @@ export async function extract(video, pl, { t0 = 0, t1 = video.duration, step = 1
   for (let i = 0; i < n; i++) {
     if (signal && signal.aborted) throw new DOMException('aborted', 'AbortError');
     const t = t0 + i * step;
-    await seek(video, t);
+    if (!(await seek(video, t))) continue;                     // 그 화면이 준비되지 않았으면 건너뛴다(다른 순간의 자세를 붙이지 않는다)
     const poses = detect(pl, video);
     const j = poses.length ? (pick ? pick(poses, t) : biggest(poses)) : -1;
     if (j >= 0) frames.push({ t, lm: poses[j].lm, w: poses[j].w });
@@ -128,35 +164,62 @@ export async function extract(video, pl, { t0 = 0, t1 = video.duration, step = 1
 }
 
 /**
- * 긴 영상을 빠르게 훑는다: 재생하면서 화면이 바뀔 때마다 자세를 뽑는다(인식이 따라가는 만큼만).
- * 재생 중 화면 콜백을 못 쓰는 브라우저에서는 일정 간격으로 옮겨 가며 뽑는다.
+ * 긴 영상을 빠르게 훑는다: 재생하면서 화면이 바뀔 때마다 자세를 뽑아 sink(frame) 으로 넘긴다(배열로 쌓아 두지 않는다 — 긴 영상의 메모리).
+ * minGap 초보다 촘촘한 화면은 건너뛴다. 재생 중 화면 콜백을 못 쓰는 브라우저에서는 일정 간격으로 옮겨 가며 뽑는다.
+ * 취소·추론 오류·재생이 멈춘 경우 모두 한 곳(finish)에서 정리한다.
  */
-export async function scan(video, pl, { t0 = 0, t1 = video.duration, rate = 2, pick, onProgress, signal, fallbackStep = 1 / 12 } = {}) {
+export async function scan(video, pl, { t0 = 0, t1 = video.duration, rate = 2, pick, sink, onProgress, signal, minGap = 1 / 15 } = {}) {
+  const push = (t, poses) => {
+    const j = poses.length ? (pick ? pick(poses, t) : biggest(poses)) : -1;
+    if (j >= 0) sink({ t, lm: poses[j].lm, w: poses[j].w });
+  };
   if (!('requestVideoFrameCallback' in HTMLVideoElement.prototype)) {
-    return extract(video, pl, { t0, t1, step: fallbackStep, pick, onProgress, signal });
+    for (let t = t0; t <= t1; t += Math.max(minGap, 1 / 12)) {
+      if (signal && signal.aborted) throw new DOMException('aborted', 'AbortError');
+      if (await seek(video, t)) push(t, detect(pl, video));
+      if (onProgress) onProgress(Math.min(1, (t - t0) / Math.max(0.01, t1 - t0)));
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    return;
   }
-  const frames = [];
   await seek(video, t0);
-  video.playbackRate = rate;
   await new Promise((resolve, reject) => {
-    let ended = false;
-    const finish = (err) => { if (ended) return; ended = true; video.pause(); video.playbackRate = 1; err ? reject(err) : resolve(); };
+    let ended = false, handle = 0, last = -1, lastTick = performance.now();
+    const finish = (err) => {
+      if (ended) return;
+      ended = true;
+      clearInterval(watch);
+      if (handle && video.cancelVideoFrameCallback) video.cancelVideoFrameCallback(handle);
+      if (signal) signal.removeEventListener('abort', onAbort);
+      video.removeEventListener('ended', onEnded);
+      video.pause(); video.playbackRate = 1;
+      if (err) reject(err); else resolve();
+    };
+    const onAbort = () => finish(new DOMException('aborted', 'AbortError'));
+    const onEnded = () => finish();
+    // 화면 콜백이 5초 넘게 안 오면(재생이 멈춘 기기) 다시 재생을 걸어 보고, 그래도 안 오면 거기까지로 끝낸다
+    let nudged = false;
+    const watch = setInterval(() => {
+      if (performance.now() - lastTick < 5000) return;
+      if (!nudged) { nudged = true; lastTick = performance.now(); video.play().catch(() => finish()); } else finish();
+    }, 1000);
     const tick = (_now, meta) => {
       if (ended) return;
-      if (signal && signal.aborted) { finish(new DOMException('aborted', 'AbortError')); return; }
-      const t = meta.mediaTime;
-      if (t >= t1 || video.ended) { finish(); return; }
-      const poses = detect(pl, video);
-      const j = poses.length ? (pick ? pick(poses, t) : biggest(poses)) : -1;
-      if (j >= 0 && (!frames.length || t > frames[frames.length - 1].t)) frames.push({ t, lm: poses[j].lm, w: poses[j].w });
-      if (onProgress) onProgress(Math.min(1, (t - t0) / Math.max(0.01, t1 - t0)), frames.length);
-      video.requestVideoFrameCallback(tick);
+      lastTick = performance.now(); nudged = false;
+      try {
+        const t = meta.mediaTime;
+        if (t >= t1 || video.ended) { finish(); return; }
+        if (t - last >= minGap) { last = t; push(t, detect(pl, video)); }
+        if (onProgress) onProgress(Math.min(1, (t - t0) / Math.max(0.01, t1 - t0)));
+        handle = video.requestVideoFrameCallback(tick);
+      } catch (e) { finish(e); }
     };
-    video.addEventListener('ended', () => finish(), { once: true });
-    video.requestVideoFrameCallback(tick);
+    if (signal) { if (signal.aborted) { onAbort(); return; } signal.addEventListener('abort', onAbort); }
+    video.addEventListener('ended', onEnded);
+    video.playbackRate = rate;
+    handle = video.requestVideoFrameCallback(tick);
     video.play().catch((e) => finish(e));
   });
-  return frames;
 }
 
 /** 화면에서 가장 크게 나온 사람의 번호 */

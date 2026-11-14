@@ -109,7 +109,7 @@ for (const [stroke, st] of Object.entries(stats)) {
         page: `https://commons.wikimedia.org/wiki/${encodeURIComponent(r.title.replace(/ /g, '_'))}`,
         thumb: (r.url || '').replace('thumb.wikimedia.org', 'upload.wikimedia.org').replace(/\/\d+px-/, '/500px-'),
         author: mt.author || null, license: mt.license || null, licenseUrl: mt.licenseUrl || null,
-        ar: r3(r.w / r.h), extreme: r3(r.extreme), legs: r.legs, m: mm, feat: G.poseFeature(r.pose).map(r3),
+        ar: r3(r.w / r.h), extreme: r3(r.extreme), legs: r.legs, ...(stroke === 'backhand' ? { twoHanded: r.m.hands < 0.13 } : {}), m: mm, feat: G.poseFeature(r.pose).map(r3),
         lm: r.pose.lm.map((k) => [r3(k[0]), r3(k[1])]), w: r.pose.w.map((k) => [r3(k[0]), r3(k[1]), r3(k[2])]),
       });
     }

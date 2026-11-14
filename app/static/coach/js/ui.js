@@ -17,6 +17,8 @@ export function show(name, { push = true } = {}) {
   $('#profileBtn').hidden = name !== 'home';
   if (push) history.pushState({ v: name }, '', name === 'home' ? location.pathname : `#${name}`);
   window.scrollTo(0, 0);
+  const head = $(`#v-${name} h1, #v-${name} h2`);                  // 화면이 바뀐 것을 화면 읽기가 알게 제목으로 초점을 옮긴다
+  if (head) { head.tabIndex = -1; head.focus({ preventScroll: true }); }
 }
 export const currentView = () => current;
 export function initNav(onBack) {
@@ -37,12 +39,26 @@ export function toast(msg, ms = 2600) {
   toastTimer = setTimeout(() => { t.hidden = true; }, ms);
 }
 export function sheet(html, onReady) {
-  const host = $('#sheet');
-  host.innerHTML = `<div class="sheet-wrap" role="dialog" aria-modal="true"><div class="sheet">${html}</div></div>`;
-  const wrap = host.firstElementChild;
-  const close = () => { host.innerHTML = ''; };
+  const host = $('#sheet'), app = $('#app'), opener = document.activeElement;
+  host.innerHTML = `<div class="sheet-wrap"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" tabindex="-1">
+    <button type="button" class="sheet-close" aria-label="닫기">닫기</button>${html}</div></div>`;
+  const wrap = host.firstElementChild, box = wrap.firstElementChild;
+  const title = box.querySelector('h2');
+  if (title) title.id = 'sheetTitle';
+  if (app) app.inert = true;                                       // 뒤 화면은 읽지도 누르지도 못하게
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  function close() {
+    if (!host.firstElementChild) return;
+    host.innerHTML = '';
+    if (app) app.inert = false;
+    document.removeEventListener('keydown', onKey);
+    if (opener && opener.isConnected && opener.focus) opener.focus();
+  }
   wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
-  if (onReady) onReady(wrap.firstElementChild, close);
+  box.querySelector('.sheet-close').addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+  if (onReady) onReady(box, close);
+  box.focus();
   return close;
 }
 

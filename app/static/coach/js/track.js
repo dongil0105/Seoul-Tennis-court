@@ -66,17 +66,18 @@ export function groupPeople(obs) {
     const size = height(o.lm);
     let best = null, bd = 0.27;
     for (const g of groups) {
+      if (g.times.has(o.t)) continue;                             // 같은 화면에 이미 이 사람이 있다 → 다른 사람이다
       const d = colorDist(o.color, g.color) + Math.abs(Math.log(size / g.size)) * 0.04;   // 같은 사람도 멀리·가까이 오간다
       if (d < bd) { bd = d; best = g; }
     }
-    if (!best) { groups.push({ color: o.color.slice(), count: 1, size, sample: o, sizeBest: size }); continue; }
-    best.count++;
+    if (!best) { groups.push({ color: o.color.slice(), count: 1, size, sample: o, sizeBest: size, times: new Set([o.t]) }); continue; }
+    best.count++; best.times.add(o.t);
     best.color = best.color.map((c, i) => c + (o.color[i] - c) / best.count);
     best.size += (size - best.size) / best.count;
     if (size > best.sizeBest) { best.sizeBest = size; best.sample = o; }      // 가장 크게 나온 장면을 대표 사진으로
   }
   groups.sort((a, b) => b.count * b.size - a.count * a.size);
-  return groups.map((g) => ({ ...g, name: colorName(g.color) }));
+  return groups.map(({ times, ...g }) => ({ ...g, name: colorName(g.color) }));
 }
 
 /**
@@ -92,6 +93,8 @@ export function pickTarget(poses, colors, state, t) {
       const c = center(poses[i].lm);
       cost += Math.hypot(c[0] - state.pos[0], c[1] - state.pos[1]) * 0.5;      // 방금 있던 자리에서 가까울수록
       cost += Math.abs(Math.log(height(poses[i].lm) / state.size)) * 0.12;
+    } else if (state.sizeRef) {
+      cost += Math.abs(Math.log(height(poses[i].lm) / state.sizeRef)) * 0.06;    // 놓쳤다 다시 찾을 때: 고른 사람의 평소 크기에 가까운 쪽
     }
     if (cost < bc) { bc = cost; best = i; }
   }

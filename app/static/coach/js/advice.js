@@ -97,7 +97,7 @@ const FOREHAND = [
   ...groundCommon('fh', { front: [0.08, 0.36], refStroke: 'forehand', highBall: 0.78, turn: 68,
     frontCue: '앞발 무릎 앞에서 맞힌다고 생각하세요. 준비(어깨 턴)를 공이 네트를 넘기 전에 끝내면 타점이 앞으로 나옵니다.',
     highCue: '한 발 뒤로 물러나 떨어지는 공을 치거나, 준비를 높게 하고 옆으로(수평으로) 휘두르세요.',
-    turnCue: '왼손으로 라켓 목을 잡고 같이 돌리세요. 왼쪽 어깨가 턱 밑에 오면 충분합니다.' }),
+    turnCue: '라켓을 안 든 손으로 라켓 목을 잡고 같이 돌리세요. 그쪽 어깨가 턱 밑에 오면 충분합니다.' }),
   { id: 'fh_rotation', phase: 'contact', label: '몸통 회전', unit: '°', sev: 2,
     get: (m) => m.chestAtContact, range: () => ({ lo: -9, hi: 62 }),
     high: (v) => ({ title: '맞는 순간에도 몸이 옆을 보고 있어요', why: '골반과 가슴이 돌아 나오지 않으면 팔로 밀어 치게 됩니다.', cue: '골반이 먼저, 어깨는 나중에. 맞는 순간 배꼽이 네트를 보게 돌리세요.', you: `${deg0(v)}°` }) },
@@ -106,7 +106,7 @@ const FOREHAND = [
     low: (v) => ({ title: '공과 너무 가까워 팔꿈치가 몸에 끼었어요', why: '팔이 접힌 채 맞으면 면이 닫히고 스윙이 작아집니다.', cue: '공과 한 팔 거리를 두세요. 겨드랑이에 주먹 하나 들어갈 틈을 만드세요.', you: `${deg0(v)}°` }) },
   { id: 'fh_finish', phase: 'finish', label: '팔로스루', unit: 'h', sev: 1,
     get: (m) => P(m, 'finish').wristSide, range: () => ({ lo: -9, hi: 0.06 }),
-    high: () => ({ title: '팔로스루가 짧게 멈춰요', why: '끝까지 휘두르지 않으면 맞기 전부터 라켓이 느려집니다.', cue: '라켓이 반대쪽 어깨까지 가게 끝까지 휘두르세요. 팔꿈치가 상대를 가리키며 끝나게.' }) },
+    high: () => ({ title: '팔로스루가 짧아 보여요', why: '임팩트 뒤에 스윙을 멈추면 공을 밀어 치게 됩니다. 어깨 위로 넘기든 허리 옆으로 감든, 라켓이 몸 반대쪽으로 넘어가면 됩니다.', cue: '맞힌 뒤에도 멈추지 말고 라켓이 몸 반대쪽으로 넘어갈 때까지 휘두르세요.' }) },
 ];
 
 const BACKHAND_2H = [
@@ -115,11 +115,11 @@ const BACKHAND_2H = [
     highCue: '한 발 들어가 가슴 높이에서 잡거나, 물러나서 떨어지는 공을 치세요.',
     turnCue: '치는 쪽 어깨 너머로 공을 보세요. 등이 살짝 상대에게 보이게 돌리면 됩니다.' }),
   { id: 'bh2_rotation', phase: 'contact', label: '골반 회전', unit: '°', sev: 2,
-    get: (m) => m.chestAtContact, range: () => ({ lo: -9, hi: 78 }),
+    get: (m) => m.hipsAtContact, range: () => ({ lo: -9, hi: 82 }),
     high: (v) => ({ title: '골반이 안 돌고 팔로만 치고 있어요', why: '투핸드는 몸통 회전이 힘의 대부분입니다.', cue: '치면서 배꼽이 네트를 보게 돌리세요. 뒷발 뒤꿈치가 들리면 잘한 겁니다.', you: `${deg0(v)}°` }) },
   { id: 'bh2_jammed', phase: 'contact', label: '팔 뻗기', unit: '', sev: 1,
     get: (m) => P(m, 'contact').reach, range: () => ({ lo: 0.7, hi: 9 }),
-    low: () => ({ title: '두 팔이 몸에 붙어 스윙이 작아요', why: '공과 가까우면 팔을 펼 공간이 없습니다.', cue: '두 팔을 앞으로 쭉 밀어 주세요. 왼손으로 치는 포핸드라고 생각하면 쉽습니다.' }) },
+    low: () => ({ title: '두 팔이 몸에 붙어 스윙이 작아요', why: '공과 가까우면 팔을 펼 공간이 없습니다.', cue: '두 팔을 앞으로 쭉 밀어 주세요. 위에 잡은 손으로 치는 포핸드라고 생각하면 쉽습니다.' }) },
 ];
 
 const BACKHAND_1H = [
@@ -145,15 +145,15 @@ export function rulesFor(m) {
 const RESULT = {
   serve: {
     net: [['serve_contact_height', '타점이 낮아 네트를 넘길 각도가 부족했을 가능성이 큽니다.'], ['serve_toss_arm', '토스한 팔이 일찍 떨어지며 머리가 숙여졌을 수 있어요.'], ['serve_contact_front:high', '토스가 너무 앞이라 내려찍었을 수 있어요.']],
-    netDefault: '내리찍지 말고 위로 올려 치세요. 네트 위로 라켓 하나 높이를 넘긴다는 생각으로, 면은 조금 더 열린 느낌으로.',
+    netDefault: '내리찍고 있지 않은지 먼저 보세요. 네트 위로 라켓 하나 높이를 넘긴다는 생각으로 위로 올려 쳐 보세요.',
     long: [['serve_contact_front', '타점이 머리 위·뒤라서 면이 열린 채 맞았을 가능성이 큽니다.']],
-    longDefault: '토스를 한 뼘만 더 앞으로 보내고, 공의 뒤가 아니라 뒤쪽 위를 쓸어 올리듯(면을 살짝 닫는 느낌) 치세요.',
+    longDefault: '토스를 한 뼘만 더 앞으로 보내 보고, 공의 뒤가 아니라 뒤쪽 위를 쓸어 올리듯 쳐 보세요(회전이 걸리면 공이 떨어집니다).',
   },
   ground: {
     net: [['_knee', '낮은 공에 서서 쳐서 라켓이 공 밑으로 못 들어갔을 가능성이 큽니다.'], ['_contact_front:high', '타점이 너무 앞이라 손목으로 덮었을 수 있어요.'], ['_jammed', '공과 가까워 면이 닫힌 채 맞았을 수 있어요.']],
-    netDefault: '라켓을 공보다 30cm 아래에서 출발시켜 아래에서 위로 쓸어 올리세요. 면은 5도쯤 더 여는 느낌으로.',
+    netDefault: '네트에 걸린 원인은 면·궤도·타점 높이 중 하나입니다. 먼저 라켓을 공보다 아래에서 출발시켜 아래에서 위로 쓸어 올려 보고, 그래도 걸리면 면을 조금 여는 느낌으로 쳐 보세요.',
     long: [['_contact_front', '타점이 늦어 면이 열린 채 맞았을 가능성이 큽니다.'], ['_lean_back', '상체가 뒤로 젖혀져 공이 떴을 가능성이 큽니다.'], ['_high_ball', '높은 공을 걷어 올려 길어졌을 수 있어요.']],
-    longDefault: '면을 5도쯤 닫는 느낌으로, 더 앞에서 맞히세요. 면 1도가 공 높이 1도를 바꿉니다(스윙 궤도보다 3배 민감).',
+    longDefault: '길게 나간 원인은 면이 열렸거나 타점이 늦었을 가능성이 큽니다. 조금 더 앞에서 맞히고, 면을 살짝 닫는 느낌으로 쳐 보세요. 공 높이는 스윙 궤도보다 면에 더 민감합니다.',
     wide: [['_contact_front', '타점이 늦으면 공이 치는 손 쪽으로 밀려 나갑니다.'], ['_turn', '어깨 턴이 부족해 팔로 방향을 만들고 있어요.']],
     wideDefault: '준비를 일찍 끝내고, 발로 공에 다가가서 몸 앞에서 맞히세요.',
     short: [['_turn', '몸통 회전 없이 팔로만 쳐서 힘이 안 실렸습니다.'], ['_contact_front', '몸 옆에서 밀어 쳐서 짧았습니다.'], ['_knee', '다리를 못 써서 라켓 속도가 떨어졌습니다.']],
@@ -175,7 +175,7 @@ export function advise(m, ctxIn = {}) {
     if (!Number.isFinite(v)) continue;
     const b = rule.range(ctx, m);
     // 타점 앞뒤는 프레임 간격 때문에 생기는 위치 오차(posErr)보다 크게 벗어났을 때만 말한다
-    const tol = /contact_front$/.test(rule.id) && Number.isFinite(m.posErr) ? Math.min(0.12, m.posErr) : 0;
+    const tol = /contact_front$/.test(rule.id) && Number.isFinite(m.posErr) ? m.posErr : 0;
     const sideHit = v < b.lo - tol ? 'low' : v > b.hi + tol ? 'high' : null;
     const edge = tol && !sideHit && (v < b.lo || v > b.hi);
     if (edge) notes.push('타점 앞뒤가 경계선에 있는데, 영상 프레임 간격 때문에 확실히 말하기 어렵습니다. 슬로모션으로 찍으면 정확해집니다.');
@@ -184,16 +184,24 @@ export function advise(m, ctxIn = {}) {
       continue;
     }
     const t = rule[sideHit](v, b, ctx, m);
+    if (tol > 0.09 && /cm 더/.test(t.title)) t.title = t.title.replace(/ — 약 \d+cm 더 ([^ ]+).*/, ' — 더 $1 맞히세요');   // 오차가 15cm 를 넘으면 몇 cm 인지는 말하지 않는다
     const span = Math.max(1e-6, (Number.isFinite(b.hi) && b.hi < 8 && b.lo > -8 ? b.hi - b.lo : Math.abs(b.lo > -8 ? b.lo : b.hi)) || 1);
     const off = sideHit === 'low' ? b.lo - v : v - b.hi;
     items.push({ id: rule.id, phase: rule.phase, label: rule.label, sev: rule.sev, side: sideHit, weight: rule.sev * (1 + Math.min(1.5, off / span)), ...t });
   }
   items.sort((a, b2) => b2.weight - a.weight);
+  const measured = items.length + good.length + (notes.length ? 1 : 0);
 
   // 점수: 걸린 항목의 무게만큼 깎는다. 화질이 낮으면 점수 대신 '참고용'이라고 알린다.
   const penalty = items.reduce((s, it) => s + 6 * it.weight, 0);
-  const score = Math.round(Math.max(38, Math.min(97, 96 - penalty)));
-  const grade = score >= 88 ? '아주 좋아요' : score >= 76 ? '좋아요' : score >= 62 ? '조금만 다듬으면' : '기본부터 하나씩';
+  let score = Math.round(Math.max(38, Math.min(97, 96 - penalty)));
+  let grade = score >= 88 ? '아주 좋아요' : score >= 76 ? '좋아요' : score >= 62 ? '조금만 다듬으면' : '기본부터 하나씩';
+  // 잰 것이 거의 없거나 임팩트 자세를 못 읽었으면 점수를 내지 않는다(못 잰 것을 '좋다'고 하지 않는다)
+  let unratedWhy = null;
+  if (!m.phases || !m.phases.contact) unratedWhy = '임팩트 순간의 자세를 읽지 못했습니다.';
+  else if (m.vis < 0.35) unratedWhy = '팔다리가 화면에서 거의 보이지 않았습니다. 몸 전체가 크게, 밝게 나오도록 다시 찍어 보세요.';
+  else if (measured < 4) unratedWhy = '잴 수 있는 항목이 너무 적었습니다. 옆에서, 몸 전체가 나오게 찍으면 좋아요.';
+  if (unratedWhy) { score = null; grade = '평가 불가'; }
   if (m.conf < 0.6) notes.push('화면에서 팔다리가 잘 안 보여 정확도가 낮습니다. 몸 전체가 크게 나오게, 밝은 곳에서 다시 찍어 보세요.');
   if (m.view !== 'side') notes.push('옆에서 찍으면 타점이 몇 cm 앞·뒤인지까지 알려 드릴 수 있어요.');
   if (m.sf > 1.5) notes.push(m.sfAuto ? '슬로모션 영상으로 보고 분석했습니다. 일반 속도 영상이면 위에서 바꿔 주세요.' : '슬로모션 영상이라 타점 위치가 더 정확하게 잡힙니다.');
@@ -210,20 +218,22 @@ export function advise(m, ctxIn = {}) {
     resultNote = hit ? hit[1] : table[`${ctx.result}Default`] || null;
     if (hit && table[`${ctx.result}Default`]) resultNote += ' ' + table[`${ctx.result}Default`];
   }
-  return { score, grade, items, good, resultNote, notes };
+  if (items.some((it) => /cm/.test(it.title))) notes.push('cm 값은 손목 기준 어림입니다. 영상 간격에서 오는 오차 말고도 자세 인식 오차가 몇 cm 더 있습니다.');
+  return { score, grade, unratedWhy, items, good, resultNote, notes };
 }
 
 /**
  * 대조군 찾기: 같은 스트로크·같은 순간의 선수 자세 중 내 자세와 가장 닮은 것.
  * 닮은 것 중에서도 선수 분포의 한가운데에 가까운(따라 하기 쉬운) 자세를 앞에 둔다.
  */
-export function matchReference(ref, stroke, phase, pose, { hand = 'R', sex = 'U', top = 3 } = {}) {
+export function matchReference(ref, stroke, phase, pose, { hand = 'R', sex = 'U', top = 3, twoHanded } = {}) {
   if (!ref || !ref.samples || !pose) return [];
   const feat = poseFeature(hand === 'L' ? mirrorPose(pose) : pose);
   const cands = ref.samples.filter((s) => s.stroke === stroke && s.phase === phase && s.feat);
   const scored = cands.map((s) => {
     const d = featureDistance(feat, s.feat, s.legs !== false);
-    const bonus = (sex !== 'U' && s.sex === sex ? -0.008 : 0) + 0.02 * (s.extreme || 0) + (s.legs === false ? 0.01 : 0);
+    const bonus = (sex !== 'U' && s.sex === sex ? -0.008 : 0) + 0.02 * (s.extreme || 0) + (s.legs === false ? 0.01 : 0)
+      + (twoHanded !== undefined && s.twoHanded !== undefined && s.twoHanded !== twoHanded ? 0.06 : 0);
     return { sample: s, dist: d, score: d + bonus };
   });
   scored.sort((a, b) => a.score - b.score);
