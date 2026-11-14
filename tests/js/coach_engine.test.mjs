@@ -345,3 +345,40 @@ test('저장된 내 정보·기준 자세는 믿지 않고 다시 맞춘다(스�
   assert.equal(validRef({ ...good, title: 'x'.repeat(200) }), false);
   assert.equal(validRef(null), false);
 });
+
+// ── 조언 그림 ───────────────────────────────────────────────────
+test('조언마다 "지금 → 이렇게" 그림이 나온다(모든 규칙, 양쪽 방향)', async () => {
+  const { adviceFigure } = await import('../../app/static/coach/js/figures.js');
+  const { rulesFor } = await import('../../app/static/coach/js/advice.js');
+  const kinds = [{ stroke: 'serve' }, { stroke: 'forehand' }, { stroke: 'backhand', twoHanded: true }, { stroke: 'backhand', twoHanded: false }];
+  let n = 0;
+  for (const m of kinds) {
+    for (const rule of rulesFor(m)) {
+      for (const side of ['low', 'high']) {
+        if (!rule[side]) continue;
+        for (const value of [-0.3, 0.2, 12, 95, 170]) {          // 엉뚱한 값이 와도 그림이 깨지지 않아야 한다
+          const svg = adviceFigure({ id: rule.id, side, value, you: '지금 값', title: '제목 — 약 15cm 더 앞에서' }, { wristHeightGround: 0.4 }, { hand: 'R' });
+          assert.ok(svg.startsWith('<svg'), `${rule.id} ${side}: 그림 없음`);
+          assert.ok(!/NaN|undefined|Infinity/.test(svg), `${rule.id} ${side} ${value}: 깨진 좌표`);
+          assert.ok(svg.includes('지금') && svg.includes('이렇게'));
+          assert.match(svg, /aria-label="[^"]+"/);
+          n++;
+        }
+      }
+    }
+  }
+  assert.ok(n >= 100, `그림 ${n}개`);
+  assert.equal(adviceFigure({ id: 'unknown_rule', side: 'low', value: 1 }), '');
+  // 잰 값이 그림 글자에 들어간다, 왼손잡이는 위에서 본 그림이 좌우로 뒤집힌다
+  assert.ok(adviceFigure({ id: 'serve_trophy_elbow', side: 'high', value: 152 }).includes('팔꿈치 152°'));
+  const r = adviceFigure({ id: 'fh_turn', side: 'low', value: 40 }, {}, { hand: 'R' }), l = adviceFigure({ id: 'fh_turn', side: 'low', value: 40 }, {}, { hand: 'L' });
+  assert.notEqual(r, l);
+});
+
+test('타점 앞뒤를 음수로 보여 주지 않는다("골반보다 3cm 뒤")', () => {
+  const m = { stroke: 'forehand', view: 'side', twoHanded: false, sf: 1, vis: 0.9, conf: 0.9, posErr: 0.01, contactFront: -0.02, kneeBend: 40, chestAtBackswing: 100, chestAtContact: 20,
+    headFront: 0.02, headMove: 0.02, wristHeightGround: 0.55, phases: { contact: { elbowHit: 130 }, finish: { wristSide: -0.2 } } };
+  const it = advise(m, { heightCm: 175 }).items.find((i) => i.id === 'fh_contact_front');
+  assert.match(it.you, /골반보다 \d+cm 뒤/);
+  assert.ok(Number.isFinite(it.value) && Number.isFinite(it.lo));
+});

@@ -10,6 +10,7 @@ import { swingMetrics } from './metrics.js';
 import { advise, matchReference } from './advice.js';
 import * as Phys from './physics.js';
 import { serveCalculator, renderPhysicsView } from './physview.js';
+import { adviceFigure } from './figures.js';
 import { $, $$, esc, show, currentView, initNav, onLeave, toast, sheet, seg, bindSegs, loadProfile, saveProfile, hasProfile, loadMyRefs, saveMyRefs } from './ui.js';
 
 const video = $('#video');
@@ -255,10 +256,10 @@ function renderResult() {
     ${a.score == null
       ? `<div class="callout" style="margin-top:24px"><b>이 영상으로는 점수를 매기기 어려워요.</b><br>${esc(a.unratedWhy || '')}</div>`
       : `<div class="score">${Draw.ring(a.score)}<div><div class="grade">${esc(a.grade)}</div><p>${m.vis < 0.6 ? '화면이 흐려 참고용 점수입니다' : '선수 사진에서 뽑은 자세 분포와 견준 점수 (실력 점수가 아니에요)'}</p></div></div>`}
-    ${a.score == null ? '' : first ? `<div class="first"><div class="k">가장 먼저 이것 하나</div><h3>${esc(first.title)}</h3><p class="cue">${esc(first.cue)}</p><p class="why">${esc(first.why)}</p></div>`
+    ${a.score == null ? '' : first ? `<div class="first"><div class="k">가장 먼저 이것 하나</div><h3>${esc(first.title)}</h3>${figBox(first, m)}<p class="cue">${esc(first.cue)}</p><p class="why">${esc(first.why)}</p></div>`
       : '<div class="first"><div class="k">좋아요</div><h3>크게 고칠 곳이 보이지 않아요</h3><p class="cue">지금 자세를 유지하면서 같은 타점에서 반복해 보세요.</p></div>'}
     ${(a.score == null ? [] : rest).map((it) => `<details class="adv"><summary><span class="dot"></span><span><span class="t">${esc(it.title)}</span><span class="m">${esc(it.label)}${it.you ? ` · 지금 ${esc(it.you)}` : ''}</span></span></summary>
-      <div class="body"><b>이렇게 해 보세요</b>${esc(it.cue)}<br><br><b>왜 중요한가요</b>${esc(it.why)}</div></details>`).join('')}
+      <div class="body">${figBox(it, m)}<b>이렇게 해 보세요</b>${esc(it.cue)}<br><br><b>왜 중요한가요</b>${esc(it.why)}</div></details>`).join('')}
     ${a.score != null && a.good.length ? `<div class="sec"><h3>잘하고 있는 것</h3><div class="chips">${[...new Set(a.good.map((g) => g.label))].map((l) => `<span class="chip good">${esc(l)}</span>`).join('')}</div></div>` : ''}
     ${shot.handWarn ? `<div class="callout">반대쪽 손이 더 빠르게 움직였어요. 치는 손이 ${S.profile.hand === 'L' ? '오른손' : '왼손'}이라면 처음 화면의 <b>내 정보</b>에서 바꾸고 다시 분석해 주세요.</div>` : ''}
     ${a.notes.map((n) => `<div class="callout info">${esc(n)}</div>`).join('')}
@@ -322,6 +323,12 @@ function serveStyle(m) {
   return `<div class="sec"><h3>서브 방식</h3>
     ${stance ? `<div class="pattern"><b>${stance[0]}로 보입니다</b><span>${stance[1]}</span><span style="margin-top:6px">${stance[2]}</span></div>` : ''}
     ${type ? `<div class="pattern"><b>${type[0]} 서브의 토스와 타점</b><span>${type[1]}</span></div>` : ''}</div>`;
+}
+
+/** 조언에 붙이는 그림 한 칸(맞는 그림이 없으면 빈 문자열) */
+function figBox(it, m) {
+  const svg = adviceFigure(it, m, { hand: S.profile.hand });
+  return svg ? `<div class="fig">${svg}</div>` : '';
 }
 
 function measures(m) {

@@ -108,6 +108,10 @@ input[type=range]{width:100%;accent-color:var(--ball);height:32px}
 .first h3{margin-top:6px;font-size:20px;line-height:1.35;font-weight:800;letter-spacing:-.03em}
 .first .cue{margin-top:10px;font-size:16px;line-height:1.5;font-weight:600}
 .first .why{margin-top:8px;font-size:14px;line-height:1.5;opacity:.78}
+/* 조언 그림: 지금(주황) → 이렇게(노랑). 노란 카드 안에서도 보이게 어두운 바탕을 깐다 */
+.fig{margin-top:14px;padding:10px 8px 6px;border-radius:14px;background:#0C1412}
+.fig svg{width:100%;height:auto;font-family:var(--font)}
+.adv .body .fig{margin:0 0 14px}
 .adv{margin-top:10px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
 .adv summary{display:flex;align-items:flex-start;gap:12px;padding:16px;list-style:none;cursor:pointer}
 .adv summary::-webkit-details-marker{display:none}

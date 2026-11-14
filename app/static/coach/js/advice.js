@@ -10,6 +10,8 @@ import { featureDistance, poseFeature, mirrorPose } from './geom.js';
 const r5 = (x) => Math.max(5, Math.round(x / 5) * 5);
 const cm = (ratio, ctx) => r5(Math.abs(ratio) * ctx.heightCm);
 const deg0 = (x) => Math.round(x);
+/** '골반보다 12cm 앞' / '골반보다 3cm 뒤' — 음수를 그대로 보여 주지 않는다 */
+const ahead = (what, ratio, ctx) => `${what}보다 ${Math.abs(Math.round(ratio * ctx.heightCm))}cm ${ratio >= 0 ? '앞' : '뒤'}`;
 
 /** 기준 분포에서 목표 범위를 만든다: 선수 가운데값 ± k·표준편차 를 바깥으로 pad 만큼 넓힘. 표본이 적으면 fallback. */
 function band(ctx, stroke, phase, key, fallback, { k = 1.6, pad = 0, minN = 12 } = {}) {
@@ -58,8 +60,8 @@ const SERVE = [
     get: (m) => m.contactFrontFoot,
     range: (c) => (c.serveType === 'kick' ? { lo: -0.12, hi: 0.3 } : c.serveType === 'slice' ? { lo: 0.0, hi: 0.45 } : { lo: 0.04, hi: 0.5 }),
     low: (v, b, c) => ({ title: `타점이 머리 위나 뒤에 있어요 — 약 ${cm(b.lo + 0.08 - v, c)}cm 더 네트 쪽에서`, why: '플랫·슬라이스 서브는 앞발보다 앞에서 맞아야 체중이 실리고 공이 뜨지 않습니다.',
-      cue: '토스를 코트 안쪽으로 한 뼘 더 보내세요. 그냥 떨어뜨리면 앞발 앞 한 뼘쯤에 떨어지게.', you: `앞발보다 ${Math.round(v * c.heightCm)}cm` }),
-    high: (v, b, c) => ({ title: '토스가 너무 앞이라 몸이 앞으로 쏟아져요', why: '공을 쫓아 내려가며 치게 되어 네트에 걸리기 쉽습니다.', cue: '토스 팔을 앞으로 밀지 말고 위로 올리세요. 가슴을 세우고 위로 올라가서 치세요.', you: `앞발보다 ${Math.round(v * c.heightCm)}cm` }) },
+      cue: '토스를 코트 안쪽으로 한 뼘 더 보내세요. 그냥 떨어뜨리면 앞발 앞 한 뼘쯤에 떨어지게.', you: ahead('앞발', v, c) }),
+    high: (v, b, c) => ({ title: '토스가 너무 앞이라 몸이 앞으로 쏟아져요', why: '공을 쫓아 내려가며 치게 되어 네트에 걸리기 쉽습니다.', cue: '토스 팔을 앞으로 밀지 말고 위로 올리세요. 가슴을 세우고 위로 올라가서 치세요.', you: ahead('앞발', v, c) }) },
   { id: 'serve_head', phase: 'contact', label: '머리 고정', unit: 'h', sev: 1,
     get: (m) => m.headMove, range: () => ({ lo: -9, hi: 0.13 }),
     high: () => ({ title: '맞는 순간 머리가 많이 움직여요', why: '머리가 먼저 떨어지면 타점이 낮아지고 방향이 흔들립니다.', cue: '공이 라켓에 맞는 것을 끝까지 보고, 턱을 든 채로 치세요.' }) },
@@ -69,8 +71,8 @@ const groundCommon = (S, opt) => [
   { id: `${S}_contact_front`, phase: 'contact', label: '타점 앞뒤', unit: 'h', sev: 3, when: sideOnly,
     get: (m) => m.contactFront, range: () => ({ lo: opt.front[0], hi: opt.front[1] }),
     low: (v, b, c) => ({ title: `타점이 늦어요 — 약 ${cm(b.lo + 0.06 - v, c)}cm 더 앞에서 맞히세요`, why: '몸 옆이나 뒤에서 맞으면 힘이 안 실리고, 면이 열려 공이 뜨거나 옆으로 밀립니다.',
-      cue: opt.frontCue, you: `골반보다 ${Math.round(v * c.heightCm)}cm 앞` }),
-    high: (v, b, c) => ({ title: '타점이 너무 앞이에요 — 팔만 뻗어 치고 있어요', why: '팔이 다 펴진 뒤에 맞으면 손목으로 덮게 되어 네트에 걸리거나 당겨집니다.', cue: '공을 반 박자 더 끌어놓고, 발로 한 걸음 더 다가가서 치세요.', you: `골반보다 ${Math.round(v * c.heightCm)}cm 앞` }) },
+      cue: opt.frontCue, you: ahead('골반', v, c) }),
+    high: (v, b, c) => ({ title: '타점이 너무 앞이에요 — 팔만 뻗어 치고 있어요', why: '팔이 다 펴진 뒤에 맞으면 손목으로 덮게 되어 네트에 걸리거나 당겨집니다.', cue: '공을 반 박자 더 끌어놓고, 발로 한 걸음 더 다가가서 치세요.', you: ahead('골반', v, c) }) },
   { id: `${S}_contact_front3d`, phase: 'contact', label: '타점 앞뒤', unit: 'h', sev: 2, when: (m) => m.view !== 'side',
     get: (m) => P(m, 'contact').wristFront, range: (c) => band(c, opt.refStroke, 'contact', 'wristFront', [0.05, 0.36], { k: 1.8 }),
     low: () => ({ title: '타점이 몸에 가깝거나 늦어 보여요', why: '가슴보다 충분히 앞에서 맞아야 힘이 실립니다. (옆에서 찍으면 몇 cm 인지 정확히 알려 드릴 수 있어요.)', cue: opt.frontCue }) },
@@ -189,7 +191,8 @@ export function advise(m, ctxIn = {}) {
     if (tol > 0.09 && /cm 더/.test(t.title)) t.title = t.title.replace(/ — 약 \d+cm 더 ([^ ]+).*/, ' — 더 $1 맞히세요');   // 오차가 15cm 를 넘으면 몇 cm 인지는 말하지 않는다
     const span = Math.max(1e-6, (Number.isFinite(b.hi) && b.hi < 8 && b.lo > -8 ? b.hi - b.lo : Math.abs(b.lo > -8 ? b.lo : b.hi)) || 1);
     const off = sideHit === 'low' ? b.lo - v : v - b.hi;
-    items.push({ id: rule.id, phase: rule.phase, label: rule.label, sev: rule.sev, side: sideHit, weight: rule.sev * (1 + Math.min(1.5, off / span)), ...t });
+    // value·lo·hi 는 그림(figures.js)이 '지금'과 '이렇게'를 그릴 때 쓴다
+    items.push({ id: rule.id, phase: rule.phase, label: rule.label, sev: rule.sev, side: sideHit, value: v, lo: b.lo, hi: b.hi, weight: rule.sev * (1 + Math.min(1.5, off / span)), ...t });
   }
   items.sort((a, b2) => b2.weight - a.weight);
 
