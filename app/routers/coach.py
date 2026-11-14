@@ -14,6 +14,23 @@ router = APIRouter()
 
 _DIR = Path(__file__).resolve().parent.parent / "static" / "coach"
 
+# 콘텐츠 보안 정책: 이 화면이 연결할 수 있는 곳은 우리 서버뿐이고, 밖에서 가져오는 것은 위키미디어의 선수 사진뿐이다.
+# (자세 인식 엔진에 들어 있는 사용 통계 전송도 connect-src 에서 막힌다. 영상은 blob: 으로만 다룬다.)
+CSP = "; ".join([
+    "default-src 'self'",
+    "script-src 'self' 'wasm-unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' blob: data: https://upload.wikimedia.org https://thumb.wikimedia.org",
+    "media-src 'self' blob:",
+    "connect-src 'self'",
+    "font-src 'self'",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+])
+
 
 @router.get("/coach", response_class=HTMLResponse)
 @router.get("/coach/", response_class=HTMLResponse, include_in_schema=False)
@@ -27,7 +44,8 @@ def coach() -> HTMLResponse:
             status_code=503,
         )
     # 화면 파일은 자주 바뀌니 매번 확인하게 한다(큰 파일은 /static 에서 따로 캐시)
-    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache", "Content-Security-Policy": CSP,
+                                       "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff"})
 
 
 @router.get("/coach/manifest.webmanifest", include_in_schema=False)

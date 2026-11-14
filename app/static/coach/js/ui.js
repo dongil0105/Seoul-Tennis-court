@@ -81,12 +81,33 @@ export function bindSegs(root, onChange) {
 // ── 내 정보(기기에만 저장) ──────────────────────────────────────
 const KEY = 'coach.profile.v1';
 const DEFAULT = { sex: 'U', heightCm: 170, hand: 'R', level: 'mid' };
-export function loadProfile() {
-  try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch (_) { return { ...DEFAULT }; }
+/** 저장된 값은 그대로 믿지 않는다: 허용 목록·숫자 범위로 다시 맞춘다(화면에 그대로 끼워 넣어도 안전하게). */
+export function cleanProfile(raw) {
+  const r = raw && typeof raw === 'object' ? raw : {};
+  const h = Number(r.heightCm);
+  return {
+    sex: ['M', 'F', 'U'].includes(r.sex) ? r.sex : DEFAULT.sex,
+    heightCm: Number.isFinite(h) && h >= 120 && h <= 220 ? Math.round(h) : DEFAULT.heightCm,
+    hand: r.hand === 'L' ? 'L' : 'R',
+    level: ['beg', 'mid', 'adv'].includes(r.level) ? r.level : DEFAULT.level,
+  };
 }
-export function saveProfile(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (_) { /* 저장을 못 하는 브라우저 */ } }
+export function loadProfile() {
+  try { return cleanProfile(JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (_) { return { ...DEFAULT }; }
+}
+export function saveProfile(p) { try { localStorage.setItem(KEY, JSON.stringify(cleanProfile(p))); } catch (_) { /* 저장을 못 하는 브라우저 */ } }
 export const hasProfile = () => { try { return !!localStorage.getItem(KEY); } catch (_) { return false; } };
 
 const REFKEY = 'coach.myrefs.v1';
-export function loadMyRefs() { try { const v = JSON.parse(localStorage.getItem(REFKEY) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; } }
+const nums = (a, n) => Array.isArray(a) && a.length >= n && a.slice(0, n).every((x) => typeof x === 'number' && Number.isFinite(x));
+/** 저장해 둔 기준 자세 한 개가 쓸 수 있는 모양인지(깨졌거나 누가 바꿔 놓은 값은 버린다) */
+export function validRef(r) {
+  return !!r && typeof r === 'object' && ['serve', 'forehand', 'backhand'].includes(r.stroke) && ['trophy', 'contact', 'backswing', 'finish'].includes(r.phase)
+    && typeof r.title === 'string' && r.title.length <= 40 && nums(r.feat, 36) && r.feat.length === 36
+    && Array.isArray(r.lm) && r.lm.length === 33 && r.lm.every((k) => nums(k, 2))
+    && Array.isArray(r.w) && r.w.length === 33 && r.w.every((k) => nums(k, 3));
+}
+export function loadMyRefs() {
+  try { const v = JSON.parse(localStorage.getItem(REFKEY) || '[]'); return Array.isArray(v) ? v.filter(validRef).map((r) => ({ ...r, mine: true, thumb: null })) : []; } catch (_) { return []; }
+}
 export function saveMyRefs(list) { try { localStorage.setItem(REFKEY, JSON.stringify(list.slice(-60))); return true; } catch (_) { return false; } }

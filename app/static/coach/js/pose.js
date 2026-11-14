@@ -1,5 +1,5 @@
 // 스윙 코치 — 브라우저에서 영상을 읽어 프레임마다 자세를 뽑는다(MediaPipe Pose, 기기 안에서만 돈다. 영상은 어디에도 올리지 않는다).
-import { FilesetResolver, PoseLandmarker } from '../vendor/tasks-vision/vision_bundle.mjs';
+import { FilesetResolver, PoseLandmarker } from '../vendor/tasks-vision/vision_bundle.mjs?v=1.2.3-1';   // 엔진·모델과 같은 버전 표시(아래 VER)
 
 const BASE = new URL('../vendor/', import.meta.url).href;
 const VER = '1.2.3-1';            // vendor 파일을 바꾸면 이 값도 바꾼다(휴대폰이 오래 보관한 옛 파일을 쓰지 않게)
@@ -91,6 +91,11 @@ export function openVideo(video, file) {
     const onErr = () => end(new Error('이 영상은 이 브라우저에서 열 수 없어요. 다른 영상으로 해 보세요.'));
     const timer = setTimeout(() => end(new Error('영상을 여는 데 너무 오래 걸려요. 더 짧은 영상으로 해 보세요.')), 20000);
     const poll = setInterval(check, 250);                      // 어떤 휴대폰은 loadeddata 를 안 보낸다
+    const kick = () => {                                       // 아이폰은 재생 전에는 첫 화면을 읽지 않을 때가 있다 → 살짝 옮기고 재생을 걸어 깨운다
+      try { if (video.currentTime === 0) video.currentTime = 0.001; } catch (_) { /* 무시 */ }
+      try { const pr = video.play(); if (pr && pr.then) pr.then(() => video.pause(), () => {}); } catch (_) { /* 무시 */ }
+    };
+    video.addEventListener('loadedmetadata', kick, { once: true });
     for (const ev of ['loadeddata', 'canplay', 'loadedmetadata']) video.addEventListener(ev, check);
     video.addEventListener('error', onErr);
     video.muted = true; video.playsInline = true; video.preload = 'auto';
@@ -185,9 +190,10 @@ export async function scan(video, pl, { t0 = 0, t1 = video.duration, rate = 2, p
       if (onProgress) onProgress(Math.min(1, (t - t0) / Math.max(0.01, t1 - t0)));
       await new Promise((r) => setTimeout(r, 0));
     }
-    return;
+    return t1;
   }
   await seek(video, t0);
+  let reached = t0;                                            // 실제로 읽은 마지막 시각(중간에 멈췄는지 알려 주려고)
   await new Promise((resolve, reject) => {
     let ended = false, handle = 0, last = -1, lastTick = performance.now(), cost = 0.03;
     const finish = (err) => {
@@ -201,7 +207,7 @@ export async function scan(video, pl, { t0 = 0, t1 = video.duration, rate = 2, p
       if (err) reject(err); else resolve();
     };
     const onAbort = () => finish(new DOMException('aborted', 'AbortError'));
-    const onEnded = () => finish();
+    const onEnded = () => { reached = t1; finish(); };
     // 화면 콜백이 5초 넘게 안 오면(재생이 멈춘 기기) 다시 재생을 걸어 보고, 그래도 안 오면 거기까지로 끝낸다
     let nudged = false;
     const watch = setInterval(() => {
@@ -213,7 +219,8 @@ export async function scan(video, pl, { t0 = 0, t1 = video.duration, rate = 2, p
       lastTick = performance.now(); nudged = false;
       try {
         const t = meta.mediaTime;
-        if (t >= t1 || video.ended) { finish(); return; }
+        reached = Math.max(reached, t);
+        if (t >= t1 || video.ended) { reached = t1; finish(); return; }
         if (t - last >= minGap) {
           last = t;
           const c0 = performance.now();
@@ -233,6 +240,23 @@ export async function scan(video, pl, { t0 = 0, t1 = video.duration, rate = 2, p
     handle = video.requestVideoFrameCallback(tick);
     video.play().catch((e) => finish(e));
   });
+  return reached;
+}
+
+/**
+ * 한 사람을 계속 따라가는 고르개: 처음에는 가장 크게 나온 사람, 그다음부터는 방금 그 사람과 가장 가까운 사람.
+ * (프레임마다 '가장 큰 사람'을 새로 고르면 크기가 비슷한 두 사람이 번갈아 잡혀 가짜 스윙이 생긴다.)
+ */
+export function sticky() {
+  let prev = null;
+  const center = (lm) => [(lm[11][0] + lm[12][0] + lm[23][0] + lm[24][0]) / 4, (lm[11][1] + lm[12][1] + lm[23][1] + lm[24][1]) / 4];
+  return (poses) => {
+    let j = -1;
+    if (prev) { let bd = 0.22; poses.forEach((p, i) => { const c = center(p.lm), d = Math.hypot(c[0] - prev[0], c[1] - prev[1]); if (d < bd) { bd = d; j = i; } }); }
+    if (j < 0) j = biggest(poses);
+    if (j >= 0) prev = center(poses[j].lm);
+    return j;
+  };
 }
 
 /** 화면에서 가장 크게 나온 사람의 번호 */

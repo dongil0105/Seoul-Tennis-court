@@ -80,10 +80,10 @@ const groundCommon = (S, opt) => [
       ? { title: '낮은 공인데 서서 치고 있어요', why: '허리만 숙이면 라켓이 공 밑으로 들어가지 못해 네트에 걸립니다.', cue: '허리 말고 무릎을 굽혀 엉덩이를 공 높이로 낮추세요.', you: `${deg0(v)}°` }
       : { title: '무릎을 펴고 서서 치고 있어요', why: '다리를 못 쓰면 라켓 속도가 크게 떨어지고 높낮이 조절이 안 됩니다.', cue: '치기 전에 의자에 살짝 앉듯 굽혔다가, 일어나면서 치세요.', you: `${deg0(v)}°` }) },
   { id: `${S}_high_ball`, phase: 'contact', label: '타점 높이', unit: 'h', sev: 2,
-    get: (m) => m.wristHeightGround, range: () => ({ lo: -9, hi: opt.highBall }),
+    get: (m) => (Number.isFinite(m.wristHeightLo) ? m.wristHeightLo : m.wristHeightGround), range: () => ({ lo: -9, hi: opt.highBall }),
     high: (v, b, c) => ({ title: '어깨 위 높은 공을 억지로 쳤어요', why: '높은 타점에서는 라켓 속도가 떨어지고 면 조절이 어렵습니다.', cue: opt.highCue, you: `손목 ${Math.round(v * c.heightCm)}cm` }) },
   { id: `${S}_turn`, phase: 'backswing', label: '어깨 턴', unit: '°', sev: 3,
-    get: (m) => m.chestAtBackswing, range: () => ({ lo: opt.turn, hi: 181 }),
+    get: (m) => (Number.isFinite(m.chestAtBackswingHi) ? m.chestAtBackswingHi : m.chestAtBackswing), range: () => ({ lo: opt.turn, hi: 181 }),
     low: (v) => ({ title: '어깨 턴이 부족해요 — 팔로만 치고 있어요', why: '몸통을 돌렸다 풀어야 힘이 실리고 타점도 앞으로 나옵니다.', cue: opt.turnCue, you: `${deg0(v)}°` }) },
   { id: `${S}_lean_back`, phase: 'contact', label: '상체 기울기', unit: 'h', sev: 2, when: sideOnly,
     get: (m) => m.headFront, range: () => ({ lo: -0.075, hi: 9 }),
@@ -169,10 +169,12 @@ const RESULT = {
 export function advise(m, ctxIn = {}) {
   const ctx = { sex: 'U', heightCm: 170, level: 'mid', serveType: 'flat', result: null, ref: null, ...ctxIn };
   const items = [], good = [], notes = [];
+  let evaluated = 0;                                             // 실제로 잴 수 있었던 규칙 수
   for (const rule of rulesFor(m)) {
     if (rule.when && !rule.when(m)) continue;
     const v = rule.get(m);
     if (!Number.isFinite(v)) continue;
+    evaluated++;
     const b = rule.range(ctx, m);
     // 타점 앞뒤는 프레임 간격 때문에 생기는 위치 오차(posErr)보다 크게 벗어났을 때만 말한다
     const tol = /contact_front$/.test(rule.id) && Number.isFinite(m.posErr) ? m.posErr : 0;
@@ -190,7 +192,6 @@ export function advise(m, ctxIn = {}) {
     items.push({ id: rule.id, phase: rule.phase, label: rule.label, sev: rule.sev, side: sideHit, weight: rule.sev * (1 + Math.min(1.5, off / span)), ...t });
   }
   items.sort((a, b2) => b2.weight - a.weight);
-  const measured = items.length + good.length + (notes.length ? 1 : 0);
 
   // 점수: 걸린 항목의 무게만큼 깎는다. 화질이 낮으면 점수 대신 '참고용'이라고 알린다.
   const penalty = items.reduce((s, it) => s + 6 * it.weight, 0);
@@ -199,11 +200,12 @@ export function advise(m, ctxIn = {}) {
   // 잰 것이 거의 없거나 임팩트 자세를 못 읽었으면 점수를 내지 않는다(못 잰 것을 '좋다'고 하지 않는다)
   let unratedWhy = null;
   if (!m.phases || !m.phases.contact) unratedWhy = '임팩트 순간의 자세를 읽지 못했습니다.';
-  else if (m.vis < 0.35) unratedWhy = '팔다리가 화면에서 거의 보이지 않았습니다. 몸 전체가 크게, 밝게 나오도록 다시 찍어 보세요.';
-  else if (measured < 4) unratedWhy = '잴 수 있는 항목이 너무 적었습니다. 옆에서, 몸 전체가 나오게 찍으면 좋아요.';
+  else if (m.suspect) unratedWhy = '공을 치는 스윙이 아니라 준비 동작(테이크백)만 잡힌 것 같습니다. 끝까지 휘두르는 장면이 담긴 영상으로 해 보세요.';
+  else if (m.vis < 0.6) unratedWhy = '팔다리가 화면에서 또렷하게 보이지 않았습니다. 몸 전체가 크게, 밝게 나오도록(화질을 높여) 다시 찍어 보세요.';
+  else if (evaluated < 4) unratedWhy = '잴 수 있는 항목이 너무 적었습니다. 옆에서, 몸 전체가 나오게 찍으면 좋아요.';
   if (unratedWhy) { score = null; grade = '평가 불가'; }
-  if (m.conf < 0.6) notes.push('화면에서 팔다리가 잘 안 보여 정확도가 낮습니다. 몸 전체가 크게 나오게, 밝은 곳에서 다시 찍어 보세요.');
-  if (m.view !== 'side') notes.push('옆에서 찍으면 타점이 몇 cm 앞·뒤인지까지 알려 드릴 수 있어요.');
+  if (m.view === 'oblique') notes.push('비스듬히 찍은 영상이라 타점이 몇 cm 앞·뒤인지는 재지 않았습니다. 치는 방향과 직각이 되는 옆에서 찍어 주세요.');
+  else if (m.view !== 'side') notes.push('옆에서 찍으면 타점이 몇 cm 앞·뒤인지까지 알려 드릴 수 있어요.');
   if (m.sf > 1.5) notes.push(m.sfAuto ? '슬로모션 영상으로 보고 분석했습니다. 일반 속도 영상이면 위에서 바꿔 주세요.' : '슬로모션 영상이라 타점 위치가 더 정확하게 잡힙니다.');
   if (m.uncertain) notes.push('포핸드인지 백핸드인지 확실하지 않습니다. 종류를 직접 골라 주세요.');
 

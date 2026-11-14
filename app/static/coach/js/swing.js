@@ -197,16 +197,30 @@ function analyze(frames, v, { i0, i1, ip, sf, sfAuto, hand, h, stroke, tcOverrid
   const dirKnown = G.len(dRaw) >= 0.03 * h;
   const d = dirKnown ? G.unit(dRaw) : [1, 0, 0];
   // 화면에서 좌우로 움직였으면 '옆에서 찍음'. 화면 안쪽·바깥쪽이면 뒤(또는 앞)에서 찍은 것.
-  const view = !dirKnown ? 'unknown' : Math.abs(d[0]) >= 0.8 * Math.abs(d[2]) ? 'side' : d[2] > 0 ? 'behind' : 'front';
+  // 옆 화면은 치는 방향이 화면 좌우와 27도 안쪽일 때만(그보다 비스듬하면 화면에서 잰 '앞뒤' 길이가 짧게 나온다). 그 사이는 '대각선'.
+  const ax = Math.abs(d[0]), az = Math.abs(d[2]);
+  const view = !dirKnown ? 'unknown' : ax >= 2 * az ? 'side' : az >= 2 * ax ? (d[2] > 0 ? 'behind' : 'front') : 'oblique';
   const from2 = P(tFrom != null ? tFrom : tc - 0.06 * sf);
   const dirX = Math.sign(pc.lm[S.hit.wr][0] - from2.lm[S.hit.wr][0]) || Math.sign(d[0]) || 1;   // 옆 화면에서 '앞'이 오른쪽(+1)인지
 
-  // ⑤ 팔다리가 얼마나 잘 보였나(정확도가 아니라 '보인 정도')
+  // ⑤ 진짜 휘두른 것인가: 백스윙 끝에서 임팩트로 가며 손이 가슴 앞쪽으로 나왔어야 한다.
+  //    테이크백만 한 동작, 라켓을 내리는 동작은 손이 앞으로 나오지 않는다 → suspect 로 표시(전체 영상에서는 버리고, 스윙 영상에서는 조언을 삼간다).
+  //    또는 피니시까지 손이 몸을 가로질러 반대편으로 넘어갔어야 한다(포핸드: 치는 쪽 → 반대쪽, 백핸드: 그 반대). 둘 다 아니면 의심.
+  const inChest = (p) => G.inBody(G.bodyFrame(p, 'shoulders'), p.w[S.hit.wr], G.mid(p.w[J.lSh], p.w[J.rSh]));
+  let suspect = false;
+  if (kind !== 'serve' && tFrom != null) {
+    const b0 = inChest(P(tFrom)), c0 = inChest(pc), f0 = inChest(P(keys.finish));
+    const forward = (c0[2] - b0[2]) / h >= 0.05;                                   // 가슴 앞쪽으로 나왔다
+    const across = ((f0[0] - b0[0]) * sign * (kind === 'forehand' ? -1 : 1)) / h >= 0.08;   // 몸을 가로질러 넘어갔다
+    suspect = !forward && !across;
+  }
+
+  // ⑥ 팔다리가 얼마나 잘 보였나(정확도가 아니라 '보인 정도')
   const around = near(-0.25, 0.1);
   const vis = around.length
     ? around.reduce((s, i) => s + G.vis(frames[i], S.hit.wr, S.hit.el, S.hit.sh, J.lHip, J.rHip, J.lKnee, J.rKnee), 0) / around.length : 0;
 
-  return { i0, i1, ip, ic, tc, tcErr, posErr, sf, sfAuto, h, peak: v[ip], stroke: kind, auto, uncertain, twoHanded, hand,
+  return { i0, i1, ip, ic, tc, tcErr, posErr, sf, sfAuto, h, peak: v[ip], stroke: kind, auto, uncertain, suspect, twoHanded, hand,
     dir: d, dirKnown, dirX, view, keys, vis, conf: vis, _v: v };
 }
 
@@ -224,5 +238,6 @@ export function withStroke(frames, swing, stroke) {
 export function mainSwing(frames, opts = {}) {
   const all = detectSwings(frames, opts);
   if (!all.length) return null;
-  return all.reduce((a, b) => (b.peak > a.peak ? b : a));
+  const real = all.filter((s) => !s.suspect);
+  return (real.length ? real : all).reduce((a, b) => (b.peak > a.peak ? b : a));
 }

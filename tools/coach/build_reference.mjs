@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as G from '../../app/static/coach/js/geom.js';
 import { poseMetrics, guessPhase } from '../../app/static/coach/js/metrics.js';
+import { makeFinder, excluded } from './names.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const a = { perCell: '70', minVis: '0.55', minSize: '0.3' };
@@ -19,11 +20,7 @@ for (let i = 0; i < v.length; i += 2) a[v[i].replace(/^--/, '')] = v[i + 1];
 if (!a.poses || !a.out) { console.error('usage: build_reference.mjs --poses poses.jsonl [--meta meta.json] --out reference.json'); process.exit(2); }
 
 const players = JSON.parse(fs.readFileSync(path.join(HERE, 'players.json'), 'utf8'));
-const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[_\-.,()]/g, ' ').replace(/\s+/g, ' ').toLowerCase();
-const table = [];
-for (const sex of ['M', 'F']) for (const name of players[sex]) table.push({ key: norm(name), name, sex, hand: players.left.includes(name) ? 'L' : 'R' });
-table.sort((p, q) => q.key.length - p.key.length);
-const findPlayer = (title) => { const t = ` ${norm(title)} `; return table.find((p) => t.includes(` ${p.key} `)) || null; };
+const findPlayer = makeFinder(players);
 
 const meta = a.meta && fs.existsSync(a.meta) ? JSON.parse(fs.readFileSync(a.meta, 'utf8')) : {};
 const KEYS = ['kneeHit', 'kneeOff', 'kneeAvg', 'elbowHit', 'elbowOff', 'armTrunk', 'shoulderTilt', 'trunkTilt', 'trunkLeanF', 'trunkLeanSide',
@@ -31,22 +28,25 @@ const KEYS = ['kneeHit', 'kneeOff', 'kneeAvg', 'elbowHit', 'elbowOff', 'armTrunk
 const r3 = (x) => Math.round(x * 1000) / 1000;
 
 const rows = [];
-let seen = 0, noPose = 0, small = 0, lowVis = 0, noPhase = 0;
+let seen = 0, noPose = 0, small = 0, lowVis = 0, noPhase = 0, skipped = 0;
 for (const line of fs.readFileSync(a.poses, 'utf8').split('\n')) {
   if (!line.trim()) continue;
   const r = JSON.parse(line);
   seen++;
   const [title, stroke, , url] = (r.meta || '').split('\t');
+  if (excluded(title)) { skipped++; continue; }                 // 옛 사진·어린이 사진은 기준에 넣지 않는다
   if (!r.lm || !r.lm.length) { noPose++; continue; }
   let best = 0, bh = -1;                                       // 가장 크게 나온 사람
   r.lm.forEach((p, j) => { const ys = p.map((k) => k[1]); const hh = Math.max(...ys) - Math.min(...ys); if (hh > bh) { bh = hh; best = j; } });
   if (bh < Number(a.minSize)) { small++; continue; }
   const raw = { t: 0, lm: r.lm[best], w: r.world[best] };
   if (!G.validPose(raw)) { noPose++; continue; }
-  const pl = findPlayer(title);
-  // 어느 손으로 치는지: 이름표를 먼저 믿고, 그 손으로 순간이 안 잡히면 반대 손으로도 본다(왼손잡이를 오른손 기준으로 뒤집어 잰다)
+  const mt0 = meta[title] || {};
+  const pl = findPlayer(title) || (mt0.person ? findPlayer(mt0.person) : null);
+  // 어느 손으로 치는지: 이름표에 있는 선수는 그 손으로만 본다. 모르는 선수는 오른손으로만 본다.
+  // (반대 손으로 다시 맞춰 보면 '토스하는 팔'이나 '라켓을 안 든 팔'이 치는 팔로 둔갑한다.)
   let pick = null;
-  for (const hand of pl && pl.hand === 'L' ? ['L', 'R'] : ['R', 'L']) {
+  for (const hand of [pl ? pl.hand : 'R']) {
     const pose = hand === 'L' ? G.mirrorPose(raw) : raw;
     const m = poseMetrics(pose, 'R');
     if (!m) continue;
@@ -62,7 +62,6 @@ for (const line of fs.readFileSync(a.poses, 'utf8').split('\n')) {
   pick.m.vis = upper;
   pick.m.kneeAvg = (pick.m.kneeHit + pick.m.kneeOff) / 2;
   if (!pick.legs) for (const k of ['kneeHit', 'kneeOff', 'kneeAvg', 'stance', 'wristOverFoot']) pick.m[k] = NaN;
-  const mt0 = meta[title] || {};                                // 이름표에 없으면 공용 분류에서 읽은 이름·성별
   rows.push({ title, stroke, url, w: r.w, h: r.h, player: pl ? pl.name : mt0.person || null, sex: pl ? pl.sex : mt0.sex || 'U', ...pick });
 }
 
@@ -93,12 +92,16 @@ for (const [stroke, st] of Object.entries(stats)) {
       r.extreme = zs.reduce((s, z) => s + Math.min(z, 4), 0) / (zs.length || 1);
     }
     const usable = cell._rows.filter((r) => !a.meta || meta[r.title]);
+    const kept = [];                                              // 거의 같은 자세(원본과 잘라낸 판 등 중복)는 하나만
     usable.sort((p, q) => (p.extreme - 0.6 * p.m.vis - (p.legs ? 0.3 : 0)) - (q.extreme - 0.6 * q.m.vis - (q.legs ? 0.3 : 0)));
     const perPlayer = {};
     for (const r of usable) {
       if (samples.filter((s) => s.stroke === stroke && s.phase === phase).length >= Number(a.perCell)) break;
+      const feat = G.poseFeature(r.pose);
+      if (kept.some((f) => G.featureDistance(f, feat, r.legs) < 0.012)) continue;
       const key = r.player || r.title;
       if ((perPlayer[key] = (perPlayer[key] || 0) + 1) > 3) continue;       // 한 선수가 대조군을 독차지하지 않게
+      kept.push(feat);
       const mt = meta[r.title] || {};
       pickedTitles.push(r.title);
       const mm = {};
@@ -123,6 +126,7 @@ fs.mkdirSync(path.dirname(a.out), { recursive: true });
 fs.writeFileSync(a.out, JSON.stringify(out));
 const count = {};
 for (const r of rows) count[`${r.stroke}/${r.phase}`] = (count[`${r.stroke}/${r.phase}`] || 0) + 1;
-console.error(`사진 ${seen} · 사람 없음 ${noPose} · 너무 작음 ${small} · 순간 불명 ${noPhase} · 잘 안 보임 ${lowVis} → 사용 ${rows.length}`);
+console.error(`사진 ${seen} · 옛 사진·어린이 ${skipped} · 사람 없음 ${noPose} · 너무 작음 ${small} · 순간 불명 ${noPhase} · 잘 안 보임 ${lowVis} → 사용 ${rows.length}`);
+console.error('성별:', JSON.stringify(rows.reduce((c, r) => { c[r.sex] = (c[r.sex] || 0) + 1; return c; }, {})));
 console.error('순간별:', JSON.stringify(count));
 console.error(`대조군 표본 ${samples.length}개 · 이름 알아본 선수 ${new Set(rows.map((r) => r.player).filter(Boolean)).size}명 · ${(fs.statSync(a.out).size / 1024).toFixed(0)}KB → ${a.out}`);

@@ -197,8 +197,11 @@ test('빈 구간을 가로질러 자세를 지어내지 않는다', () => {
 });
 
 test('사진 한 장의 순간 어림: 서브 임팩트·트로피', () => {
-  const contact = poseMetrics(figure({ wrist: [0.1, -1.3, -0.2], yaw: 80 }), 'R');
+  const contact = poseMetrics(figure({ wrist: [0.55, -1.25, -0.2], yaw: 0 }), 'R');
   assert.equal(guessPhase('serve', contact), 'contact');
+  // 토스하는 팔(반대 손이 머리 위)이나 귀에 붙은 수직 팔은 임팩트가 아니다
+  assert.notEqual(guessPhase('serve', { ...contact, offWristUp: 0.2 }), 'contact');
+  assert.notEqual(guessPhase('serve', { ...contact, armTrunk: 172 }), 'contact');
   assert.equal(guessPhase('serve', { wristUp: 0.0, elbowHit: 95, offWristUp: 0.2 }), 'trophy');
 });
 
@@ -277,4 +280,68 @@ test('백핸드 대조군은 원핸드·투핸드가 같은 표본을 먼저 고
   const ref = { samples: [mk('one', false), mk('two', true)] };
   assert.equal(matchReference(ref, 'backhand', 'contact', pose, { twoHanded: true })[0].sample.id, 'two');
   assert.equal(matchReference(ref, 'backhand', 'contact', pose, { twoHanded: false })[0].sample.id, 'one');
+});
+
+// ── 독립 검수에서 나온 것들 ──────────────────────────────────────
+/** 카메라를 세로축으로 deg 만큼 돌린 것처럼: 3차원 좌표를 돌리고 화면 좌표를 다시 만든다 */
+function turnCamera(frames, deg) {
+  const a = (deg * Math.PI) / 180, c = Math.cos(a), sn = Math.sin(a);
+  return frames.map((f) => {
+    const w = f.w.map((k) => [k[0] * c - k[2] * sn, k[1], k[0] * sn + k[2] * c, k[3]]);
+    const lm = w.map((k) => [0.5 + k[0] * 0.4 * (9 / 16), 0.55 + k[1] * 0.4, k[2], 1]);
+    return { t: f.t, lm, w };
+  });
+}
+
+test('찍은 방향: 옆(27도 안쪽)일 때만 옆 화면, 비스듬하면 대각선 — 대각선에서는 타점 cm 를 재지 않는다', () => {
+  const view = (deg) => mainSwing(turnCamera(forehand({ fps: 60 }), deg), { hand: 'R' }).view;
+  assert.equal(view(0), 'side');
+  assert.equal(view(15), 'side');
+  assert.equal(view(45), 'oblique');
+  assert.ok(['behind', 'front'].includes(view(88)), view(88));
+  const fr = turnCamera(forehand({ fps: 120, front: -0.05 }), 45);
+  const m = swingMetrics(fr, mainSwing(fr, { hand: 'R' }), 1920, 1080);
+  assert.equal(m.contactFront, undefined);
+  const a = advise(m, { heightCm: 175 });
+  assert.ok(!a.items.some((it) => it.id === 'fh_contact_front'));
+  assert.ok(a.notes.some((n) => /비스듬히/.test(n)));
+});
+
+test('테이크백만 한 동작은 스윙으로 평가하지 않는다', () => {
+  // 손이 앞에서 뒤(치는 쪽 옆)로 빠르게 갔다가 멈춘다 — 공을 치는 동작이 아니다
+  const fr = [];
+  for (let i = 0; i < 150; i++) {
+    const t = i / 60, back = ease((t - 1.0) / 0.2);
+    fr.push({ t, ...figure({ wrist: [0.25 - 0.8 * back, -0.15 - 0.1 * back, -0.25 + 0.1 * back], yaw: 60 - 70 * back, knee: 20 * back }) });
+  }
+  const sw = mainSwing(fr, { hand: 'R' });
+  if (sw) {                                   // 잡혔다면 '의심'으로 표시되고 점수가 없어야 한다
+    assert.equal(sw.suspect, true);
+    assert.equal(advise(swingMetrics(fr, sw, 1920, 1080), {}).score, null);
+  }
+  assert.equal(mainSwing(forehand({ fps: 60 }), { hand: 'R' }).suspect, false, '진짜 포핸드는 의심하지 않는다');
+});
+
+test('임팩트가 한 장 어긋나도 높은 공으로 보지 않게, 앞뒤 한 장 중 가장 낮은 손목 높이를 같이 준다', () => {
+  const fr = forehand({ fps: 30 });
+  const m = swingMetrics(fr, mainSwing(fr, { hand: 'R' }), 1920, 1080);
+  assert.ok(Number.isFinite(m.wristHeightLo) && m.wristHeightLo <= m.wristHeightGround + 1e-9);
+  assert.ok(Number.isFinite(m.chestAtBackswingHi) && m.chestAtBackswingHi >= m.chestAtBackswing - 1e-9);
+});
+
+test('저장된 내 정보·기준 자세는 믿지 않고 다시 맞춘다(스크립트 삽입 방지)', async () => {
+  const { cleanProfile, validRef } = await import('../../app/static/coach/js/ui.js');
+  const bad = cleanProfile({ sex: '<img src=x onerror=alert(1)>', heightCm: '<img src=x onerror=alert(1)>', hand: 'x', level: {} });
+  assert.deepEqual(bad, { sex: 'U', heightCm: 170, hand: 'R', level: 'mid' });
+  assert.deepEqual(cleanProfile({ sex: 'F', heightCm: '163.4', hand: 'L', level: 'adv' }), { sex: 'F', heightCm: 163, hand: 'L', level: 'adv' });
+  assert.equal(cleanProfile({ heightCm: 999 }).heightCm, 170);
+  assert.deepEqual(cleanProfile(null), { sex: 'U', heightCm: 170, hand: 'R', level: 'mid' });
+  const pose = figure({ wrist: [0.4, -0.3, -0.2] });
+  const good = { stroke: 'forehand', phase: 'contact', title: '코치님 포핸드', feat: G.poseFeature(pose), lm: pose.lm.map((k) => [k[0], k[1]]), w: pose.w.map((k) => [k[0], k[1], k[2]]) };
+  assert.equal(validRef(good), true);
+  assert.equal(validRef({ ...good, stroke: 'volley' }), false);
+  assert.equal(validRef({ ...good, lm: good.lm.slice(0, 10) }), false);
+  assert.equal(validRef({ ...good, feat: good.feat.map(String) }), false);
+  assert.equal(validRef({ ...good, title: 'x'.repeat(200) }), false);
+  assert.equal(validRef(null), false);
 });

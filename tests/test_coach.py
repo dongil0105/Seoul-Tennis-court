@@ -81,3 +81,19 @@ def test_main_app_serves_coach_with_cache_headers():
     home = c.get("/")
     assert home.status_code == 200 and "코트 오픈" in home.text
     assert "cache-control" not in {k.lower() for k in c.get("/static/sw.js").headers} or "immutable" not in c.get("/static/sw.js").headers["cache-control"]
+
+
+def test_coach_page_blocks_outside_connections():
+    """/coach 는 우리 서버 말고는 연결하지 못하고(자세 인식 엔진의 사용 통계 전송도 막힌다), 밖에서 가져오는 것은 위키미디어 사진뿐이다."""
+    r = _client().get("/coach")
+    csp = r.headers["content-security-policy"]
+    rules = {part.strip().split(" ")[0]: part.strip().split(" ")[1:] for part in csp.split(";")}
+    assert rules["connect-src"] == ["'self'"]
+    assert rules["default-src"] == ["'self'"]
+    assert "'unsafe-inline'" not in rules["script-src"] and "'unsafe-eval'" not in rules["script-src"]
+    outside = {src for part in rules.values() for src in part if src.startswith("http")}
+    assert outside == {"https://upload.wikimedia.org", "https://thumb.wikimedia.org"}
+    # 화면 파일도 바깥 주소(글꼴·스크립트)를 부르지 않는다
+    html = r.text
+    assert "cdn.jsdelivr.net" not in html and "googleapis" not in html
+    assert "onload=" not in html and "onclick=" not in html           # 인라인 스크립트는 정책에서 막힌다

@@ -51,7 +51,8 @@ export function poseMetrics(pose, hand = 'R', h = G.statureW(pose)) {
  */
 export function guessPhase(stroke, m) {
   if (stroke === 'serve') {
-    if (m.wristUp > 0.22 && m.elbowHit > 140) return 'contact';
+    // 임팩트: 치는 손이 머리 위로 뻗어 있고, 반대 손(토스한 손)은 이미 내려와 있다. 팔이 귀에 붙을 만큼 수직이면 토스하는 팔이다.
+    if (m.wristUp > 0.22 && m.elbowHit > 140 && m.offWristUp < 0 && m.armTrunk < 162) return 'contact';
     if (m.offWristUp > 0.02 && m.elbowHit < 135 && m.wristUp > -0.2 && m.wristUp < 0.3) return 'trophy';
     return null;
   }
@@ -77,7 +78,7 @@ export function guessPhase(stroke, m) {
 export function swingMetrics(frames, swing, W, H) {
   const S = G.sides(swing.hand), h = swing.h, sf = swing.sf;
   const at = (t) => (t == null ? null : G.poseAt(frames, t));
-  const out = { stroke: swing.stroke, view: swing.view, twoHanded: swing.twoHanded, uncertain: swing.uncertain, sf, sfAuto: swing.sfAuto,
+  const out = { stroke: swing.stroke, view: swing.view, twoHanded: swing.twoHanded, uncertain: swing.uncertain, suspect: !!swing.suspect, sf, sfAuto: swing.sfAuto,
     conf: swing.vis, vis: swing.vis, tcErr: swing.tcErr, posErr: swing.posErr / h, phases: {} };
   for (const [name, t] of Object.entries(swing.keys)) {
     const p = at(t);
@@ -106,6 +107,13 @@ export function swingMetrics(frames, swing, W, H) {
     }
   } else {
     out.wristHeightGround = out.wristOverFoot;
+  }
+
+  // 임팩트 시각이 한 장 어긋나도 '높은 공'으로 잘못 보지 않게: 앞뒤 한 장까지 본 것 중 가장 낮은 손목 높이
+  if (swing.stroke !== 'serve') {
+    const dt = 2 * swing.tcErr, hs2 = [out.wristOverFoot];
+    for (const t of [swing.keys.contact - dt, swing.keys.contact + dt]) { const p = at(t); if (p) hs2.push(toH(lowFoot(p) - Y(p, S.hit.wr), kOf(p))); }
+    out.wristHeightLo = Math.min(...hs2.filter(Number.isFinite));
   }
 
   if (swing.view === 'side') {
@@ -139,7 +147,13 @@ export function swingMetrics(frames, swing, W, H) {
     out.chestAtContact = chest(pc);
     out.hipsAtContact = G.angleBetween(G.bodyFrame(pc, 'hips').F, swing.dir);
     if (swing.stroke === 'serve') out.chestAtTrophy = chest(at(swing.keys.trophy));
-    else out.chestAtBackswing = chest(at(swing.keys.backswing));
+    else {
+      out.chestAtBackswing = chest(at(swing.keys.backswing));
+      // 백스윙 끝 순간이 조금 어긋나도 '턴 부족'으로 잘못 보지 않게: 그 앞뒤 0.1초 중 가장 많이 돈 값
+      const tb = swing.keys.backswing, cs = [out.chestAtBackswing];
+      if (tb != null) for (const t of [tb - 0.1 * sf, tb - 0.05 * sf, tb + 0.05 * sf, tb + 0.1 * sf]) cs.push(chest(at(t)));
+      out.chestAtBackswingHi = Math.max(...cs.filter(Number.isFinite));
+    }
   }
   if (swing.stroke === 'serve') {
     const tr = out.phases.trophy, ld = out.phases.load, st = out.phases.start;
