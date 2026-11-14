@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.collectors.link_registry import seed_links
 from app.db import get_session, init_db
-from app.routers import dashboard, filters, health, openings, preview, push
+from app.routers import coach, dashboard, filters, health, openings, preview, push
 from app.scheduler import start_scheduler, startup_alert
 
 logging.basicConfig(
@@ -39,9 +39,23 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="서울 테니스 코트 오픈 알림", version="3.0.0", lifespan=lifespan)
 app.include_router(dashboard.router)
+app.include_router(coach.router)
 app.include_router(health.router)
 app.include_router(openings.router)
 app.include_router(preview.router)
 app.include_router(filters.router)
 app.include_router(push.router)
+
+
+@app.middleware("http")
+async def static_cache_headers(request, call_next):
+    """스윙 코치의 큰 파일(자세 인식 엔진·모델)을 휴대폰이 다시 받지 않게 캐시 머리말을 붙인다."""
+    response = await call_next(request)
+    if response.status_code == 200:
+        policy = coach.cache_header_for(request.url.path)
+        if policy:
+            response.headers["Cache-Control"] = policy
+    return response
+
+
 app.mount("/static", StaticFiles(directory=Path(__file__).resolve().parent / "static"), name="static")

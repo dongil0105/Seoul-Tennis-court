@@ -3,6 +3,7 @@
 // 앱과 똑같은 계산 모듈(geom·metrics)로 재므로 '선수'와 '내 영상'을 같은 자로 견주게 된다.
 //
 //   node tools/coach/build_reference.mjs --poses poses.jsonl --meta meta.json --out app/static/coach/data/reference.json
+//        [--titles-out titles.txt]  ← 고른 표본의 파일 제목(출처를 읽어 올 목록)  [--perCell 70]
 //   poses.jsonl: pose_extract.mjs 결과. meta 열 = "파일 제목 \t 스트로크 \t 분류 \t 받은 주소"
 //   meta.json:   commons_meta.py 결과 { "File:...": { author, license, licenseUrl } } — 출처를 못 구한 사진은 대조군에서 뺀다.
 import fs from 'node:fs';
@@ -82,7 +83,7 @@ for (const st of Object.values(stats)) {
 }
 
 // 대조군 표본: 출처를 구한 사진만, 분포 한가운데에 가까운(따라 하기 쉬운) 것부터
-const samples = [];
+const samples = [], pickedTitles = [];
 for (const [stroke, st] of Object.entries(stats)) {
   for (const [phase, cell] of Object.entries(st)) {
     const core = ['kneeAvg', 'elbowHit', 'armTrunk', 'trunkTilt', 'wristFront', 'wristSide', 'wristUp'];
@@ -98,6 +99,7 @@ for (const [stroke, st] of Object.entries(stats)) {
       const key = r.player || r.title;
       if ((perPlayer[key] = (perPlayer[key] || 0) + 1) > 3) continue;       // 한 선수가 대조군을 독차지하지 않게
       const mt = meta[r.title] || {};
+      pickedTitles.push(r.title);
       const mm = {};
       for (const k of KEYS) if (Number.isFinite(r.m[k])) mm[k] = r3(r.m[k]);
       samples.push({
@@ -115,6 +117,7 @@ for (const [stroke, st] of Object.entries(stats)) {
 }
 
 const out = { version: 1, built: new Date().toISOString().slice(0, 10), source: 'Wikimedia Commons 사진에서 MediaPipe Pose(heavy)로 뽑은 자세', photos: seen, used: rows.length, stats, samples };
+if (a['titles-out']) fs.writeFileSync(a['titles-out'], pickedTitles.join('\n') + '\n');
 fs.mkdirSync(path.dirname(a.out), { recursive: true });
 fs.writeFileSync(a.out, JSON.stringify(out));
 const count = {};

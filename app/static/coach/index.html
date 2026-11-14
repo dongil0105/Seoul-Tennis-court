@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>스윙 코치</title>
+<meta name="description" content="테니스 서브·포핸드·백핸드 영상을 넣으면 선수 자세와 나란히 보고 동호인 눈높이로 고칠 점을 알려 줍니다. 영상은 휴대폰 밖으로 나가지 않습니다.">
+<meta name="theme-color" content="#0B1210">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="스윙 코치">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:title" content="스윙 코치 — 영상 하나로 받는 테니스 자세 조언">
+<meta property="og:description" content="서브·포핸드·백핸드 영상을 넣으면 선수 자세와 나란히 보고 고칠 점을 알려 줍니다.">
+<link rel="manifest" href="/coach/manifest.webmanifest">
+<link rel="icon" href="/static/coach/icon-192.png">
+<link rel="apple-touch-icon" href="/static/coach/icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="/static/coach/coach.css?v=1">
+</head>
+<body>
+<div class="app" id="app">
+  <header class="bar">
+    <button class="back" id="back" hidden aria-label="뒤로">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>뒤로
+    </button>
+    <div class="brand" id="brand"><i></i>스윙 코치</div>
+    <button class="icon-btn" id="profileBtn">내 정보</button>
+  </header>
+
+  <!-- 처음 화면 -->
+  <main class="view" id="v-home">
+    <h1>영상 하나로 받는<br>스윙 조언</h1>
+    <p class="lead">선수 자세와 나란히 보고, 한 번에 하나씩 고칩니다.</p>
+    <div class="choices">
+      <label class="choice primary">
+        <b>스윙 영상</b><span>서브·포핸드·백핸드 한 번을 찍은 짧은 영상</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        <input type="file" accept="video/*" id="fileSwing" aria-label="스윙 영상 고르기">
+      </label>
+      <label class="choice">
+        <b>전체 영상</b><span>랠리·경기 영상에서 한 사람을 골라 잘 친 샷과 아쉬운 샷을 찾습니다</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        <input type="file" accept="video/*" id="fileFull" aria-label="전체 영상 고르기">
+      </label>
+    </div>
+    <div class="row2">
+      <button class="tile" data-go="physics"><b>서브가 들어가는 각도</b><span>타점 높이·속도·회전별 여유</span></button>
+      <button class="tile" data-go="guide"><b>촬영 방법</b><span>이렇게 찍으면 정확해요</span></button>
+    </div>
+    <div class="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg>
+      <span>영상은 휴대폰 안에서만 분석하고 어디에도 올리지 않습니다. 선수 참고 사진만 위키미디어에서 불러옵니다.</span>
+    </div>
+    <div class="btns">
+      <button class="btn ghost sm" id="shareApp">친구에게 앱 공유</button>
+      <a class="btn ghost sm" href="/">빈 코트 찾기 (코트 오픈)</a>
+    </div>
+    <p class="small muted" style="margin-top:20px" id="refInfo"></p>
+  </main>
+
+  <main class="view" id="v-setup" hidden></main>
+  <main class="view" id="v-people" hidden></main>
+  <main class="view" id="v-working" hidden>
+    <div class="working">
+      <div>
+        <svg class="spinner" viewBox="0 0 132 132" role="img" aria-label="분석 중">
+          <circle cx="66" cy="66" r="57" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="9"/>
+          <circle id="prog" cx="66" cy="66" r="57" fill="none" stroke="var(--ball)" stroke-width="9" stroke-linecap="round" stroke-dasharray="358.1" stroke-dashoffset="358.1" transform="rotate(-90 66 66)"/>
+          <text id="progText" x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-size="30" font-weight="800" fill="currentColor">0%</text>
+        </svg>
+        <h2 id="workTitle">준비하는 중</h2>
+        <p id="workSub"></p>
+      </div>
+      <button class="btn ghost sm" id="cancel" style="max-width:200px">그만두기</button>
+    </div>
+  </main>
+  <main class="view" id="v-result" hidden></main>
+  <main class="view" id="v-session" hidden></main>
+  <main class="view" id="v-physics" hidden></main>
+  <main class="view" id="v-guide" hidden>
+    <h1>촬영 방법</h1>
+    <p class="lead">이 네 가지만 지키면 조언이 훨씬 정확해집니다.</p>
+    <ol class="steps">
+      <li>옆에서 찍기<span>치는 방향과 직각이 되는 자리(옆 펜스 쪽)에서. 타점이 몇 cm 앞·뒤인지는 옆에서만 잴 수 있어요.</span></li>
+      <li>몸 전체가 나오게<span>머리부터 발끝까지. 사람이 화면 높이의 절반 이상이면 좋아요.</span></li>
+      <li>휴대폰은 고정<span>삼각대나 펜스에 걸어 두세요. 따라가며 찍으면 높이·거리 계산이 흔들립니다.</span></li>
+      <li>가능하면 슬로모션으로<span>일반 영상(초당 30장)은 타점 위치가 ±15cm쯤 흔들립니다. 슬로모션(초당 120~240장)이면 ±2~4cm.</span></li>
+    </ol>
+    <div class="callout info">뒤에서 찍은 영상도 됩니다. 그때는 토스·타점의 좌우 위치와 몸통 기울기를 위주로 봅니다.</div>
+  </main>
+
+  <video id="video" playsinline muted preload="auto" style="position:absolute;left:-9999px;width:320px;height:180px"></video>
+</div>
+<div id="sheet"></div>
+<div class="toast" id="toast" hidden role="status"></div>
+<noscript><p style="padding:40px 20px">이 앱은 자바스크립트를 켜야 쓸 수 있습니다.</p></noscript>
+<script type="module" src="/static/coach/js/app.js?v=1"></script>
+</body>
+</html>

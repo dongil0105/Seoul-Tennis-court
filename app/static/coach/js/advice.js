@@ -177,9 +177,10 @@ export function advise(m, ctxIn = {}) {
     // 타점 앞뒤는 프레임 간격 때문에 생기는 위치 오차(posErr)보다 크게 벗어났을 때만 말한다
     const tol = /contact_front$/.test(rule.id) && Number.isFinite(m.posErr) ? Math.min(0.12, m.posErr) : 0;
     const sideHit = v < b.lo - tol ? 'low' : v > b.hi + tol ? 'high' : null;
-    if (tol && !sideHit && (v < b.lo || v > b.hi)) notes.push('타점 앞뒤가 경계선에 있는데, 영상 프레임 간격 때문에 확실히 말하기 어렵습니다. 슬로모션으로 찍으면 정확해집니다.');
+    const edge = tol && !sideHit && (v < b.lo || v > b.hi);
+    if (edge) notes.push('타점 앞뒤가 경계선에 있는데, 영상 프레임 간격 때문에 확실히 말하기 어렵습니다. 슬로모션으로 찍으면 정확해집니다.');
     if (!sideHit || !rule[sideHit]) {
-      if (b.src === 'pro' || rule.sev >= 2) good.push({ id: rule.id, label: rule.label, phase: rule.phase });
+      if (!edge && (b.src === 'pro' || rule.sev >= 2)) good.push({ id: rule.id, label: rule.label, phase: rule.phase });
       continue;
     }
     const t = rule[sideHit](v, b, ctx, m);
