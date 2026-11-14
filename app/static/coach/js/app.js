@@ -225,7 +225,7 @@ function renderResult() {
       <div id="resultNote">${a.resultNote ? `<div class="callout">${esc(a.resultNote)}</div>` : ''}</div></div>
 
     <div class="sec"><h3>잰 값</h3><dl class="kv">${measures(m).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
-    ${m.stroke === 'serve' ? '<div class="sec"><h2>내 타점에서 들어가는 각도</h2><div id="physHere"></div></div>' : ''}
+    ${m.stroke === 'serve' ? `${serveStyle(m)}<div class="sec"><h2>내 타점에서 들어가는 각도</h2><div id="physHere"></div></div>` : ''}
     <div class="btns">
       <button class="btn" id="shareShot">결과 공유</button>
       <button class="btn ghost sm" id="saveRef">이 스윙을 내 기준 자세로 저장</button>
@@ -249,6 +249,23 @@ function renderResult() {
       speed: S.profile.level === 'adv' ? 150 : S.profile.level === 'beg' ? 100 : 125 });
   }
   paintMoment();
+}
+
+/** 서브: 내 스탠스와 같은 방식을 쓰는 선수, 서브 종류별 토스·타점 요령 */
+function serveStyle(m) {
+  const lefty = S.profile.hand === 'L', R = lefty ? '왼쪽' : '오른쪽', L = lefty ? '오른쪽' : '왼쪽';
+  const stance = {
+    platform: ['플랫폼 스탠스', '뒷발을 그대로 둔 채 치는 방식입니다. 균형 잡기 쉽고 풋폴트가 적어 동호인에게 권하는 방식이에요.', '같은 방식: 페더러 · 조코비치 · 샘프러스'],
+    pinpoint: ['핀포인트 스탠스', '뒷발을 앞발 옆으로 끌어와 위로 솟는 방식입니다. 높이 뛰기 좋지만 타이밍과 균형이 더 어렵습니다. 끌어온 뒷발이 앞발을 지나치지 않게 하세요.', '같은 방식: 즈베레프 · 알카라스 · 메드베데프 · 세레나 윌리엄스 · 시비옹테크 · 시너(2023년 말부터)'],
+  }[m.stanceType];
+  const type = {
+    flat: ['플랫', `토스는 치는 어깨 앞, 시계로 12~1시 방향에 코트 안쪽으로. 세 가지 서브 중 가장 앞에서 맞습니다.`],
+    slice: ['슬라이스', `토스를 플랫보다 조금 더 ${R}에 올리고, 공의 ${R} 옆면을 깎듯이 칩니다. 타점 높이는 플랫과 같습니다.`],
+    kick: ['킥(스핀)', `토스를 머리 위에(플랫보다 20cm쯤 ${L}, 15~20cm 몸 쪽). 아래에서 위로 쓸어 올립니다. 타점 높이는 플랫과 같아도 됩니다.`],
+  }[S.opt.serveType] || null;
+  return `<div class="sec"><h3>서브 방식</h3>
+    ${stance ? `<div class="pattern"><b>${stance[0]}로 보입니다</b><span>${stance[1]}</span><span style="margin-top:6px">${stance[2]}</span></div>` : ''}
+    ${type ? `<div class="pattern"><b>${type[0]} 서브의 토스와 타점</b><span>${type[1]}</span></div>` : ''}</div>`;
 }
 
 function measures(m) {

@@ -39,6 +39,27 @@ def parse(page: str) -> dict:
     return out
 
 
+_CAT = re.compile(r'<a href="/wiki/Category:[^"]+" title="Category:([^"]+)"')
+_NOT_PERSON = re.compile(r"\d|tennis|open|cup|championship|tournament|players|photograph|files|images|quality|court|stadium|masters|slam|olympic|"
+                         r"wimbledon|roland|garros|league|club|team|sport|people|men|women|taken|uploaded|license|cc-|flickr|self-published|"
+                         r"\b(in|at|by|of|with|from|the|and|for)\b", re.I)
+
+
+def categories(page: str) -> list[str]:
+    i = page.find('id="mw-normal-catlinks"')
+    if i < 0:
+        return []
+    j = page.find("</div>", i)
+    return [html.unescape(x) for x in _CAT.findall(page[i:j if j > 0 else i + 6000])]
+
+
+def sex_from(cats: list[str]) -> str | None:
+    text = " | ".join(cats).lower()
+    f = bool(re.search(r"female tennis|women's|womens|\(women\)|ladies|wta", text))
+    m = bool(re.search(r"\bmale tennis|\bmen's|\bmens\b|\(men\)|\batp\b", text))
+    return "F" if f and not m else "M" if m and not f else None
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--titles", required=True)
@@ -46,6 +67,8 @@ def main() -> None:
     ap.add_argument("--gap", type=float, default=1.2)
     a = ap.parse_args()
     meta = json.load(open(a.out, encoding="utf-8")) if os.path.exists(a.out) else {}
+    people_path = a.out + ".people.json"
+    people = json.load(open(people_path, encoding="utf-8")) if os.path.exists(people_path) else {}
     titles = [l.strip() for l in open(a.titles, encoding="utf-8") if l.strip()]
     for n, title in enumerate(titles):
         if title in meta:
@@ -64,14 +87,38 @@ def main() -> None:
                 time.sleep(wait)
         if not page:
             continue
-        info = parse(page.replace("&#95;", "_"))
+        page = page.replace("&#95;", "_")
+        info = parse(page)
+        # 누구인지·성별: 파일의 분류에서 바로 알 수 있으면 그것을, 아니면 사람 이름처럼 생긴 분류 페이지를 한 번 읽어 본다(이름마다 한 번)
+        cats = categories(page)
+        info["sex"] = sex_from(cats)
+        names = []
+        for c in cats:                       # "Ana Ivanovic in 2009", "Rafael Nadal at the 2008 BNP Paribas Masters" → 앞의 이름만
+            base = re.sub(r"\s+(in \d{4}|at (the )?.*|during .*|playing .*|serving.*)$", "", c).strip()
+            if base and base not in names and not _NOT_PERSON.search(base) and 2 <= len(base.split()) <= 4:
+                names.append(base)
+        for name in names[:3]:
+            if name not in people:
+                people[name] = None
+                try:
+                    time.sleep(a.gap)
+                    u2 = "https://commons.wikimedia.org/wiki/Category:" + urllib.parse.quote(name.replace(" ", "_"))
+                    with urllib.request.urlopen(urllib.request.Request(u2, headers={"User-Agent": UA}), timeout=60) as r:
+                        people[name] = sex_from(categories(r.read().decode("utf-8", "replace").replace("&#95;", "_")))
+                except Exception:
+                    pass
+            if people[name]:
+                info["person"] = name
+                info["sex"] = info["sex"] or people[name]
+                break
         if info["license"]:                 # 라이선스를 읽은 것만 적는다
             meta[title] = info
         if n % 25 == 0:
             json.dump(meta, open(a.out, "w", encoding="utf-8"), ensure_ascii=False)
             print(f"  {n + 1}/{len(titles)} · 읽음 {len(meta)}", file=sys.stderr)
     json.dump(meta, open(a.out, "w", encoding="utf-8"), ensure_ascii=False)
-    print(f"끝: {len(meta)}/{len(titles)}", file=sys.stderr)
+    json.dump(people, open(people_path, "w", encoding="utf-8"), ensure_ascii=False)
+    print(f"끝: {len(meta)}/{len(titles)} · 성별 알아낸 사진 {sum(1 for v in meta.values() if v.get('sex'))}", file=sys.stderr)
 
 
 if __name__ == "__main__":

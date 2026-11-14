@@ -62,7 +62,8 @@ for (const line of fs.readFileSync(a.poses, 'utf8').split('\n')) {
   pick.m.vis = upper;
   pick.m.kneeAvg = (pick.m.kneeHit + pick.m.kneeOff) / 2;
   if (!pick.legs) for (const k of ['kneeHit', 'kneeOff', 'kneeAvg', 'stance', 'wristOverFoot']) pick.m[k] = NaN;
-  rows.push({ title, stroke, url, w: r.w, h: r.h, player: pl ? pl.name : null, sex: pl ? pl.sex : 'U', ...pick });
+  const mt0 = meta[title] || {};                                // 이름표에 없으면 공용 분류에서 읽은 이름·성별
+  rows.push({ title, stroke, url, w: r.w, h: r.h, player: pl ? pl.name : mt0.person || null, sex: pl ? pl.sex : mt0.sex || 'U', ...pick });
 }
 
 // 분포: 스트로크·순간별로 전체 / 남 / 여

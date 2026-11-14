@@ -69,7 +69,7 @@ export function serveCalculator(root, init = {}) {
     $('#pBars', root).innerHTML = rows.map(([v, x]) => `<div><span>${v}km/h</span><i><b style="width:${Math.round((x / mx) * 100)}%"></b></i><em>${x ? f1(x) + '°' : '불가'}</em></div>`).join('');
     const best = r && r.best;
     $('#pFoot', root).textContent = best && r.feasible
-      ? `가장 안전하게 치면 네트 위 ${Math.round(best.netClearanceCm)}cm로 지나 네트에서 ${f1(best.landingDepthM)}m 지점에 떨어집니다. 공기 저항과 회전을 넣은 계산이고, 실제는 바람·공 상태에 따라 달라집니다.`
+      ? `가장 안전하게 치면 네트 위 ${Math.round(best.netClearanceCm)}cm로 지나 네트에서 ${f1(best.landingDepthM)}m 지점에 떨어집니다. 이 코스에서 공이 넘는 네트 높이는 ${Math.round(r.netHeightOnPathCm)}cm(${s.target === 'wide' ? '와이드는 네트가 높은 쪽을 지나고 서비스 박스 모서리까지 더 멉니다' : s.target === 'T' ? 'T존은 네트가 가장 낮은 가운데를 지납니다' : '가운데와 옆줄 사이'}). 공기 저항과 회전을 넣은 계산이고, 실제는 바람·공 상태에 따라 달라집니다.`
       : '중력 없이 일직선으로 넣으려면 타점이 2.6m 넘게 높아야 합니다. 대부분의 동호인은 내리찍을 수 없고, 수평이거나 살짝 위로 보내야 들어갑니다.';
   };
   $('#rH', root).addEventListener('input', (e) => { s.height = Number(e.target.value); draw(); });
