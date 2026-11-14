@@ -413,3 +413,26 @@ test('타점 앞뒤를 음수로 보여 주지 않는다("골반보다 3cm 뒤")
   assert.match(it.you, /골반보다 \d+cm 뒤/);
   assert.ok(Number.isFinite(it.value) && Number.isFinite(it.lo));
 });
+
+test('진단 파일: 뼈대 숫자와 설정만 담고, 되돌리면 엔진이 같은 스윙을 찾는다', async () => {
+  const { buildDiag, unpackFrames, DIAG_KEEP } = await import('../../app/static/coach/js/diag.js');
+  const frames = forehand();
+  const sw = mainSwing(frames, { hand: 'R', backhand: '2h' });
+  const fixed = withStroke(frames, sw, 'backhand');               // 사용자가 종류를 바로잡았다
+  const shot = (swing) => ({ frames, swing, step: 1 / 60, vid: 0, a: { score: 80 } });
+  const d = buildDiag({ profile: { hand: 'R', backhand: '2h', stance: 'platform', heightCm: 175, sex: 'M', level: 'mid' }, opt: { speed: 'auto' },
+    vids: [{ file: { name: '비밀.mp4' }, url: 'blob:x', meta: { duration: 2.7, width: 1920, height: 1080 }, t0: 0, t1: 2.7, single: true }],
+    shots: [shot(sw), shot(fixed)], note: '백핸드인데 포핸드로 나옴', app: 'v9' });
+  const text = JSON.stringify(d);
+  assert.ok(!text.includes('비밀') && !text.includes('blob:'), '파일 이름·주소는 담지 않는다');
+  assert.equal(d.kind, 'swing-coach-diag');
+  assert.equal(d.tracks.length, 1, '같은 프레임 줄은 한 번만 담는다');
+  assert.deepEqual(d.shots.map((s) => [s.stroke, s.auto, s.fixed]), [['forehand', 'forehand', false], ['backhand', 'forehand', true]]);
+  assert.equal(d.profile.backhand, '2h');
+  assert.equal(d.tracks[0].lm[0].length, DIAG_KEEP.length * 3);
+  assert.ok(text.length < 400_000, `용량 ${text.length}`);
+  // 되돌린 프레임에서 엔진이 같은 스윙을 찾는다(임팩트 시각 0.02초 안쪽, 같은 종류)
+  const back = mainSwing(unpackFrames(JSON.parse(text).tracks[0]), { hand: 'R', backhand: '2h' });
+  assert.equal(back.stroke, sw.stroke);
+  assert.ok(Math.abs(back.tc - sw.tc) < 0.02, `임팩트 ${back.tc} vs ${sw.tc}`);
+});

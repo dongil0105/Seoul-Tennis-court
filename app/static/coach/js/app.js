@@ -13,6 +13,7 @@ import { summarize, countText, spreadText, baseTitle, dropServePrep } from './su
 import { serveHeightCard, groundHeightCard, speedCard, renderPhysicsView } from './physview.js';
 import { shotSpeed, speedSummary, calibration } from './speed.js';
 import { adviceFigure } from './figures.js';
+import { buildDiag } from './diag.js';
 import { $, $$, esc, show, currentView, initNav, navState, setNavTag, onLeave, toast, sheet, seg, bindSegs, loadProfile, saveProfile, hasProfile, loadMyRefs, saveMyRefs, loadSpeedCal, saveSpeedCal } from './ui.js';
 
 const video = $('#video');
@@ -539,6 +540,7 @@ function renderResult() {
       <button class="btn" id="shareShot" ${a.score == null ? 'disabled' : ''}>결과 공유</button>
       <button class="btn ghost sm" id="saveRef">이 스윙을 내 기준 자세로 저장</button>
       ${S.session ? '' : '<button class="btn ghost sm" id="another">다른 영상 분석</button>'}
+      <button class="btn ghost sm" id="diagShot">분석이 틀렸나요? 진단 파일 저장</button>
     </div>`;
   for (const b of $$('.moments button', el)) b.addEventListener('click', () => { shot.moment = b.dataset.m; shot.refIdx = 0; for (const x of $$('.moments button', el)) x.setAttribute('aria-pressed', String(x === b)); paintMoment(); });
   for (const b of $$('#nudge button', el)) b.addEventListener('click', () => {
@@ -560,6 +562,7 @@ function renderResult() {
     if (k !== 'result') return; shot.result = v; const r = advise(m, ctxFor(shot)); $('#resultNote', el).innerHTML = r.resultNote ? `<div class="callout">${esc(r.resultNote)}</div>` : (v === 'good' ? '<div class="callout info">좋아요. 이 스윙의 느낌을 기억해 두세요.</div>' : ''); });
   $('#shareShot', el).addEventListener('click', () => shareShot());
   $('#saveRef', el).addEventListener('click', () => saveAsRef());
+  $('#diagShot', el).addEventListener('click', () => diagSheet(S.session ? S.session.shots : [shot]));
   const again = $('#another', el);
   if (again) again.addEventListener('click', () => { show('home', { push: false }); history.replaceState(navState('home'), '', location.pathname); });
   const sp = shot.speed;                                          // 손목 속도로 예측한 공 속도(위에서 계산)
@@ -733,6 +736,41 @@ function drawRef(canvas, r, creditEl) {
   img.src = r.thumb;
 }
 
+/**
+ * 진단 파일: 분석이 틀렸을 때, 뼈대 숫자와 설정만 담은 파일을 이 휴대폰에 저장(또는 공유)한다.
+ * 영상·얼굴·파일 이름은 담지 않고, 서버로 보내지도 않는다. 사용자가 그 파일을 직접 건네줄 때만 밖으로 나간다.
+ */
+function diagSheet(shots) {
+  sheet(`<h2>진단 파일 저장</h2>
+    <p class="small muted">분석이 틀렸을 때 원인을 찾는 데 씁니다. 찾은 스윙 ${shots.length}개의 <b>뼈대 숫자</b>와 고른 설정만 담습니다. 영상·얼굴·파일 이름은 들어가지 않고, 서버로 보내지 않습니다.</p>
+    <p class="small muted" style="margin-top:8px">종류가 틀리게 잡힌 샷은 그 샷 화면에서 먼저 바로잡아 주세요. 바로잡은 종류가 정답으로 함께 담깁니다.</p>
+    <div class="field"><label for="diagNote">무엇이 틀렸나요? (선택)</label>
+      <textarea class="input" id="diagNote" rows="3" maxlength="600" style="padding:12px 14px;min-height:88px" placeholder="예: 백핸드인데 포핸드로 나옴, 3번째 스윙을 못 찾음, 다른 사람을 따라감"></textarea></div>
+    <div class="btns"><button class="btn" id="diagSave">파일 저장</button></div>`, (el, close) => {
+    $('#diagSave', el).addEventListener('click', async () => {
+      let text;
+      try {
+        text = JSON.stringify(buildDiag({ profile: S.profile, opt: S.opt, vids: S.vids, shots, note: $('#diagNote', el).value, app: 'v9' }));
+      } catch (e) { console.error(e); toast('진단 파일을 만들지 못했어요'); return; }
+      const d = new Date(), z = (n) => String(n).padStart(2, '0');
+      const name = `swing-coach-diag-${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.json`;
+      const blob = new Blob([text], { type: 'application/json' });
+      close();
+      try {
+        const file = new File([blob], name, { type: 'application/json' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try { await navigator.share({ files: [file], title: '스윙 코치 진단 파일' }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+        }
+      } catch (_) { /* 파일 공유를 못 하는 브라우저 → 내려받기로 */ }
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob); link.download = name;
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+      toast(`진단 파일을 저장했어요 (${Math.max(1, Math.round(text.length / 1024))}KB)`, 3500);
+    });
+  });
+}
+
 function shareShot() {
   sheet(`<h2>결과 공유</h2><p class="small muted">이미지 한 장으로 공유합니다. 영상은 보내지 않습니다.</p>
     <div class="btns"><button class="btn" id="shPhoto">이 장면 사진과 함께</button><button class="btn ghost" id="shBones">뼈대만 (얼굴·배경 없이)</button></div>`, (el, close) => {
@@ -831,7 +869,8 @@ function renderSession() {
     ${sum.kinds.map(block).join('')}
     <div class="sec"><h3>찾은 스윙 모두</h3><p class="small muted" style="margin:4px 0 0">공이 들어갔는지는 영상만으로 알 수 없어서 자세 점수로 봅니다. 샷을 누르면 자세히 봅니다.</p>
       <div class="shots">${shots.map((s, i) => `<button class="shot" data-i="${i}"><canvas width="144" height="108"></canvas><span><b>${esc(strokeName(s.m))}</b><span class="num">${when(s)}</span></span><em>${s.a.score ?? '—'}</em></button>`).join('')}</div></div>
-    <div class="btns"><button class="btn ghost sm" id="another2">다른 영상 분석</button></div>`;
+    <div class="btns"><button class="btn ghost sm" id="another2">다른 영상 분석</button>
+      <button class="btn ghost sm" id="diagAll">분석이 틀렸나요? 진단 파일 저장</button></div>`;
   for (const b of $$('.shot', el)) b.addEventListener('click', async () => {
     thumbSeq++;
     const sess = S.session, sh = shots[Number(b.dataset.i)];
@@ -842,6 +881,7 @@ function renderSession() {
     S.shot = sh; S.from = 'session'; renderResult(); show('result');
   });
   $('#another2', el).addEventListener('click', () => { show('home', { push: false }); history.replaceState(navState('home'), '', location.pathname); });
+  $('#diagAll', el).addEventListener('click', () => diagSheet(shots));
 }
 let thumbSeq = 0;
 /** 샷 목록의 작은 사진들. 종합 화면이 떠 있을 때만, 한 장씩 차례로 그린다(다른 화면으로 가면 멈추고, 돌아오면 다시 한다). */
