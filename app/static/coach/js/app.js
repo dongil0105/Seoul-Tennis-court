@@ -56,7 +56,10 @@ function wakeOff() { try { if (wake) wake.release(); } catch (_) { /* 무시 */ 
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && currentView() === 'working') wakeOn(); });
 onLeave((from) => { if (from === 'result') video.pause(); });
 // 학습한 분류기 모델. 분석은 이걸 받은 뒤에 시작한다(받지 못하면 규칙으로만 간다).
-const modelReady = fetch('/static/coach/data/stroke_model.json').then((r) => (r.ok ? r.json() : null))
+// 학습한 분류기는 정확도 목표를 채울 때까지 이 화면에서는 꺼 둔다(주소에 ?model=1 을 붙이면 켜진다 — 시험용).
+// 그동안은 예전처럼 규칙으로 가린다. '화면 보고 학습'(watch.js)은 따로 '치는 순간' 모델을 쓴다.
+const USE_MODEL = new URLSearchParams(location.search).get('model') === '1';
+const modelReady = !USE_MODEL ? Promise.resolve() : fetch('/static/coach/data/stroke_model.json').then((r) => (r.ok ? r.json() : null))
   .then((mdl) => { S.model = validModel(mdl) ? mdl : null; }).catch(() => { S.model = null; });
 fetch('/static/coach/data/reference.json').then((r) => (r.ok ? r.json() : null)).then((ref) => {
   S.ref = ref;

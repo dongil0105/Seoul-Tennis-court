@@ -375,3 +375,82 @@ def test_public_mode_opens_for_everyone(monkeypatch):
     for s in m["shortcuts"]:
         for icon in s["icons"]:
             assert (STATIC / icon["src"].removeprefix("/static/")).is_file()
+
+
+# ── 화면 보고 학습(/coach/watch) + 중계함(/coach/learn) ─────────────────
+import gzip as _gzip
+
+
+@pytest.fixture()
+def learn_dir(tmp_path, monkeypatch):
+    monkeypatch.setattr(coach, "LEARN_DIR", tmp_path / "learn")
+    return tmp_path / "learn"
+
+
+def _chunk(n: int = 0) -> bytes:
+    return _gzip.compress(json.dumps({"kind": "swing-coach-watch", "v": 1, "seq": n, "cands": [], "pad": "x" * 200}).encode())
+
+
+def test_watch_page_is_locked_like_the_app():
+    locked = _client(unlocked=False).get("/coach/watch")
+    assert locked.status_code == 403 and "화면 보고 학습" not in locked.text and "watch.js" not in locked.text
+    r = _client().get("/coach/watch")
+    assert r.status_code == 200 and "화면 보고 학습" in r.text and "/static/coach/js/watch.js" in r.text
+    assert "connect-src 'self'" in r.headers["content-security-policy"]        # 이 화면이 연결하는 곳은 우리 서버뿐
+    assert "저장하지도 보내지도 않습니다" in r.text                              # 영상은 밖으로 나가지 않는다고 화면에 적혀 있다
+    for name in ("watch.html", "js/watch.js", "js/watchcore.js", "js/moment.js", "data/moment_model.json"):
+        assert (STATIC / "coach" / name).is_file(), name
+
+
+def test_learn_box_needs_the_key_even_when_coach_is_public(learn_dir, monkeypatch):
+    other = _client(unlocked=False)
+    for call in (lambda: other.post("/coach/learn", content=_chunk()), lambda: other.get("/coach/learn"),
+                 lambda: other.get("/coach/learn/20260101000000000000-0123abcd"), lambda: other.delete("/coach/learn/20260101000000000000-0123abcd")):
+        assert call().status_code == 403
+    monkeypatch.setattr(settings, "coach_private", False)                      # 스윙 코치를 모두에게 열어도 중계함은 열쇠가 있어야 한다
+    assert other.post("/coach/learn", content=_chunk()).status_code == 403
+    assert other.get("/coach/learn").status_code == 403
+    assert not learn_dir.exists() or not any(learn_dir.iterdir())
+
+
+def test_learn_box_roundtrip_and_ack(learn_dir):
+    c = _client()
+    meta = '{"session": "abc", "seq": 0, "note": "\\ud3ec\\ud578\\ub4dc", "frames": 120}'      # 머리말에는 아스키만 — 한글은 \\uXXXX 로 온다
+    r = c.post("/coach/learn", content=_chunk(), headers={"X-Coach-Meta": meta, "Content-Type": "application/gzip"})
+    assert r.status_code == 200 and r.headers["cache-control"] == "no-store"
+    item = r.json()["id"]
+    listed = c.get("/coach/learn").json()
+    assert [m["id"] for m in listed["items"]] == [item] and listed["acked"] == []
+    assert listed["items"][0]["meta"]["note"] == "포핸드" and listed["items"][0]["gzip"] is True
+    got = c.get(f"/coach/learn/{item}")
+    assert got.status_code == 200 and json.loads(_gzip.decompress(got.content))["kind"] == "swing-coach-watch"
+    assert c.delete(f"/coach/learn/{item}").json() == {"ok": True}
+    after = c.get("/coach/learn").json()
+    assert after["items"] == [] and after["acked"] == [item]                   # 가져갔다는 표시가 남는다
+    assert c.get(f"/coach/learn/{item}").status_code == 404
+    assert c.delete(f"/coach/learn/{item}").status_code == 200 and c.get("/coach/learn").json()["acked"] == [item]   # 두 번 지워도 표시는 한 번
+
+
+def test_learn_box_rejects_bad_input(learn_dir, monkeypatch):
+    c = _client()
+    assert c.post("/coach/learn", content=b"hello").status_code == 400
+    assert c.post("/coach/learn", content=b"not gzip and not json" * 5).status_code == 400
+    monkeypatch.setattr(coach, "LEARN_MAX_ONE", 1000)
+    assert c.post("/coach/learn", content=b"{" + b"x" * 2000).status_code == 413
+    for bad in ("..%2F..%2Fetc", "20260101000000000000-zzzzzzzz", "abc"):
+        assert c.get(f"/coach/learn/{bad}").status_code == 404
+    huge = json.dumps({"note": "x" * 900})
+    r = c.post("/coach/learn", content=_chunk(), headers={"X-Coach-Meta": huge})   # 너무 긴 설명은 버리고 묶음은 받는다
+    assert r.status_code == 200 and c.get("/coach/learn").json()["items"][0]["meta"] == {}
+    assert not any(p.name.startswith(".") or ".." in p.name for p in learn_dir.iterdir())
+
+
+def test_learn_box_drops_oldest_when_full(learn_dir, monkeypatch):
+    c = _client()
+    monkeypatch.setattr(coach, "LEARN_MAX_FILES", 3)
+    ids = [c.post("/coach/learn", content=_chunk(i)).json()["id"] for i in range(5)]
+    kept = [m["id"] for m in c.get("/coach/learn").json()["items"]]
+    assert len(kept) == 3 and set(kept) <= set(ids) and ids[-1] in kept
+    monkeypatch.setattr(coach, "LEARN_MAX_ALL", 1)                             # 용량이 넘치면 방금 넣은 것까지도 비운다(디스크를 채우지 않는다)
+    c.post("/coach/learn", content=_chunk(9))
+    assert c.get("/coach/learn").json()["items"] == []
