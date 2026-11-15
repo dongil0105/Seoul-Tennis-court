@@ -25,7 +25,20 @@ from app.models import OpenRule
 logger = logging.getLogger("tennis.notice")
 
 LAST = 99                      # '말일'
-Rule = tuple[tuple[int, str], ...]   # ((날, 'HH:MM'), …) — 날 99 = 말일
+Rule = tuple[tuple[int, str], ...]   # ((날, 'HH:MM'), …) — 날 99 = 말일, 1000 이상 = n번째 ○요일
+NTH = 1000                     # 날 코드 1000 + n*10 + 요일(월=0) = '매월 n번째 ○요일' — 1030 = 셋째 주 월요일
+_ORD = ["첫째", "둘째", "셋째", "넷째", "다섯째"]
+_WD = ["월", "화", "수", "목", "금", "토", "일"]
+
+
+def nth_weekday(n: int, weekday: int) -> int:
+    """'매월 n번째 ○요일'의 날 코드(월요일 = 0)."""
+    return NTH + n * 10 + weekday
+
+
+# 서울시 자료에 없는 곳(자체 예약 사이트를 쓰는 시설)의 정기 오픈 일정 — 그 시설 누리집의 대관 안내에 적힌 것만 넣는다.
+#   대치유수지체육공원: '월 예약의 기준일은 매월 셋째 주 월요일 09:00입니다.'(2026-11-15 확인)
+STATIC: dict[str, Rule] = {"대치유수지": ((nth_weekday(3, 0), "09:00"),)}
 
 _BREAK = re.compile(r"(?i)<br\s*/?>|</(p|div|li|tr|td|h\d)>")
 _TAG = re.compile(r"<[^>]+>")
@@ -84,7 +97,14 @@ def label(rule: Rule) -> str:
     """'매월 15일·말일 09:00' — 시각이 날마다 다르면 '매월 10일 10:00 · 25일 14:00'."""
     if not rule:
         return ""
-    name = lambda d: "말일" if d == LAST else f"{d}일"   # noqa: E731
+    def name(d: int) -> str:
+        if d == LAST:
+            return "말일"
+        if d >= NTH:                  # n번째 ○요일 → '셋째 주 월요일'
+            n, wd = divmod(d - NTH, 10)
+            return f"{_ORD[n - 1]} 주 {_WD[wd]}요일" if 1 <= n <= 5 and 0 <= wd <= 6 else f"{d}"
+        return f"{d}일"
+
     times = {t for _d, t in rule}
     if len(times) == 1:
         return f"매월 {'·'.join(name(d) for d, _t in rule)} {times.pop()}"
@@ -95,7 +115,11 @@ def _occurrences(rule: Rule, year: int, month: int) -> list[datetime]:
     end = monthrange(year, month)[1]
     out = []
     for d, t in rule:
-        day = end if d == LAST else d
+        if d >= NTH:                  # n번째 ○요일(그 달에 다섯째가 없으면 건너뛴다)
+            n, wd = divmod(d - NTH, 10)
+            day = 1 + (wd - datetime(year, month, 1).weekday()) % 7 + (n - 1) * 7
+        else:
+            day = end if d == LAST else d
         if day > end:                 # 2월 30일 같은 없는 날은 건너뛴다
             continue
         out.append(datetime(year, month, day, int(t[:2]), int(t[3:5])))
@@ -122,7 +146,7 @@ def prev_at(rule: Rule, now: datetime) -> datetime | None:
 # ── 저장(곳마다 한 줄) ─────────────────────────────────────────────
 
 def rules(session: Session) -> dict[str, Rule]:
-    out: dict[str, Rule] = {}
+    out: dict[str, Rule] = dict(STATIC)   # 서울시 자료에 없는 곳의 일정(안내문에서 읽은 일정이 있으면 그것이 먼저)
     for r in session.exec(select(OpenRule)):
         try:
             rule = tuple((int(d), str(t)) for d, t in json.loads(r.rule or "[]"))

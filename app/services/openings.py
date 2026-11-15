@@ -31,6 +31,9 @@ PARTS = ("새벽", "주간", "야간")
 WD_LABEL = ["월", "화", "수", "목", "금", "토", "일"]
 
 NOTICE_SOURCE = "notice"                 # 공지 일정으로 만든 알림(서울시 자료에 그 회차가 아직 없음)
+# 서울시 자료에 없는 곳(자체 예약 사이트) — 이름·지역만 적어 둔다. 예약 상태는 모른다(화면은 예약 사이트 바로가기를 보여 준다).
+# 그 곳의 정기 오픈 일정은 NOTICE.STATIC 에 있다.
+STATIC_PLACES = {"대치유수지": {"place": "대치유수지체육공원 테니스장", "region": "강남구"}}
 NOTICE_HOT = timedelta(hours=2)          # 공지된 오픈 시각이 지난 뒤 이 시간 동안은 맨 위에서 안내
 NOTICE_SLACK = timedelta(days=3)         # 실제 회차가 공지 날짜에서 이만큼 안에 올라와 있으면 그쪽이 정본
 
@@ -784,6 +787,9 @@ def board(session: Session) -> dict:
                                            "courts": []})
             e["courts"].append(_chip(s))
 
+    for a, m in STATIC_PLACES.items():
+        if a in order:
+            meta.setdefault(a, dict(m))
     openings = sorted(opens.values(), key=lambda x: (x["open_at"], order.index(x["area"])
                                                        if x["area"] in order else 99))
     for e in openings:
@@ -876,6 +882,16 @@ def board(session: Session) -> dict:
 
 # ── 알람 판정(전날 d1 · 1시간 전 h1) ───────────────────────────────
 
+def _static_sample(area: str) -> Slot | None:
+    """서울시 자료에 없는 곳의 공지 일정 알림에 쓸 이름·지역(관심 목록에 있을 때만)."""
+    m = STATIC_PLACES.get(area)
+    if not m or area not in all_areas():
+        return None
+    return Slot(slot_hash=f"static:{area}", source_id=NOTICE_SOURCE, tier=1, facility_name=m["place"],
+                court_name=m["place"], region=m["region"], date="", time_start="", time_end="",
+                is_open=False, status="안내중", open_at="", reserve_url=None)
+
+
 def pending_alerts(session: Session, prefix: str = "") -> list[tuple[str, Slot]]:
     """아직 안 보낸 (kind, slot) 목록. kind: 'd1'(내일 오픈) | 'h1'(1시간 안에 오픈).
 
@@ -907,7 +923,7 @@ def pending_alerts(session: Session, prefix: str = "") -> list[tuple[str, Slot]]
     # 시설 공지의 정기 오픈 일정 — 서울시 자료에 그 회차가 아직 안 올라온 곳(한남은 오픈 직전에야 올라온다)
     for a, rule in NOTICE.rules(session).items():
         t = NOTICE.next_at(rule, now)
-        base = sample.get(a)
+        base = sample.get(a) or _static_sample(a)
         if not t or base is None:
             continue
         if any(d <= t.date() + NOTICE_SLACK for d in real_days.get(a, ())):

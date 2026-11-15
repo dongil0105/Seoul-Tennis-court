@@ -15,7 +15,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / "app" / "static" / "dashboard.html"
-AREAS = ["한남", "장충", "마루공원", "선우공원", "서울숲"]
+AREAS = ["한남", "장충", "마루공원", "선우공원", "서울숲", "잠원", "대치유수지"]
 
 
 @pytest.fixture(scope="module")
@@ -54,6 +54,10 @@ def test_live_sample_just_after_hannam_opened(out):
     assert v["서울숲"]["now"] == ["open", "go", "예약 받는 중", "예약 1건"]
     assert v["서울숲"]["next"] == ["date", "12.1(화) 09:01", "16일 남음", False]
     # 반포: 가장 이른 빈 시간(오늘이 아니면 날짜를 적는다)
+    # 잠원 · 대치유수지: 이 응답(두 곳을 넣기 전에 받은 것)에는 자료가 없다 — 지어내지 않는다
+    assert v["잠원"]["now"] == ["none", "off", "정보 없음", "올라온 예약이 없어요"]
+    assert v["대치유수지"]["now"] == ["ext", "off", "직접 확인", "예약 사이트에서 봐요"]     # 자체 예약 사이트 — 여기서는 상태를 모른다
+    assert v["대치유수지"]["next"] == ["unknown", "아직 몰라요", "일정이 아직 없어요", False]
     assert v["반포"]["now"] == ["free", "go", "빈 시간 있음", "11.17(화) 14~15시"]
     assert v["반포"]["next"] == ["date", "내일 09:00", "23시간 58분 남음", True]
     assert out["live"]["hot"] == [["한남", "2026-11-15 09:00", False]]
@@ -82,8 +86,10 @@ def test_live_sample_three_hours_later(out):
 def test_sorting(out):
     s = out["liveSort"]
     assert s["base"] == AREAS + ["반포"]                                  # 늘 같은 자리
-    assert s["now"] == AREAS + ["반포"]                                   # 오늘 열림 → 예약 받는 중(같으면 기본 순서)
-    assert s["soon"] == ["한남", "반포", "장충", "서울숲", "마루공원", "선우공원"]   # 빨리 열리는 순, 날짜 없는 곳은 뒤
+    # 오늘 열림 → 예약 받는 중(반포의 빈 시간 포함) → 그 밖(같으면 기본 순서)
+    assert s["now"] == ["한남", "장충", "마루공원", "선우공원", "서울숲", "반포", "잠원", "대치유수지"]
+    # 빨리 열리는 순, 날짜 없는 곳은 뒤
+    assert s["soon"] == ["한남", "반포", "장충", "서울숲", "마루공원", "선우공원", "잠원", "대치유수지"]
 
 
 # ── 미리보기 자료(?mock=…) ────────────────────────────────────────────
@@ -125,7 +131,8 @@ def test_bad_input_never_breaks(out):
     for key in ("garbage", "emptyObj"):
         v = rows(out[key])
         assert list(v) == AREAS
-        assert all(x["now"] == ["none", "off", "정보 없음", "올라온 예약이 없어요"] for x in v.values())
+        assert all(x["now"] == ["none", "off", "정보 없음", "올라온 예약이 없어요"] for a, x in v.items() if a != "대치유수지")
+        assert v["대치유수지"]["now"] == ["ext", "off", "직접 확인", "예약 사이트에서 봐요"]
         assert all(x["next"] == ["unknown", "아직 몰라요", "일정이 아직 없어요", False] for x in v.values())
         assert out[key]["hot"] == [] and out[key]["next"] is None
 
@@ -175,9 +182,22 @@ def test_page_structure():
 def test_court_surface_of_each_venue(out):
     """코트 그림의 바닥 종류 — 공개된 시설 안내에서 확인한 것만 적는다(모르는 곳은 빈 값 = 회색 그림)."""
     assert out["surface"] == {"한남": "인조잔디", "장충": "하드 코트", "마루공원": "인조잔디", "선우공원": "인조잔디",
-                              "서울숲": "인조잔디", "반포": "인조잔디 · 클레이", "없는곳": ""}
+                              "서울숲": "인조잔디", "잠원": "클레이", "대치유수지": "하드 코트", "반포": "인조잔디 · 클레이",
+                              "없는곳": ""}
     page = PAGE.read_text(encoding="utf-8")
     assert "function courtArt(" in page and 'class="court-art"' in page
+
+
+def test_two_more_places_in_the_previews(out):
+    """잠원(서울시 자료가 오는 곳)은 다른 곳과 같은 칸을 쓰고, 대치유수지(자체 예약 사이트)는 정기 오픈 일정만 보여 준다."""
+    v = rows(out["next"])
+    assert v["잠원"]["now"] == ["open", "go", "예약 받는 중", "코트 3개"]
+    assert v["대치유수지"]["now"] == ["ext", "off", "직접 확인", "예약 사이트에서 봐요"]
+    assert v["대치유수지"]["next"] == ["date", "11.30(월) 09:00", "20일 남음 · 공지 일정", False]
+    page = PAGE.read_text(encoding="utf-8")
+    # 예약 사이트 바로가기는 화면에 적어 둔 그 한 곳뿐(서버가 준 주소를 쓰지 않는다)
+    assert page.count("http://www.xn--vk1b79znxd34c61h.kr/") == 1 and "function extNowSecHTML(" in page
+    assert "'잠원': 'jamwon', '대치유수지': 'daechi'" in page
 
 
 def test_guidance_lives_on_the_venue_card_and_same_button_closes():

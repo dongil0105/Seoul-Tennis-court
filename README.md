@@ -177,12 +177,14 @@ pytest
 
 화면은 `app/static/dashboard.html` 한 파일이다(빌드 도구 없음). 설계 기준과 Claude · Codex 협업 기록은 [`docs/REDESIGN_V6.md`](docs/REDESIGN_V6.md).
 
-- **테니스장별로 본다**: 맨 위 고르기 줄(전체 · 한남 · 장충 · 마루공원 · 선우공원 · 서울숲 · 반포). 전체는 테니스장 카드 6장, 한 곳을 고르면 그곳만.
+- **테니스장별로 본다**: 맨 위 고르기 줄(전체 · 한남 · 장충 · 마루공원 · 선우공원 · 서울숲 · 잠원 · 대치유수지 · 반포). 전체는 테니스장 카드 6장, 한 곳을 고르면 그곳만.
 - **어느 곳이든 같은 카드**: 코트 그림(바닥 종류: 인조잔디 · 하드 · 클레이) · 이름 · 두 칸 — `지금 예약`(예약 받는 중 · 오늘 열림 · 확인 필요 · 모두 마감 … 반포는 빈 시간 있음)과 `다음 예약 오픈`(날짜와 남은 시간) · `[코트 예약 보기]`(다시 누르면 닫힘).
   오늘 예약이 열렸다는 안내는 그 테니스장 카드 안에 한 줄로 나온다(맨 위 큰 카드는 없다).
 - **아래 탭 3개**: 홈 · 알림(알림 켜기, 최근 24시간 알림 기록, 받을 테니스장과 시점) · 더보기(사용법, 색깔 뜻, 공유, 설치 방법).
 - **종 = 그 테니스장의 예약 오픈 알림**. 반포의 빈 시간 알림은 따로 켠다.
-- 주소: `/#hannam` `/#jangchung` `/#maru` `/#sunwoo` `/#forest` `/#play`(반포) `/#alerts` `/#more`.
+- 주소: `/#hannam` `/#jangchung` `/#maru` `/#sunwoo` `/#forest` `/#jamwon` `/#daechi` `/#play`(반포) `/#alerts` `/#more`.
+- 관심 테니스장은 `WATCH_KEYWORDS`(기본값 `app/config.py`)로 정한다. **대치유수지체육공원**은 서울시 자료에 없는 곳(강남구청 자체 예약 사이트)이라
+  예약 상태는 보여 주지 않고, 시설 누리집에 적힌 정기 오픈 일정('매월 셋째 주 월요일 09:00', `app/services/notice.py` 의 `STATIC`)과 예약 사이트 바로가기만 보여 준다. 그 사이트는 자동으로 읽지 않는다.
 - 미리보기: `/?mock=opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr | new | playnew | feed | playfeed`(`&tip=1` 처음 쓰는 사람 안내).
 - 시험: `tests/test_venue_model.py` — 화면의 계산 부분(테니스장 모델)만 떼어 Node 로 돌린다. `tests/js/venue_model_cases.js` 는 Codex 가 설계 기준서만 보고 쓴 독립 시험 100건.
 

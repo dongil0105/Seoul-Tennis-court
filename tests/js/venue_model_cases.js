@@ -1,6 +1,7 @@
 'use strict';
 // Codex 가 설계 기준서(docs/REDESIGN_V6.md §4.1 · §4.2 · §10.1)만 보고 쓴 독립 시험 — 구현을 보고 맞춘 기대값이 아니다.
 // 가져오면서 바꾼 것: 파일 위치 2곳, 그리고 검토 2 뒤에 기준서 문구가 바뀐 두 곳(상시 예약의 작은 글자 · 잠시 멈춤).
+// 2026-11-15 테니스장 두 곳 추가(잠원 · 대치유수지): 고정 목록(areas)을 7곳으로, '몇 번째' 대신 이름으로 찾게 바꿨다(기대값은 그대로).
 // Independent expectations: REDESIGN_V6.md §§4.1, 4.2, 10.1.
 // No network, DOM, dependencies, or writes. Run with Node 20+ from any directory.
 const fs = require('node:fs');
@@ -15,7 +16,7 @@ const block = html.slice(start, end);
 const ms = s => Date.parse(s.replace(' ', 'T') + '+09:00');
 const T = ms('2026-11-15 09:00');
 const H = 3600000, DAY = 24 * H;
-const areas = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
+const areas = ['한남', '장충', '마루공원', '선우공원', '서울숲', '잠원', '대치유수지'];
 function boot(t = T) {
   const ctx = vm.createContext({
     Date: class extends Date { constructor(...a) { super(...(a.length ? a : [t])); } static now() { return t; } },
@@ -65,9 +66,9 @@ for (const later of [false, true]) {
     unknown('지난번 10.27(화) 09:30'), date('12.1(화) 09:01', '16일 남음', false),
     date('내일 09:00', later ? '20시간 58분 남음' : '23시간 58분 남음', true)
   ];
-  [...areas, '반포'].forEach((a, i) => {
-    test(`${tag}/${a}/now`, () => build(live, t).list[i].now, nowCells[i]);
-    test(`${tag}/${a}/next`, () => nextBrief(build(live, t).list[i].next), nx[i]);
+  ['한남', '장충', '마루공원', '선우공원', '서울숲', '반포'].forEach((a, i) => {
+    test(`${tag}/${a}/now`, () => build(live, t).list.find(v => v.area === a).now, nowCells[i]);
+    test(`${tag}/${a}/next`, () => nextBrief(build(live, t).list.find(v => v.area === a).next), nx[i]);
   });
   test(`${tag}/hot`, () => build(live, t).hot.map(openBrief), later ? [] : [['한남', '2026-11-15 09:00', false]]);
   test(`${tag}/next`, () => openBrief(build(live, t).next), later ? ['장충', '2026-11-25 10:00', true] : ['한남', '2026-11-15 09:03', false]);
@@ -129,7 +130,7 @@ test('unknown without past', () => nextBrief(venue({}).next), unknown());
 const slot = (s, e) => ({s, e, courts: ['1번']});
 const play = (days, extra = {}) => ({ok: true, days, ...extra});
 const day = (date, slots = []) => ({date, slots});
-const pv = (p, t = T) => build({play: p}, t).list[5];
+const pv = (p, t = T) => build({play: p}, t).list.find(v => v.area === '반포');
 for (const [name, p, expected] of [
   ['free contiguous', play([day('2026-11-15', [slot(20, 21), slot(21, 22)])]), cell('free', 'go', '빈 시간 있음', '오늘 20~22시')],
   ['free ranges', play([day('2026-11-15', [slot(14, 15), slot(20, 22)])]), cell('free', 'go', '빈 시간 있음', '오늘 14~15시 외')],

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>코트 오픈</title>
-<meta name="description" content="한남·장충·마루공원·선우공원·서울숲·반포 테니스장 예약이 언제 열리는지, 지금 예약을 받는지 알려 주는 앱">
+<meta name="description" content="한남·장충·마루공원·선우공원·서울숲·잠원·대치유수지·반포 테니스장 예약이 언제 열리는지, 지금 예약을 받는지 알려 주는 앱">
 <meta name="theme-color" content="#F2F4F6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0E1012" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -544,8 +544,9 @@ details[open]>summary .chev{transform:rotate(180deg)}
         <details class="lrow-d">
           <summary><svg class="lead" style="width:22px;height:22px;color:var(--ink-2)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg><span style="flex:1">정보는 어디서 오나요</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
           <div class="body">
-            <p><b>한남 · 장충 · 마루공원 · 선우공원 · 서울숲</b>은 서울시 공공서비스예약에 올라온 정보를 그대로 보여 드려요. 서울시는 날짜별 남은 자리를 알려 주지 않아서, ‘예약 받는 중’이어도 원하는 날이 찼을 수 있어요.</p>
+            <p><b>한남 · 장충 · 마루공원 · 선우공원 · 서울숲 · 잠원한강공원</b>은 서울시 공공서비스예약에 올라온 정보를 그대로 보여 드려요. 서울시는 날짜별 남은 자리를 알려 주지 않아서, ‘예약 받는 중’이어도 원하는 날이 찼을 수 있어요.</p>
             <p><b>반포종합운동장</b>은 테니스플레이의 예약 현황으로 빈 시간을 계산해요.</p>
+            <p><b>대치유수지 체육공원</b>은 강남구청의 예약 사이트를 따로 써서 예약 상태를 여기서 볼 수 없어요. 그 사이트에 적힌 정기 오픈 일정(매월 셋째 주 월요일 09:00)만 알려 드려요.</p>
             <p><b>공지 일정</b>은 시설 안내문에 적힌 정기 오픈 날짜예요. 실제와 다를 수 있어요.</p>
             <p><b>코트 그림</b>의 색은 바닥 종류예요(초록 줄무늬 = 인조잔디, 파랑 = 하드 코트, 주황 = 클레이). 시설 안내에 공개된 내용이라 공사로 바뀌었을 수 있어요.</p>
           </div>
@@ -580,8 +581,8 @@ details[open]>summary .chev{transform:rotate(180deg)}
    앞부분(…MODEL-END 까지)은 화면에 기대지 않는 계산이라 tests/js/venue_harness.js 가 그대로 떼어 돌린다. */
 const $ = (id) => document.getElementById(id);
 const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr | new | playnew | feed | playfeed (&tip=1 처음 쓰는 사람 안내)
-const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
-const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장', '반포': '반포종합운동장'};
+const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲', '잠원', '대치유수지'];
+const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장', '잠원': '잠원한강공원 테니스장', '대치유수지': '대치유수지 체육공원', '반포': '반포종합운동장'};
 // 반포(테니스플레이) 알림 — 고른 기기에만 간다. PLAY_AREA = 예약 오픈 예고, PLAY_FREE = 빈 시간이 새로 생기면
 const PLAY_AREA = '반포', PLAY_FREE = '반포 빈 시간';
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
@@ -800,6 +801,7 @@ function mockBoard(kind) {
     {area: '마루공원', place: '마루공원', region: '강남구', until_label: '상시 예약', until_kind: '', full_count: 0, courts: [c('1면', '매일', '06:00-22:00', false), c('1면 조명', '매일', '06:00-22:00'), c('2면', '매일', '06:00-22:00', false), c('2면 조명', '매일', '06:00-22:00'), c('3면', '매일', '06:00-22:00', false), c('3면 조명', '매일', '06:00-22:00')]},
     {area: '선우공원', place: '선우공원', region: '관악구', until_label: '11/30까지 접수', until_kind: 'rcpt', full_count: 2, courts: [c('B', '평일 주간', '06:00-18:00')]},
     {area: '서울숲', place: '서울숲 테니스장', region: '성동구', until_label: '상시 예약', until_kind: '', full_count: 0, courts: [c('코트', '평일', '06:00-19:00')]},
+    {area: '잠원', place: '잠원한강공원 테니스장', region: '서초구', until_label: '11/30까지 접수', until_kind: 'rcpt', full_count: 6, courts: [c('1번', '평일', '08:00-18:00'), c('2번', '평일', '08:00-18:00'), c('3번', '평일', '08:00-18:00')]},
   ];
   let openings = [];
   if (kind === 'opened') openings = [
@@ -815,6 +817,8 @@ function mockBoard(kind) {
   if (kind === 'notice') openings = [ex('한남', '용산구', day(3, '09:00'), '매월 15일·말일 09:00'), ex('장충', '중구', day(13, '10:00'), '매월 10일·25일 10:00'), forest];
   if (kind === 'passed') openings = [ex('한남', '용산구', at(-20), '매월 15일·말일 09:00', true), ex('한남', '용산구', day(15, '09:00'), '매월 15일·말일 09:00'),
     ex('장충', '중구', day(10, '10:00'), '매월 10일·25일 10:00'), forest];
+  // 서울시 자료에 없는 곳(자체 예약 사이트) — 정기 오픈 일정만 온다
+  if (kind !== 'none' && kind !== 'empty') openings.push(ex('대치유수지', '강남구', day(20, '09:00'), '매월 셋째 주 월요일 09:00'));
   const busy = new Set(openings.map((x) => x.area));
   const past = {'한남': [day(-12, '09:00')], '장충': [day(-2, '10:00'), day(-18, '10:00')], '선우공원': [day(-16, '09:30'), day(-50, '09:30')]};
   const places = AREAS.map((a) => {
@@ -874,7 +878,11 @@ function mockPlay(kind, day) {                 // 반포종합운동장(테니�
    /board 응답을 '테니스장별 같은 모양'으로 바꾼다 — 화면은 이 결과만 보고 그린다.
    상태 · 수량은 서버가 준 원본으로 판정하고, 겹치는 코트 빼기는 보여 줄 목록에만 한다. */
 const HOT_MS = 2 * 36e5, DAY_MS = 864e5;        // 예약이 열리고 2시간까지는 '오늘 열림'으로 맨 위에 둔다
-const SLUG = {'한남': 'hannam', '장충': 'jangchung', '마루공원': 'maru', '선우공원': 'sunwoo', '서울숲': 'forest', '반포': 'play'};
+const SLUG = {'한남': 'hannam', '장충': 'jangchung', '마루공원': 'maru', '선우공원': 'sunwoo', '서울숲': 'forest', '잠원': 'jamwon', '대치유수지': 'daechi', '반포': 'play'};
+/* 서울시 자료에 없는 곳 — 자체 예약 사이트를 쓴다. 예약 상태는 모르고(지어내지 않는다), 서버가 주는 정기 오픈 일정과 예약 사이트 바로가기만 보여 준다.
+   대치유수지체육공원: 강남구청 운영, 누리집의 대관 안내(2026-11-15 확인) — '선착순 … 사용일 기준 1일전까지', '월 예약의 기준일은 매월 셋째 주 월요일 09:00' */
+const EXTERNAL = {'대치유수지': {url: 'http://www.xn--vk1b79znxd34c61h.kr/', site: '대치유수지체육공원 예약 사이트', by: '강남구청',
+  how: '다음 달 예약은 매월 셋째 주 월요일 09:00부터 선착순이에요. 이용 하루 전까지 예약할 수 있어요.'}};
 const placeOf = (x) => x.place || NAMES[x.area] || x.area;
 const keyOf = (x) => `${x.area}|${x.open_at}|${x.period || ''}`;
 const validDay = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s || '') && new Date(utcDay(s)).toISOString().slice(0, 10) === s;   // 실제로 있는 날짜만
@@ -897,6 +905,7 @@ function seoulNow(v, rawAvail, rawShut) {
   }
   if (open.length) return CELL('open', 'go', '예약 받는 중', courtsLabel(open));
   if (notice.length) return CELL('check', 'warn', '확인 필요', `${hm(notice[0].open_at)} 공지 시각 지남`);
+  if (EXTERNAL[v.area]) return CELL('ext', 'off', '직접 확인', '예약 사이트에서 봐요');      // 자체 예약 사이트 — 여기서는 상태를 모른다
   if (states.has('unknown')) return CELL('check', 'warn', '확인 필요', '예약 화면에서 확인');
   if (!shutCourts.length) {
     return v.upcoming.length ? CELL('wait', 'off', '예약 시작 전', '열리는 날을 기다려요') : CELL('none', 'off', '정보 없음', '올라온 예약이 없어요');
@@ -976,7 +985,7 @@ function buildVenues(d, now) {
     const mine = openings.filter((x) => x.area === area);
     const ra = rawAvail.filter((g) => g.area === area), rs = rawShut.filter((g) => g.area === area);
     const v = {area, name: NAMES[area] || p.place || area,
-      region: p.region || ([...mine, ...ra, ...rs].find((x) => x.region) || {}).region || '', kind: 'seoul',
+      region: p.region || ([...mine, ...ra, ...rs].find((x) => x.region) || {}).region || '', kind: EXTERNAL[area] ? 'ext' : 'seoul',
       hot: mine.filter(isHot), cold: mine.filter((x) => x.opened && !isHot(x)), upcoming: mine.filter((x) => !x.opened),
       avail: strip(ra), shut: strip(rs),
       past: (Array.isArray(p.past_opens) ? p.past_opens : []).filter((s) => Number.isFinite(kstMs(s))), rule: p.open_rule || '', play: null};
@@ -997,8 +1006,9 @@ function sortVenues(list, key) {
 }
 /* 코트 바닥 종류 — 공개된 시설 안내에서 확인한 것(2026-11-15). 공사로 바뀌면 여기만 고친다. 모르는 곳은 적지 않는다(회색 그림).
    서울숲: 서울시 안내문 '시설현황 - 인조잔디' · 반포: 서초구 이용안내 '인조잔디 8면 · 클레이 4면' · 마루공원: 서울물재생시설공단 '인조잔디(실외)'
-   한남(인조잔디 12면) · 장충(하드 — 우레탄 9면) · 선우공원(인조잔디 3면): 예약 정보 사이트(seoul-tennis.com)의 바닥재 표기 */
-const SURFACE = {'한남': ['turf'], '장충': ['hard'], '마루공원': ['turf'], '선우공원': ['turf'], '서울숲': ['turf'], '반포': ['turf', 'clay']};
+   한남(인조잔디 12면) · 장충(하드 — 우레탄 9면) · 선우공원(인조잔디 3면) · 잠원(클레이) · 대치유수지(하드 3면): 예약 정보 사이트(seoul-tennis.com)의 바닥재 표기
+   — 잠원 · 대치유수지는 사용자가 알려 준 내용(클레이 · 하드)과도 같다 */
+const SURFACE = {'한남': ['turf'], '장충': ['hard'], '마루공원': ['turf'], '선우공원': ['turf'], '서울숲': ['turf'], '잠원': ['clay'], '대치유수지': ['hard'], '반포': ['turf', 'clay']};
 const SURFACE_NAME = {turf: '인조잔디', hard: '하드 코트', clay: '클레이'};
 const surfaceText = (area) => (SURFACE[area] || []).map((k) => SURFACE_NAME[k] || '').filter(Boolean).join(' · ');
 /* MODEL-END */
@@ -1187,7 +1197,7 @@ function focusBack(sel) {
 const untilText = (s) => dots(s || '').replace('까지 접수', '까지 신청').replace('상시 예약', '늘 예약 받아요');
 
 /* 알림 종 — 그 테니스장의 예약 오픈 알림을 켜고 끈다. kind: icon(카드 머리의 종) · btn(큰 버튼) */
-const canAlarm = (v) => v.kind === 'seoul' || Boolean(playAlerts().open);
+const canAlarm = (v) => v.kind !== 'play' || Boolean(playAlerts().open);
 const alarmInner = (kind, on) => (on ? ICON.bellOn : ICON.bell) + (kind === 'icon' ? ''
   : `<span>${kind === 'btn' ? (on ? '알림 받는 중 · 누르면 꺼져요' : '열리기 전에 알림 받기') : on ? '알림 받는 중' : '알림 받기'}</span>`);
 const alarmLabel = (area, on) => `${NAMES[area] || area} 알림 ${on ? '끄기, 지금 켜져 있음' : '켜기, 지금 꺼져 있음'}`;
@@ -1222,7 +1232,7 @@ function duoHTML(v) {
 }
 /* 카드 머리: 코트 그림 · 이름 · 지역과 바닥 종류 · 종 */
 function headHTML(v, single) {
-  const src = single ? (v.kind === 'play' ? '테니스플레이 예약' : '서울시 공공예약') : '';
+  const src = single ? (v.kind === 'play' ? '테니스플레이 예약' : v.kind === 'ext' ? '자체 예약 사이트' : '서울시 공공예약') : '';
   const sub = [v.region, surfaceText(v.area), src].filter(Boolean).join(' · ');
   const title = single ? `<h1 class="vtitle" id="one-title" tabindex="-1">${esc(v.name)}</h1>` : `<h2 class="vtitle">${esc(v.name)}</h2>`;
   return `<div class="vhead">${courtArt(v.area)}<div class="vtitles">${title}<p class="vsub"><span>${esc(sub)}</span>${newTag(v.area)}</p></div>${canAlarm(v) ? alarmHTML(v.area, 'icon') : ''}</div>`;
@@ -1248,7 +1258,7 @@ function hotSecHTML(x) {
     return `<section class="sec"><h2 class="sec-h"><span><i class="ping warn"></i>공지된 오픈 시각이 지났어요</span></h2>
       <p class="sec-lead num">오늘 ${esc(hm(x.open_at))} · 공지 일정${x.rule ? ` · ${esc(x.rule)}` : ''}</p>
       ${x.courts.length ? pickerHTML(x.courts) : ''}
-      <p class="note">${x.courts.length
+      <p class="note">${EXTERNAL[x.area] ? '예약이 열리는 시각이 지났어요. 아래 예약 사이트에서 직접 확인해 주세요.' : x.courts.length
         ? '서울시 자료에는 새 예약이 아직 안 올라왔어요. 지난번 코트를 눌러 예약 화면에서 직접 확인해 주세요.'
         : '서울시 자료에 새 예약이 올라오면 코트 번호가 여기에 나와요.'}</p></section>`;
   }
@@ -1320,6 +1330,14 @@ function nowSecHTML(v) {
   }
   const cnt = courtsLabel(courts);
   return `<section class="sec" id="sec-now"><h2 class="sec-h"><span>지금 예약 받는 코트</span>${cnt ? `<span class="cnt num">${esc(cnt)}</span>` : ''}</h2>${body}</section>`;
+}
+/* 서울시 자료에 없는 곳(자체 예약 사이트) — 예약 상태는 모른다. 그 사이트로 가는 버튼과, 그 사이트에 적힌 예약 방법만 보여 준다 */
+function extNowSecHTML(v) {
+  const e = EXTERNAL[v.area];
+  return `<section class="sec" id="sec-now"><h2 class="sec-h"><span>지금 예약</span></h2>
+    <div class="empty"><strong>여기서는 예약 상태를 볼 수 없어요</strong><p>${esc(e.by)}이 따로 운영하는 예약 사이트를 써요. 빈자리는 그 사이트에서 직접 확인해 주세요.</p></div>
+    <a class="btn line mt" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.site)} 열기${EXT}</a>
+    ${e.how ? `<p class="hint">${esc(e.how)}</p>` : ''}</section>`;
 }
 function openRowHTML(x, i) {
   const ms = kstMs(x.open_at) - nowMs(), diff = dayDiff(x.open_at);
@@ -1430,7 +1448,8 @@ function oneHTML(v) {
       ${mine.length ? `<div class="mine">${mine.map((x) => `<p class="mine-item"><span class="mine-top"><em class="newtag">새 알림</em><small class="num">${esc(freshWhen(x.at))} 알림${x.kind === 'free' ? ' · 빈 시간' : ''}</small></span><span class="mine-text num">${esc(x.text)}</span></p>`).join('')}</div>` : ''}
       ${openBtnHTML(v, true, `${v.name} 코트 예약 닫기`)}
     </article>
-    ${v.kind === 'play' ? playNowSecHTML(v) + playNextSecHTML(v) : v.hot.map(hotSecHTML).join('') + nowSecHTML(v) + nextSecHTML(v)}`;
+    ${v.kind === 'play' ? playNowSecHTML(v) + playNextSecHTML(v)
+      : v.hot.map(hotSecHTML).join('') + (v.kind === 'ext' ? extNowSecHTML(v) : nowSecHTML(v)) + nextSecHTML(v)}`;
 }
 
 /* ── 칠하기 ───────────────────────────────────────────── */
@@ -2112,7 +2131,7 @@ function goFresh(area) {                              // 새 알림 줄을 누�
 const appURL = () => { const u = new URL(location.href); u.search = ''; u.hash = ''; return u.href; };
 async function share() {
   try {
-    if (navigator.share) await navigator.share({title: '코트 오픈', text: '한남·장충·마루공원·선우공원·서울숲·반포 테니스장 예약이 언제 열리는지 알려 주는 앱이에요.', url: appURL()});
+    if (navigator.share) await navigator.share({title: '코트 오픈', text: '한남·장충·마루공원·선우공원·서울숲·잠원·대치유수지·반포 테니스장 예약이 언제 열리는지 알려 주는 앱이에요.', url: appURL()});
     else { await navigator.clipboard.writeText(appURL()); toast('주소를 복사했어요.'); }
   } catch (e) { if (e.name !== 'AbortError') toast('공유하지 못했어요. 주소창의 주소를 복사해 주세요.'); }
 }

@@ -73,7 +73,7 @@ def manifest() -> JSONResponse:
     return JSONResponse({
         "name": "코트 오픈 — 서울 테니스장 예약 알림",
         "short_name": "코트 오픈",
-        "description": "한남·장충·마루공원·선우공원·서울숲·반포 테니스장 예약이 언제 열리는지, 지금 예약을 받는지 알려 주는 앱",
+        "description": "한남·장충·마루공원·선우공원·서울숲·잠원·대치유수지·반포 테니스장 예약이 언제 열리는지, 지금 예약을 받는지 알려 주는 앱",
         "lang": "ko",
         "start_url": "/?source=pwa",
         "scope": "/",

@@ -193,3 +193,12 @@ def test_official_rows_alert_instead_of_notice(session, clock):
     g = OP.group_for_message(due)
     assert [(x["place"], x["open_at"], x["count"], x["expected"]) for x in g] == [
         ("한남테니스장", "2026-11-15 09:00", 2, False)]
+
+
+@pytest.fixture(autouse=True)
+def _original_five_places(monkeypatch):
+    """이 파일의 시험은 처음 5곳 구성으로 본다(잠원 · 대치유수지를 더한 구성은 tests/test_more_venues.py)."""
+    from app.config import settings as _cfg
+    from app.services import notice as _notice
+    monkeypatch.setattr(_cfg, "watch_keywords", "한남테니스장,장충테니스장,마루공원,선우공원,서울숲")
+    monkeypatch.setattr(_notice, "STATIC", {})

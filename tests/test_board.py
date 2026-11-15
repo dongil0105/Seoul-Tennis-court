@@ -273,3 +273,12 @@ def test_opened_but_status_not_updated_is_listed_as_unknown(session):
     b = OP.board(session)
     assert b["openings"] == [] and b["available"] == []
     assert [(g["area"], g["state"], g["past"]) for g in b["closed"]] == [("한남", "unknown", False)]
+
+
+@pytest.fixture(autouse=True)
+def _original_five_places(monkeypatch):
+    """이 파일의 시험은 처음 5곳 구성으로 본다(잠원 · 대치유수지를 더한 구성은 tests/test_more_venues.py)."""
+    from app.config import settings as _cfg
+    from app.services import notice as _notice
+    monkeypatch.setattr(_cfg, "watch_keywords", "한남테니스장,장충테니스장,마루공원,선우공원,서울숲")
+    monkeypatch.setattr(_notice, "STATIC", {})
