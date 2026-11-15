@@ -48,12 +48,17 @@ out.surface = Object.fromEntries([...lm.list.map((v) => v.area), '없는곳'].ma
 out.liveSort = {base: p.sort(live, 'base'), now: p.sort(live, 'now'), soon: p.sort(live, 'soon')};
 // 같은 응답을 3시간 뒤에 보면: 오늘 열린 예약은 '오늘 열림'이 아니게 되고(2시간 지남) 09:03 예약도 열려 있다
 p = boot(live.now_ms + 3 * 36e5);
-out.liveLater = brief(p.build(live));
+const later = p.build(live);
+out.liveLater = brief(later);
+const shutOf = (m, area) => m.list.find((v) => v.area === area).shut.map((g) => [g.period, g.state, g.courts.length]);
+out.liveLaterShut = shutOf(later, '한남');           // 새 예약이 열린 날: 접수가 끝난 지난 예약은 빠진다
 // 2) 미리보기 자료(기준 시각 2026-11-10 12:00 KST)
 const T = Date.UTC(2026, 10, 10, 3, 0, 0);
 ['opened', 'late', 'next', 'soon', 'none', 'empty', 'notice', 'passed', 'play', 'playfull', 'playerr'].forEach((kind) => {
   const q = boot(T, `?mock=${kind}`);
-  out[kind] = brief(q.build(q.mock(kind)));
+  const mm = q.build(q.mock(kind));
+  out[kind] = brief(mm);
+  if (kind === 'next') out.nextShut = shutOf(mm, '한남');   // 새 예약이 없는 곳: 지난 예약을 그대로 둔다
 });
 // 3) 이상한 값
 p = boot(T);

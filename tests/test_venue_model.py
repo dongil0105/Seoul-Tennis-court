@@ -66,8 +66,9 @@ def test_live_sample_just_after_hannam_opened(out):
 
 def test_live_sample_lists_keep_everything_reachable(out):
     d = out["liveDetail"]
-    # 오늘 열린 19건은 '오늘 열린 예약'에서 보여 주므로 아래 목록에서는 뺀다 → 지난 회차 20건만 남는다
-    assert d["한남"] == {"hot": 1, "cold": 0, "upcoming": 1, "avail": 0, "shut": 20, "past": 2,
+    # 오늘 열린 19건은 '오늘 열린 예약'에서 보여 주므로 아래 목록에서는 뺀다.
+    # 접수가 끝난 지난 예약 20건(이용 기간 마지막 날이 오늘이라 하루 겹침)도 새 예약이 올라와 있으니 뺀다 → 0건
+    assert d["한남"] == {"hot": 1, "cold": 0, "upcoming": 1, "avail": 0, "shut": 0, "past": 2,
                         "rule": "매월 15일·말일 09:00", "region": "용산구", "kind": "seoul"}
     assert (d["장충"]["avail"], d["장충"]["shut"]) == (2, 28)
     assert (d["마루공원"]["avail"], d["마루공원"]["shut"]) == (6, 0)
@@ -81,6 +82,15 @@ def test_live_sample_three_hours_later(out):
     assert v["한남"]["next"] == ["unknown", "아직 몰라요", "지난번 11.15(일) 09:00", False]
     assert out["liveLater"]["hot"] == []
     assert out["liveLater"]["next"] == ["장충", "2026-11-25 10:00"]
+
+
+def test_finished_previous_round_is_hidden_once_a_new_one_is_up(out):
+    """사용자 의견(2026-11-15): 새 예약이 열린 날 '접수 끝남'인 지난 예약이 같이 나오면 둘이 겹쳐 보여 이상하다."""
+    # 한남: 09:00 에 11/15~11/30 예약이 열림. 지난 10/31~11/15 예약(접수 끝남)은 목록에서 빠지고 새 예약만 남는다
+    assert out["liveLaterShut"] == [["11/15~11/30", "unknown", 19]]
+    # 새 예약이 없는 곳은 지난 예약을 그대로 둔다(그 코트로라도 예약 화면에 들어가 볼 수 있게)
+    assert out["nextShut"] == [["10/31~11/15", "ended", 12]]
+    assert rows(out["next"])["한남"]["now"] == ["ended", "off", "예약 끝남", "다음 오픈을 기다려요"]
 
 
 def test_sorting(out):
