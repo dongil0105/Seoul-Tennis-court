@@ -10,8 +10,7 @@
 //   ② '○○만 나오는 영상'이라고 골랐으면: 모델이 스윙이라고 본 후보는 그 종류로, 스윙이 아니라고 본 후보는 '스윙 아님'으로       → weak
 //   ③ 아무 표시도 없으면: 모델이 아주 확신한 것만(스윙 0.9 이상·종류 0.9 이상 / 스윙 아님 0.97 이상) 모델이 부른 대로            → pseudo
 //   그 사이의 애매한 후보는 학습에 쓰지 않는다(pos = -1).
-// '○○만'은 묶음마다 다를 수 있다(영상마다 바꿔 가며 볼 때). 그리고 '포핸드만'이라는데 모델이 대부분 백핸드 쪽으로 보면
-// 치는 손을 반대로 골랐거나(왼손잡이) 설정이 영상과 안 맞는 것이므로, 그 구간의 스윙은 학습에 쓰지 않고 알려 준다.
+// '○○만'은 영상 묶음에 붙인 표시라 5분 단위로 모델의 판단과 견줘 믿을지 정한다(아래). 초당 12장보다 느리게 뽑힌 묶음은 쓰지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -38,7 +37,9 @@ const REACT = 0.3;                                           // 보고 누르기
 const r4 = (a) => a.map((x) => Math.round(x * 1e4) / 1e4);
 const out = fs.createWriteStream(path.join(outDir, 'cands.jsonl'));
 const hits = [];
-const tot = { sessions: 0, sec: 0, cands: 0, gold: 0, weak: 0, pseudo: 0, neg: 0 };
+const tot = { sessions: 0, sec: 0, cands: 0, gold: 0, weak: 0, fixed: 0, pseudo: 0, neg: 0, slow: 0 };
+const MIN_FPS = 12;                                          // 이보다 느리게 뽑힌 묶음은 학습에 쓰지 않는다
+const seg = {};
 const warn = [];
 for (const [session, map] of bySession) {
   const J = joinChunks([...map.values()]);
@@ -62,26 +63,33 @@ for (const [session, map] of bySession) {
       near.pos = 1; near.label = tap.k === 'volley' ? (near.P.fvolley + near.P.forehand >= near.P.bvolley + near.P.backhand ? 'fvolley' : 'bvolley') : fam[0];
     }
   }
-  // '○○만' 구간이 영상과 맞는지: 모델이 스윙이라고 본 것 가운데 그 종류 쪽이 아닌 것이 60% 넘으면 믿지 않는다
-  const distrust = new Set();
+  // '○○만'은 영상 묶음에 붙인 표시라 영상마다 맞는 정도가 다르다(설명하는 영상, 왼손잡이, 코치가 공을 던져 주는 장면 …).
+  // 그래서 5분 단위로 '모델이 스윙이라고 본 것 가운데 그 종류로 부른 비율'을 보고 나눈다:
+  //   85% 이상 → 믿는 구간: 스윙을 모두 그 종류로(모델이 틀린 15%를 바로잡는다)   15% 이하 → 반대로 보는 구간(손이 반대 등): 쓰지 않는다
+  //   그 사이 → 섞인 구간: 모델도 그 종류라고 아주 확신한 것만 쓴다
+  const WIN = 300, trust = new Map();
   if (mode !== 'gold') {
-    for (const only of new Set(scored.map((c) => c.only).filter(Boolean))) {
-      const fam = FAMILY[only] || [];
-      const sw = scored.filter((c) => c.only === only && c.s >= 0.5);
-      const off = sw.filter((c) => !fam.includes(c.cls) && !(only === 'volley')).length;
-      if (fam.length && sw.length >= 6 && off / sw.length > 0.6) { distrust.add(only); warn.push(`${session}: '${only}만'이라는데 스윙 ${sw.length}개 중 ${off}개를 다른 종류로 봄 → 이 구간의 스윙은 학습에서 뺌(치는 손이 반대이거나 설정이 영상과 안 맞음)`); }
+    const bins = new Map();
+    for (const c of scored) {
+      if (!c.only || c.s < 0.5) continue;
+      const key = `${c.only}:${Math.floor(c.t / WIN)}`, fam = FAMILY[c.only] || [];
+      const b = bins.get(key) || { n: 0, ok: 0 }; b.n++; if (fam.includes(c.cls)) b.ok++; bins.set(key, b);
     }
+    for (const [key, b] of bins) { const a = b.ok / b.n; trust.set(key, b.n >= 5 && a >= 0.85 ? 'yes' : b.n >= 5 && a <= 0.15 ? 'opposite' : 'mixed'); seg[trust.get(key)] = (seg[trust.get(key)] || 0) + b.n; }
   }
   for (const c of scored) {
     let how = mode;
-    if (c.pos === 1) { tot.gold++; }
+    if (c.fps && c.fps < MIN_FPS) { c.pos = -1; tot.slow++; how = 'slow'; }           // 초당 장수가 모자란 묶음은 움직임이 뭉개져 쓰지 않는다
+    else if (c.pos === 1) { tot.gold++; }
     else if (mode === 'gold') { c.pos = J.taps.every((x) => Math.abs(c.t - (x.t - REACT)) > 1.0) ? 0 : -1; }
     else if (c.only) {
       how = 'weak';
-      const fam = FAMILY[c.only] || [];
-      if (distrust.has(c.only)) c.pos = c.s <= 0.03 ? 0 : -1;
-      else if (c.s >= 0.5 && fam.length) { c.pos = 1; c.label = fam.length === 1 ? fam[0] : [...fam].sort((a, b) => c.P[b] - c.P[a])[0]; tot.weak++; }
-      else c.pos = c.s <= 0.1 ? 0 : -1;
+      const fam = FAMILY[c.only] || [], tr = trust.get(`${c.only}:${Math.floor(c.t / WIN)}`) || 'mixed';
+      if (c.s <= 0.03) c.pos = 0;
+      else if (c.s < 0.5 || !fam.length || tr === 'opposite') c.pos = -1;
+      else if (tr === 'yes') { c.pos = 1; c.label = fam.includes(c.cls) ? c.cls : fam.length === 1 ? fam[0] : [...fam].sort((a, b) => c.P[b] - c.P[a])[0]; tot.weak++; if (!fam.includes(c.cls)) tot.fixed++; }
+      else if (fam.includes(c.cls) && c.s >= 0.9 && c.conf >= 0.9) { c.pos = 1; c.label = c.cls; tot.pseudo++; how = 'pseudo'; }
+      else c.pos = -1;
     } else if (c.s >= 0.9 && c.conf >= 0.9) { how = 'pseudo'; c.pos = 1; c.label = c.cls; tot.pseudo++; }
     else { how = 'pseudo'; c.pos = c.s <= 0.03 ? 0 : -1; }
     if (c.pos === 0) tot.neg++;
@@ -102,4 +110,5 @@ for (const [session, map] of bySession) {
 out.end();
 fs.writeFileSync(path.join(outDir, 'hits.json'), JSON.stringify({ note: '화면 보고 학습에서 보면서 누른 표시. 시각은 누른 때에서 반응 시간 0.3초를 뺀 것(±0.4초로 견준다).', clips: hits }, null, 1));
 for (const w of warn) console.log('주의: ' + w);
-console.log(`모두: 보기 ${tot.sessions}번 · ${Math.round(tot.sec / 60)}분 · 후보 ${tot.cands}개 → 스윙으로 쓸 것: 표시한 것 ${tot.gold} · '○○만' ${tot.weak} · 모델이 확신한 것 ${tot.pseudo} · 스윙 아님 ${tot.neg}`);
+console.log(`'○○만' 구간의 스윙(5분 단위로 나눠): 믿는 구간 ${seg.yes || 0} · 섞인 구간 ${seg.mixed || 0} · 반대로 보는 구간 ${seg.opposite || 0}`);
+console.log(`모두: 보기 ${tot.sessions}번 · ${Math.round(tot.sec / 60)}분 · 후보 ${tot.cands}개 → 스윙으로 쓸 것: 표시한 것 ${tot.gold} · '○○만' 믿는 구간 ${tot.weak}(그중 모델과 달라 바로잡은 것 ${tot.fixed}) · 모델이 확신한 것 ${tot.pseudo} · 스윙 아님 ${tot.neg} · 느려서 뺀 후보 ${tot.slow}`);

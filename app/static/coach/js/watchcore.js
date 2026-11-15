@@ -116,7 +116,7 @@ export function joinChunks(chunks) {
     if (c.track) for (const f of unpackFrames(c.track)) if (f.t > last + 1e-4) { frames.push(f); last = f.t; }
     for (const w of c.windows || []) windows.push({ t: w.t, frames: unpackFrames(w.track) });
     for (const x of c.cands || []) if (!cands.some((y) => Math.abs(y.t - x.t) < 0.05)) cands.push({ t: x.t, v: x.v, P: Object.fromEntries(c.classes.map((k, i) => [k, x.P[i]])), x: unpackFeat(x.x),
-      seq: c.seq, only: (c.meta || {}).only || null, view: (c.meta || {}).view || null, hand: (c.profile || {}).hand || 'R' });   // 설정은 묶음마다 다를 수 있다(영상마다 바꿔 가며 볼 때)
+      seq: c.seq, only: (c.meta || {}).only || null, view: (c.meta || {}).view || null, hand: (c.profile || {}).hand || 'R', fps: (c.meta || {}).fps || 0 });   // 설정은 묶음마다 다를 수 있다(영상마다 바꿔 가며 볼 때)
     for (const s of c.shots || []) if (!shots.some((x) => Math.abs(x.t - s.t) < 0.35)) shots.push(s);
     for (const x of c.taps || []) if (!taps.some((y) => Math.abs(y.t - x.t) < 0.05 && y.k === x.k)) taps.push(x);
   }
