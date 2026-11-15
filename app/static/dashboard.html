@@ -447,7 +447,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
         <div class="list-head" id="list-head" hidden>
           <h1 id="list-title">테니스장</h1>
           <label class="sort"><select id="sort" aria-label="테니스장 정렬">
-            <option value="base">기본 순서</option>
+            <option value="base">가나다순</option>
             <option value="now">예약 받는 곳 먼저</option>
             <option value="soon">빨리 열리는 순</option>
           </select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></label>
@@ -999,9 +999,13 @@ function buildVenues(d, now) {
     return v;
   });
   if (d.play && typeof d.play === 'object') list.push(playVenue(d.play, now));
+  list.sort((a, b) => byArea(a.area, b.area));      // 가나다순 — 반포도 제자리에 들어간다
   return {list, hot, next: openings.find((x) => !x.opened) || null};      // next = 5곳에서 가장 빨리 열리는 예약
 }
-/* 정렬: base 늘 같은 자리 · now 예약 받는 곳 먼저 · soon 빨리 열리는 순. 같으면 기본 순서. */
+/* 테니스장을 늘어놓는 순서 = 가나다순(고르기 줄 · 카드 · 알림 목록 모두 같다).
+   한글 음절은 글자 코드 순서가 곧 가나다순이라 그대로 비교한다(기기 · 브라우저마다 같은 결과). */
+const byArea = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+/* 정렬: base 가나다순(list 순서 그대로) · now 예약 받는 곳 먼저 · soon 빨리 열리는 순. 같으면 가나다순. */
 function sortVenues(list, key) {
   const idx = new Map(list.map((v, i) => [v.area, i]));
   const rank = (v) => (v.now.state === 'hot' ? 0 : v.now.tone === 'go' ? 1 : v.now.tone === 'warn' ? 2 : 3);
@@ -1461,7 +1465,7 @@ function oneHTML(v) {
 /* ── 칠하기 ───────────────────────────────────────────── */
 function paintChips(center) {
   const el = $('chips'), x = el.scrollLeft, mark = focusMark();
-  const list = model ? model.list : AREAS.map((a) => ({area: a}));
+  const list = model ? model.list : [...AREAS].sort(byArea).map((a) => ({area: a}));
   // 버튼 옆 점: 빨강 = 새 알림 · 초록 = 오늘 예약이 열림 · 주황 = 24시간 안에 열림(맨 위 큰 카드가 없어도 어디를 볼지 알 수 있게)
   const mark2 = (v) => (fresh.some((f) => f.area === v.area) ? ['ndot', '새 알림 있음']
     : v.now && v.now.state === 'hot' ? ['sdot go', '오늘 예약 열림'] : v.next && v.next.soon ? ['sdot soon', '24시간 안에 예약 오픈'] : null);
@@ -1901,7 +1905,7 @@ function sheetNote() {                                // 알림 탭의 상태 �
 }
 // 반포 알림은 그 서버가 반포를 읽고 있을 때만 고를 수 있다.
 const playAlerts = () => (board && board.play && typeof board.play.alerts === 'object' && board.play.alerts) || {};
-const areaList = () => [...AREAS, ...(playAlerts().open ? [PLAY_AREA] : [])];
+const areaList = () => [...AREAS, ...(playAlerts().open ? [PLAY_AREA] : [])].sort(byArea);
 const pickedAreas = () => settings.areas.filter((a) => areaList().includes(a));
 let playPrefsOn = null;
 function syncPlayPrefs() {                            // 화면 자료를 받을 때마다: 반포 고르기·스위치를 보이거나 숨긴다
@@ -1924,7 +1928,7 @@ function renderInstall() {                            // 이 화면에서 알림
       ? `<strong>이 화면에서는 알림을 켤 수 없어요</strong><p>Safari에서 이 주소를 연 다음, 공유 버튼에서 ‘홈 화면에 추가’를 선택해 주세요.</p>${copy}`
       : `<strong>이 브라우저에서는 알림을 켤 수 없어요</strong><p>Chrome이나 Safari에서 이 주소를 열어 주세요.</p>${copy}`;
 }
-const ORDER = [...AREAS, PLAY_AREA];
+const ORDER = [...AREAS, PLAY_AREA].sort(byArea);      // 가나다순(화면에 늘어놓는 순서와 같다)
 // 알림 탭의 테니스장 줄은 카드의 종과 똑같이 움직인다
 $('areas').addEventListener('change', (e) => {
   const box = e.target;

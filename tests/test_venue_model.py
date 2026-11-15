@@ -15,7 +15,9 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / "app" / "static" / "dashboard.html"
-AREAS = ["한남", "장충", "마루공원", "선우공원", "서울숲", "잠원", "대치유수지"]
+# 화면에 늘어놓는 순서 = 가나다순(2026-11-15 사용자 의견). 반포는 서버가 줄 때만 있다.
+ABC = ["대치유수지", "마루공원", "반포", "서울숲", "선우공원", "잠원", "장충", "한남"]
+ABC_SEOUL = [a for a in ABC if a != "반포"]
 
 
 @pytest.fixture(scope="module")
@@ -37,7 +39,7 @@ def rows(case: dict) -> dict:
 
 def test_live_sample_just_after_hannam_opened(out):
     v = rows(out["live"])
-    assert list(v) == AREAS + ["반포"]                                   # 늘 같은 순서, 반포는 서버가 줄 때만
+    assert list(v) == ABC                                                # 늘 가나다순, 반포는 서버가 줄 때만
     # 한남: 19건의 예약 = 코트 11개(같은 코트의 시간대는 한 번만). 3분 뒤 추가 오픈은 따로 '다음 예약 오픈'으로
     assert v["한남"]["now"] == ["hot", "go", "오늘 열림", "09:00 시작 · 코트 11개"]
     assert v["한남"]["next"] == ["date", "오늘 09:03", "8초 남음", True]
@@ -95,11 +97,11 @@ def test_finished_previous_round_is_hidden_once_a_new_one_is_up(out):
 
 def test_sorting(out):
     s = out["liveSort"]
-    assert s["base"] == AREAS + ["반포"]                                  # 늘 같은 자리
-    # 오늘 열림 → 예약 받는 중(반포의 빈 시간 포함) → 그 밖(같으면 기본 순서)
-    assert s["now"] == ["한남", "장충", "마루공원", "선우공원", "서울숲", "반포", "잠원", "대치유수지"]
+    assert s["base"] == ABC                                               # 가나다순
+    # 오늘 열림 → 예약 받는 중(반포의 빈 시간 포함) → 그 밖(같으면 가나다순)
+    assert s["now"] == ["한남", "마루공원", "반포", "서울숲", "선우공원", "장충", "대치유수지", "잠원"]
     # 빨리 열리는 순, 날짜 없는 곳은 뒤
-    assert s["soon"] == ["한남", "반포", "장충", "서울숲", "마루공원", "선우공원", "잠원", "대치유수지"]
+    assert s["soon"] == ["한남", "반포", "장충", "서울숲", "대치유수지", "마루공원", "선우공원", "잠원"]
 
 
 # ── 미리보기 자료(?mock=…) ────────────────────────────────────────────
@@ -140,7 +142,7 @@ def test_banpo_states(out):
 def test_bad_input_never_breaks(out):
     for key in ("garbage", "emptyObj"):
         v = rows(out[key])
-        assert list(v) == AREAS
+        assert list(v) == ABC_SEOUL
         assert all(x["now"] == ["none", "off", "정보 없음", "올라온 예약이 없어요"] for a, x in v.items() if a != "대치유수지")
         assert v["대치유수지"]["now"] == ["ext", "off", "직접 확인", "예약 사이트에서 봐요"]
         assert all(x["next"] == ["unknown", "아직 몰라요", "일정이 아직 없어요", False] for x in v.values())
@@ -229,3 +231,16 @@ def test_page_has_no_leftovers_from_v5():
     # 쓰는 말 규칙(§8): 화면에 보이는 글자에 행정 용어 · 약어가 없다
     for word in ("D-", "미정", "회차가"):
         assert word not in script.split("/* ── 미리보기 데이터")[0] + script.split("/* MODEL-END */")[1], word
+
+
+def test_places_are_listed_in_korean_alphabetical_order(out):
+    """테니스장은 어디서나 가나다순으로 늘어놓는다(2026-11-15 사용자 의견) — 고르기 줄 · 카드 · 알림 목록."""
+    for key in ("live", "liveLater", "opened", "next", "play", "playfull"):
+        names = [r[0] for r in out[key]["list"]]
+        assert names == [a for a in ABC if a in names], key
+    assert [r[0] for r in out["play"]["list"]] == ABC                  # 반포도 맨 끝이 아니라 제자리(마루공원 다음)
+    html = PAGE.read_text(encoding="utf-8")
+    assert '<option value="base">가나다순</option>' in html and "기본 순서" not in html
+    assert "list.sort((a, b) => byArea(a.area, b.area));" in html      # 모델
+    assert "[...AREAS].sort(byArea).map" in html                       # 자료가 오기 전의 고르기 줄
+    assert "[PLAY_AREA] : [])].sort(byArea);" in html                  # 알림 탭의 테니스장 목록

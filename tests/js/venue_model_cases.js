@@ -16,7 +16,7 @@ const block = html.slice(start, end);
 const ms = s => Date.parse(s.replace(' ', 'T') + '+09:00');
 const T = ms('2026-11-15 09:00');
 const H = 3600000, DAY = 24 * H;
-const areas = ['한남', '장충', '마루공원', '선우공원', '서울숲', '잠원', '대치유수지'];
+const areas = ['대치유수지', '마루공원', '서울숲', '선우공원', '잠원', '장충', '한남'];   // 화면 순서 = 가나다순(2026-11-15 사용자 의견)
 function boot(t = T) {
   const ctx = vm.createContext({
     Date: class extends Date { constructor(...a) { super(...(a.length ? a : [t])); } static now() { return t; } },
@@ -30,7 +30,8 @@ function boot(t = T) {
   };
 }
 const build = (d, t = T) => boot(t)('buildVenues(input, nowMs())', d);
-const venue = (d, t = T) => build(d, t).list[0];
+const hannam = m => m.list.find(v => v.area === '한남');   // 순서가 가나다순이 되어 자리(0번)가 아니라 이름으로 찾는다
+const venue = (d, t = T) => hannam(build(d, t));
 const court = (name = '1번', extra = {}) => ({court: name, reserve_url: `https://yeyak.seoul.go.kr/${name}`, ...extra});
 const group = (courts = [court()], extra = {}) => ({area: '한남', until_kind: 'use', courts, ...extra});
 const opening = (at = '2026-11-15 09:00', extra = {}) => ({area: '한남', open_at: at, courts: [court()], ...extra});
@@ -90,7 +91,7 @@ for (const available of [false, true]) {
 for (const age of [2 * H, 2 * H + 1, 3 * H]) {
   test(`notice expires ${age}`, () => {
     const m = build({openings: [opening(undefined, {expected: true})]}, T + age);
-    return [m.hot.length, m.list[0].cold.length, m.list[0].now.state];
+    return [m.hot.length, hannam(m).cold.length, hannam(m).now.state];
   }, [0, 0, 'none']);
 }
 test('dedupe strips display only', () => {
@@ -160,7 +161,7 @@ for (const [name, d] of [
 }
 test('day rollover excludes yesterday', () => {
   const m = build({openings: [opening('2026-11-14 23:30', {opened: true})]}, ms('2026-11-15 00:01'));
-  return [m.hot.length, m.list[0].cold.length, m.list[0].now.state];
+  return [m.hot.length, hannam(m).cold.length, hannam(m).now.state];
 }, [0, 0, 'none']);
 // Synthetic venue list makes sort testing independent of buildVenues.
 const sortList = [
