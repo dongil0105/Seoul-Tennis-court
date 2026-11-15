@@ -84,7 +84,7 @@ export function buildChunk({ session, seq, profile, meta, frames, cands, shots, 
     kind: 'swing-coach-watch', v: 1, made: new Date().toISOString(), app: 'w1',
     session: String(session), seq: Number(seq) || 0, final: !!final,
     profile: { hand: profile.hand === 'L' ? 'L' : 'R', backhand: profile.backhand === '1h' ? '1h' : '2h' },
-    meta: { note: String(meta.note || '').slice(0, 300), view: meta.view || null, level: meta.level || null, only: meta.only || null,
+    meta: { note: String(meta.note || '').slice(0, 300), view: meta.view || null, level: meta.level || null, only: meta.only || null, device: meta.device ? String(meta.device).slice(0, 20) : null,
       width: meta.width || null, height: meta.height || null, zoomed: r(meta.zoomed, 100), found: r(meta.found, 100),
       fps: r(frames.length > 1 ? (frames.length - 1) / Math.max(1e-6, t1 - t0) : 0, 10) },
     t0: r(t0, 1000), t1: r(t1, 1000), frames: frames.length, classes,
@@ -100,13 +100,13 @@ export function buildChunk({ session, seq, profile, meta, frames, cands, shots, 
 /** 머리말(X-Coach-Meta)에 넣을 짧은 설명 — 아스키 글자만(한글은 \uXXXX 로) */
 export function metaHeader(chunk) {
   const m = { session: chunk.session, seq: chunk.seq, frames: chunk.frames, sec: Math.round(chunk.t1 - chunk.t0), cands: chunk.cands.length, shots: chunk.shots.length,
-    only: chunk.meta.only, view: chunk.meta.view, note: chunk.meta.note.slice(0, 30) };
+    only: chunk.meta.only, view: chunk.meta.view, device: chunk.meta.device ? chunk.meta.device.slice(0, 10) : null, note: chunk.meta.note.slice(0, 24) };
   return JSON.stringify(m).replace(/[\u0080-￿]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
 }
 
 /**
  * 받은 쪽에서: 한 번 보기(session)의 묶음들을 잇는다(겹친 부분은 한 번만).
- * 돌려주는 것: { cands: [{ t, v, P: {종류: 확률}, x: [660] }], shots, taps, frames(자세 줄 전체를 보낸 구간), windows, profile, meta }
+ * 돌려주는 것: { cands: [{ t, v, P: {종류: 확률}, x: [660], seq, only, view, hand }], shots, taps, frames(자세 줄 전체를 보낸 구간), windows, profile, meta(첫 묶음의 것) }
  */
 export function joinChunks(chunks) {
   const list = [...chunks].sort((a, b) => a.seq - b.seq);
@@ -115,7 +115,8 @@ export function joinChunks(chunks) {
   for (const c of list) {
     if (c.track) for (const f of unpackFrames(c.track)) if (f.t > last + 1e-4) { frames.push(f); last = f.t; }
     for (const w of c.windows || []) windows.push({ t: w.t, frames: unpackFrames(w.track) });
-    for (const x of c.cands || []) if (!cands.some((y) => Math.abs(y.t - x.t) < 0.05)) cands.push({ t: x.t, v: x.v, P: Object.fromEntries(c.classes.map((k, i) => [k, x.P[i]])), x: unpackFeat(x.x) });
+    for (const x of c.cands || []) if (!cands.some((y) => Math.abs(y.t - x.t) < 0.05)) cands.push({ t: x.t, v: x.v, P: Object.fromEntries(c.classes.map((k, i) => [k, x.P[i]])), x: unpackFeat(x.x),
+      seq: c.seq, only: (c.meta || {}).only || null, view: (c.meta || {}).view || null, hand: (c.profile || {}).hand || 'R' });   // 설정은 묶음마다 다를 수 있다(영상마다 바꿔 가며 볼 때)
     for (const s of c.shots || []) if (!shots.some((x) => Math.abs(x.t - s.t) < 0.35)) shots.push(s);
     for (const x of c.taps || []) if (!taps.some((y) => Math.abs(y.t - x.t) < 0.05 && y.k === x.k)) taps.push(x);
   }

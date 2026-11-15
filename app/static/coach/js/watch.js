@@ -23,10 +23,20 @@ const S = {
 // ── 설정 ──
 const q = new URLSearchParams(location.search);
 const CHUNK = Math.max(8, Number(q.get('chunk')) || CHUNK_SEC);      // 묶음 길이(초). 시험할 때만 주소로 줄인다
+// 설정은 주소로 미리 채울 수 있다(?hand=L&only=forehand&device=데스크탑 …)
 for (const id of ['hand', 'backhand', 'dir', 'level', 'only']) { const v = q.get(id); if (v && [...$('#' + id).options].some((o) => o.value === v)) $('#' + id).value = v; }
 if (q.get('note')) $('#note').value = q.get('note').slice(0, 300);
+try { $('#device').value = (q.get('device') || localStorage.getItem('coach.watch.device') || '').slice(0, 20); } catch (_) { /* 저장을 못 하는 브라우저 */ }
 const settings = () => ({ profile: { hand: $('#hand').value, backhand: $('#backhand').value },
-  meta: { note: $('#note').value, view: $('#dir').value || null, level: $('#level').value || null, only: $('#only').value || null } });
+  meta: { note: $('#note').value, view: $('#dir').value || null, level: $('#level').value || null, only: $('#only').value || null, device: $('#device').value.trim().slice(0, 20) || null } });
+// 보는 도중에 설정을 바꾸면(다음 영상은 '백핸드만' 등): 지금까지 본 것은 바꾸기 전 설정으로 묶어 보내고, 그다음부터 새 설정을 쓴다
+for (const id of ['hand', 'backhand', 'dir', 'level', 'only', 'note', 'device']) {
+  $('#' + id).addEventListener('change', async () => {
+    try { localStorage.setItem('coach.watch.device', $('#device').value.trim().slice(0, 20)); } catch (_) { /* 무시 */ }
+    if (S.running) await flush(false);
+    S.cfg = settings();
+  });
+}
 
 // ── 브라우저 안 보관(IndexedDB) ──
 let dbp = null;
@@ -111,6 +121,7 @@ async function loadEngine() {
 
 function start() {
   if (!S.stream || S.running) return;
+  S.cfg = settings();
   S.running = true; S.session = Date.now().toString(36) + Math.random().toString(36).slice(2, 6); S.seq = 0;
   S.t0 = performance.now() / 1000; S.chunkStart = 0; S.lastCand = -1; S.frames = []; S.taps = []; S.shots = []; S.counts = {}; S.n = S.found = S.zoom = 0;
   say('보고 있어요. 이 화면을 보이는 채로 두세요(다른 탭으로 옮기면 느려집니다). 영상은 1배속으로 틀어 주세요.');
@@ -206,7 +217,7 @@ let tapTimer = 0;
 // ── 묶음 만들어 보내기 ──
 async function flush(final) {
   const frames = S.frames, tEnd = frames.length ? frames[frames.length - 1].t : S.chunkStart;
-  const { profile, meta } = settings();
+  const { profile, meta } = S.cfg || settings();
   const taps = S.taps; S.taps = [];
   S.frames = final ? [] : frames.filter((f) => f.t >= tEnd - OVERLAP);   // 다음 묶음은 마지막 2초부터 이어서
   S.chunkStart = tEnd;
@@ -256,18 +267,46 @@ $('#pick').addEventListener('click', pick);
 $('#start').addEventListener('click', start);
 $('#stop').addEventListener('click', () => stop());
 $('#resend').addEventListener('click', () => { say('보관한 묶음을 다시 맞춰 보냅니다.'); sync(); });
+const PART = 9 * 1024 * 1024;                                  // 메일 첨부로 다시 받을 수 있는 크기(조각 하나)
 $('#save').addEventListener('click', async () => {
-  const recs = (await idbAll()).filter((x) => x.blob);
-  if (!recs.length) { say('보관한 묶음이 없어요.'); return; }
-  const parts = [];
-  for (const rec of recs) {
-    const st = rec.blob.type === 'application/gzip' && typeof DecompressionStream === 'function' ? rec.blob.stream().pipeThrough(new DecompressionStream('gzip')) : rec.blob.stream();
-    parts.push(await new Response(st).text());
+  const recs = (await idbAll()).filter((x) => x.blob).sort((a, b) => (a.at < b.at ? -1 : 1));
+  if (!recs.length) { say('보관한 묶음이 없어요(이미 학습 쪽이 가져간 것은 비워집니다).'); return; }
+  const parts = [[]]; let size = 0;
+  for (const rec of recs) { if (size + rec.blob.size > PART && parts[parts.length - 1].length) { parts.push([]); size = 0; } parts[parts.length - 1].push(rec); size += rec.blob.size; }
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+  for (let k = 0; k < parts.length; k++) {
+    const texts = [];
+    for (const rec of parts[k]) {
+      const st = rec.blob.type === 'application/gzip' && typeof DecompressionStream === 'function' ? rec.blob.stream().pipeThrough(new DecompressionStream('gzip')) : rec.blob.stream();
+      texts.push(await new Response(st).text());
+    }
+    const blob = await gzip('[' + texts.join(',') + ']');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `swing-coach-watch-${stamp}-${k + 1}of${parts.length}.json${blob.type === 'application/gzip' ? '.gz' : ''}`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+    await new Promise((res) => setTimeout(res, 600));
   }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['[' + parts.join(',') + ']'], { type: 'application/json' }));
-  a.download = `swing-coach-watch-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}.json`;
-  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  say(`파일 ${parts.length}개로 저장했어요(묶음 ${recs.length}개).`);
+});
+
+/** 지금까지 이 브라우저에서 본 것의 요약(메일로 알릴 때 붙여 넣는 글) */
+async function summary() {
+  const recs = await idbAll();
+  let sec = 0, cands = 0, shots = 0, n = 0;
+  for (const rec of recs) { try { const h = JSON.parse(rec.head); sec += h.sec || 0; cands += h.cands || 0; shots += h.shots || 0; n++; } catch (_) { /* 무시 */ } }
+  const st = (k) => recs.filter((x) => x.state === k).length;
+  return [`[스윙 코치 화면 보고 학습 요약] ${new Date().toLocaleString('ko-KR')}`,
+    `컴퓨터: ${$('#device').value.trim() || '(이름 없음)'}`,
+    `본 시간 합계: ${Math.floor(sec / 3600)}시간 ${Math.round((sec % 3600) / 60)}분 · 묶음 ${n}개`,
+    `찾은 스윙: ${shots}개 (후보 ${cands}개)`,
+    `묶음 상태: 서버에 맡긴 것 ${st('sent')} · 학습 쪽이 가져간 것 ${st('pulled')} · 아직 못 보낸 것 ${st('local')}`,
+    `자세 인식: ${usedDelegate() || '?'} · 최근 초당 ${S.fps}장`].join('\n');
+}
+$('#sumBtn').addEventListener('click', async () => {
+  const text = await summary();
+  $('#sum').value = text; $('#sum').hidden = false;
+  try { await navigator.clipboard.writeText(text); say('요약을 복사했어요. 메일에 붙여 넣으세요.'); } catch (_) { say('아래 요약을 복사해 메일에 붙여 넣으세요.'); }
 });
 window.addEventListener('beforeunload', (e) => { if (S.running) { e.preventDefault(); e.returnValue = ''; } });
 setInterval(sync, 60000);

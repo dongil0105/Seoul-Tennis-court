@@ -78,6 +78,8 @@ ol{margin:0;padding-left:20px;color:#B6C2BC}
       <select id="only"><option value="">여러 가지가 섞여 있음</option><option value="forehand">포핸드만</option><option value="backhand">백핸드만</option><option value="serve">서브만</option><option value="volley">발리만</option><option value="smash">스매시만</option></select>
       <label for="note">메모(영상 제목·채널 — 적고 싶을 때만)</label>
       <input type="text" id="note" maxlength="300" autocomplete="off">
+      <label for="device">이 컴퓨터 이름(랩탑·데스크탑 — 어디서 본 것인지 구분할 때)</label>
+      <input type="text" id="device" maxlength="20" autocomplete="off">
       <label class="chk"><input type="checkbox" id="detail"> 관절 좌표 전체도 계속 보내기(용량이 큽니다 — 처음 10분은 늘 보냅니다)</label>
     </div>
     <div class="card">
@@ -88,12 +90,14 @@ ol{margin:0;padding-left:20px;color:#B6C2BC}
       <div class="row">
         <button id="resend" class="ghost">다시 맞춰 보내기</button>
         <button id="save" class="ghost">파일로도 저장</button>
+        <button id="sumBtn" class="ghost">요약 만들기</button>
       </div>
+      <textarea id="sum" rows="6" readonly hidden style="width:100%;font:inherit;font-size:13px;padding:10px;border-radius:10px;border:1px solid #2C3B35;background:#0B1210;color:#F3F6F4"></textarea>
       <small>'학습 쪽이 가져간 것'이 늘어나면 학습에 들어간 것입니다. 서버는 잠깐 맡아 두기만 합니다.</small>
     </div>
     <p><a href="/coach">← 스윙 코치로</a></p>
   </aside>
 </main>
-<script type="module" src="/static/coach/js/watch.js?v=1"></script>
+<script type="module" src="/static/coach/js/watch.js?v=2"></script>
 </body>
 </html>

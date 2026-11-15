@@ -107,3 +107,16 @@ test("'치는 순간' 모델: 파일 모양이 맞고, 가까이 붙은 후보�
   const frames = v.map((_, i) => ({ t: i / 30 }));
   assert.deepEqual(M.candidates(frames, v), [15, 50]);
 });
+
+test('설정은 묶음마다 따로: 영상마다 "○○만"을 바꿔 가며 봐도 후보마다 그때의 설정이 붙는다', () => {
+  const mk = (seq, t0, only, hand, cs) => W.buildChunk({ session: 's', seq, profile: { hand, backhand: '2h' }, meta: { note: '', only, device: '데스크탑', width: 16, height: 9 },
+    frames: Array.from({ length: 91 }, (_, i) => person(0.5, 0.5, 0.6, t0 + i / 30)), cands: cs, shots: M.pickSwings(cs), taps: [], detail: false });
+  const a = mk(0, 0, 'forehand', 'R', [cand(1, P(0.02, 0.98))]);
+  const b = mk(1, 3, 'backhand', 'L', [cand(4, P(0.02, 0, 0.98), 'backhand')]);
+  const c = mk(2, 6, null, 'R', [cand(7, P(0.02, 0, 0, 0.98), 'serve')]);
+  const J = W.joinChunks([c, a, b]);
+  assert.deepEqual(J.cands.map((x) => [x.t, x.only, x.hand]), [[1, 'forehand', 'R'], [4, 'backhand', 'L'], [7, null, 'R']]);
+  assert.equal(a.meta.device, '데스크탑');
+  assert.equal(JSON.parse(W.metaHeader(a)).device, '데스크탑');
+  assert.ok(/^[\x20-\x7e]*$/.test(W.metaHeader(a)));
+});
