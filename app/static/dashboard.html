@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>코트 오픈</title>
-<meta name="description" content="한남·장충·마루공원·선우공원·서울숲 테니스장 예약 오픈 일정과 지금 접수 중인 코트">
-<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#111315" media="(prefers-color-scheme: dark)">
+<meta name="description" content="한남·장충·마루공원·선우공원·서울숲·반포 테니스장 예약이 언제 열리는지, 지금 예약을 받는지 알려 주는 앱">
+<meta name="theme-color" content="#F2F4F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1012" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="코트 오픈">
@@ -19,35 +19,47 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"></noscript>
 <style>
+/* 코트 오픈 v6 — 설계 기준: docs/REDESIGN_V6.md
+   색 뜻은 하나씩: 초록 = 지금 예약 받음 · 주황 = 24시간 안에 열림 · 노랑 = 확인 필요 · 회색 = 안 받음 · 빨강 = 새 알림 */
 /* ── 토큰 ─────────────────────────────────────────────── */
 :root{
   color-scheme:light dark;
-  --bg:#FFFFFF; --band:#F3F4F6; --line:#ECEEF0; --line-2:#D9DDE1; --press:#F3F4F6;
-  --ink:#15181B; --ink-2:#4A5158; --ink-3:#646C74; --ink-4:#868D94;
-  --brand:#0C7A4A; --brand-weak:#EEF8F2;
-  --alert:#C9371F; --on-alert:#FFFFFF;
-  --shadow:0 -6px 32px rgba(15,23,30,.14);
+  --bg:#F2F4F6; --bg-out:#E6E9ED; --card:#FFFFFF; --fill:#F2F4F6; --line:#E5E8EB; --line-2:#D1D6DB; --press:#E9ECEF;
+  --ink:#191F28; --ink-2:#4E5968; --ink-3:#5F6B7A; --ink-4:#8B95A1;
+  --brand:#08754A; --on-brand:#FFFFFF; --brand-weak:#E3F4EA;
+  --go:#08754A; --go-bg:#E3F4EA;
+  --soon:#B93A08; --soon-bg:#FFEDE0;
+  --warn:#8A5A00; --warn-bg:#FFF3CC;
+  --alert:#D92D2D; --on-alert:#FFFFFF;
+  --hero-1:#0B3526; --hero-2:#11603F; --hero-ink:#FFFFFF; --hero-sub:rgba(255,255,255,.74); --lime:#D8F25C; --on-lime:#17300A;
+  --shadow:0 1px 2px rgba(20,28,38,.04),0 6px 18px rgba(20,28,38,.05);
+  --bar-h:56px; --nav-h:60px;
   --font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
 }
 @media (prefers-color-scheme:dark){
   :root{
-    --bg:#111315; --band:#08090A; --line:#22262A; --line-2:#33383D; --press:#1A1D20;
-    --ink:#F2F4F5; --ink-2:#BBC1C7; --ink-3:#8E959C; --ink-4:#6E757C;
-    --brand:#56CF98; --brand-weak:#11221A;
-    --alert:#FF8D78; --on-alert:#2B0B05;
-    --shadow:0 -6px 32px rgba(0,0,0,.55);
+    --bg:#0E1012; --bg-out:#060708; --card:#1A1D21; --fill:#23272C; --line:#282D33; --line-2:#3A4048; --press:#2A2F35;
+    --ink:#F2F4F6; --ink-2:#C5CCD3; --ink-3:#9AA4AE; --ink-4:#737D88;
+    --brand:#3DD68C; --on-brand:#06281A; --brand-weak:#13291F;
+    --go:#3DD68C; --go-bg:#13291F;
+    --soon:#FFA05C; --soon-bg:#2F1D11;
+    --warn:#F2C14E; --warn-bg:#2C2410;
+    --alert:#FF6B6B; --on-alert:#2B0808;
+    --hero-1:#0A2A1F; --hero-2:#0F4D36;
+    --shadow:0 0 0 1px var(--line);
   }
 }
 
 /* ── 기본 ─────────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-html.lock{overflow:hidden}
 body{background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--font);letter-spacing:-.01em;
   -webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
-button{font:inherit;letter-spacing:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;
+button{font:inherit;letter-spacing:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit;
   -webkit-tap-highlight-color:transparent;touch-action:manipulation}
 a{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+h1,h2,h3{font-size:inherit;font-weight:inherit}
+ul,ol{list-style:none;padding:0}
 summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 summary::-webkit-details-marker{display:none}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:8px}
@@ -55,123 +67,193 @@ summary::-webkit-details-marker{display:none}
 svg{display:block;flex:none}
 .num{font-variant-numeric:tabular-nums}
 
-.app{max-width:520px;min-height:100vh;min-height:100dvh;margin:0 auto;background:var(--bg)}
+.app{position:relative;max-width:520px;min-height:100vh;min-height:100dvh;margin:0 auto;background:var(--bg)}
+/* 아래 탭 줄에 가리지 않게 띄우는 여백 — main 에 둔다(.app 의 아래 여백은 스윙 코치 탭을 뺄 때 서버가 0 으로 만든다) */
+#main{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px)}
 @media (min-width:560px){
-  body{background:var(--band)}
+  body{background:var(--bg-out)}
   .app{box-shadow:0 0 0 1px var(--line)}
 }
 
-/* ── 상단 바 ──────────────────────────────────────────── */
-.bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
-  height:calc(56px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 0 20px;
-  background:var(--bg);background:color-mix(in srgb,var(--bg) 86%,transparent);
-  -webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px);
-  border-bottom:1px solid transparent;transition:border-color .2s}
-.bar.scrolled{border-bottom-color:var(--line)}
-.brand{display:flex;align-items:center;gap:8px;min-height:44px;font-size:16px;font-weight:700;letter-spacing:-.03em}
+/* ── 위 줄 ────────────────────────────────────────────── */
+.bar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  height:calc(var(--bar-h) + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 0 20px;
+  background:var(--bg);background:color-mix(in srgb,var(--bg) 88%,transparent);
+  -webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px)}
+.brand{display:flex;align-items:center;gap:8px;min-height:44px;font-size:18px;font-weight:700;letter-spacing:-.03em}
 .brand svg{width:28px;height:28px;border-radius:8px}
-.bar-actions{display:flex;align-items:center}
-.sync{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 8px;border-radius:12px;
-  font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
-.sync svg{width:16px;height:16px}
+.sync{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 12px;border-radius:22px;
+  font-size:13px;font-weight:500;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sync svg{width:18px;height:18px}
 .sync[aria-busy=true] svg{animation:spin .8s linear infinite}
-.icon-btn{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--ink)}
-.icon-btn svg{width:22px;height:22px}
-.icon-btn.on{color:var(--brand)}
-.sync:active,.icon-btn:active{background:var(--press)}
+.sync:active{background:var(--press)}
+.app.scrolled:not([data-tab=home]) .bar{box-shadow:0 1px 0 var(--line)}
 
-/* ── 맨 위: 다음 예약 오픈 / 방금 열린 예약 ───────────── */
-.next{padding:20px 20px 24px}
-.next.has-peek{padding-bottom:0}
-.next.is-open{background:var(--brand-weak)}
-.eyebrow{font-size:13px;font-weight:600;color:var(--ink-3)}
-.eyebrow.live{font-size:14px;color:var(--brand)}
-.next-date{margin-top:12px;font-size:16px;font-weight:600;color:var(--ink-2)}
-.next-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.next-h{min-width:0;font-size:inherit;font-weight:inherit;line-height:inherit}
-.next-time{display:block;margin-left:-2px;font-size:56px;line-height:1.1;font-weight:700;letter-spacing:-.04em}
-.next-venue{display:block;margin-top:8px;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
-.next-meta{margin-top:4px;font-size:14px;color:var(--ink-3)}
-.remain{flex:none;display:inline-flex;align-items:center;height:32px;margin-top:15px;padding:0 12px;border-radius:8px;
-  background:var(--brand-weak);color:var(--brand);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-.remain.soon{background:var(--alert);color:var(--on-alert)}
-.alarm{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:48px;margin-top:20px;
-  border:1px solid var(--line-2);border-radius:12px;font-size:16px;font-weight:600}
-.alarm svg{width:20px;height:20px}
-.alarm.on{border-color:var(--brand);border-color:color-mix(in srgb,var(--brand) 45%,transparent);color:var(--brand)}
-.alarm:active{background:var(--press)}
-.peek{margin-top:4px}
-.peek>summary{display:flex;align-items:center;justify-content:space-between;min-height:52px;
-  font-size:14px;font-weight:600;color:var(--ink-2)}
-.peek .picker{padding-bottom:20px}
+/* ── 테니스장 고르기 줄 ───────────────────────────────── */
+.chips{position:sticky;top:calc(var(--bar-h) + env(safe-area-inset-top));z-index:25;display:flex;gap:8px;
+  padding:4px 16px 12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  background:var(--bg);background:color-mix(in srgb,var(--bg) 88%,transparent);
+  -webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px)}
+.chips::-webkit-scrollbar{display:none}
+.app.scrolled[data-tab=home] .chips{box-shadow:0 1px 0 var(--line)}
+.vchip{flex:none;display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 16px;border-radius:22px;
+  border:1px solid var(--line-2);background:var(--card);font-size:15px;font-weight:600;color:var(--ink-2);white-space:nowrap;
+  transition:background .15s,color .15s,border-color .15s}
+.vchip[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.vchip:not([aria-pressed=true]):active{background:var(--press)}
+.ndot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--alert)}
+.chips::after{content:'';flex:none;width:8px}
+
+/* ── 오래된 정보 띠 ───────────────────────────────────── */
+.stale{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 16px 12px;padding:6px 6px 6px 16px;
+  border-radius:14px;background:var(--warn-bg);color:var(--warn);font-size:14px;font-weight:600}
+.stale button{flex:none;height:44px;padding:0 14px;border-radius:10px;background:var(--card);color:var(--ink);font-size:13px;font-weight:700}
+
+/* ── 맨 위 큰 카드 ────────────────────────────────────── */
+.hero{position:relative;margin:4px 16px 0;padding:22px 20px 20px;border-radius:24px;overflow:hidden;
+  color:var(--hero-ink);background:linear-gradient(150deg,var(--hero-1),var(--hero-2));box-shadow:0 10px 24px rgba(11,53,38,.2)}
+.hero-ball{position:absolute;top:-34px;right:-30px;width:128px;height:128px;opacity:.95;pointer-events:none}
+.hero-k{position:relative;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--hero-sub)}
+.hero-date{position:relative;margin-top:14px;font-size:15px;font-weight:600;color:rgba(255,255,255,.9)}
+.hero-row{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.hero-h{min-width:0}
+.hero-time{display:block;margin-left:-2px;font-size:48px;line-height:1.1;font-weight:700;letter-spacing:-.04em}
+.hero-venue{display:block;margin-top:6px;font-size:22px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
+.hero-title{position:relative;margin-top:12px;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
+.hero-chip{flex:none;display:inline-flex;align-items:center;height:32px;margin-bottom:5px;padding:0 12px;border-radius:16px;
+  background:var(--lime);color:var(--on-lime);font-size:14px;font-weight:700;white-space:nowrap}
+.hero-meta{position:relative;margin-top:6px;font-size:14px;color:var(--hero-sub)}
+.hero-actions{position:relative;display:flex;gap:8px;margin-top:18px}
+.hero-btn,.hero-bell{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;height:50px;border-radius:14px;
+  font-size:16px;font-weight:700;transition:transform .12s}
+.hero-btn{background:#FFFFFF;color:#0B3526}
+.hero-bell{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:#FFFFFF}
+.hero-bell.on{border-color:transparent;background:var(--lime);color:var(--on-lime)}
+.hero-btn svg,.hero-bell svg{width:20px;height:20px}
+.hero-btn:active,.hero-bell:active{transform:scale(.98)}
+.hero-list{position:relative;display:grid;gap:8px;margin-top:14px}
+.hero-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:56px;padding:8px 10px 8px 14px;
+  border-radius:14px;background:rgba(255,255,255,.12);text-align:left}
+.hero-item b{display:block;font-size:16px;font-weight:700}
+.hero-item .hi{display:block;min-width:0}
+.hero-item .hi>span{display:block;font-size:13px;color:var(--hero-sub)}
+.hero-item em{flex:none;display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:14px;background:var(--lime);
+  color:var(--on-lime);font-size:13px;font-weight:700;font-style:normal;white-space:nowrap}
+.hero-item svg{width:20px;height:20px;opacity:.8}
+.hero-item:active{background:rgba(255,255,255,.2)}
+.hero-note{position:relative;margin-top:12px;font-size:13px;color:var(--hero-sub)}
+.hero.plain{color:var(--ink);background:var(--card);box-shadow:var(--shadow)}
+.hero.plain .hero-ball{display:none}
+.hero.plain .hero-k,.hero.plain .hero-meta{color:var(--ink-3)}
+.hero.plain .hero-btn{background:var(--brand);color:var(--on-brand)}
+.hero.plain .hero-bell{border-color:var(--line-2);background:none;color:var(--ink)}
+.hero.plain .hero-bell.on{border-color:transparent;background:var(--brand-weak);color:var(--brand)}
+.ping{flex:none;width:8px;height:8px;border-radius:50%;background:var(--lime);animation:ping 1.6s ease-out infinite}
+.sec .ping{background:var(--go);--ping:rgba(8,117,74,.35)}
+.sec .ping.warn{background:var(--warn);--ping:rgba(138,90,0,.3)}
+
+/* ── 목록 머리 · 정렬 ─────────────────────────────────── */
+.list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:24px 20px 10px}
+.list-head h2{font-size:18px;font-weight:700;letter-spacing:-.03em}
+.sort{position:relative;display:inline-flex;align-items:center;height:44px;border-radius:22px;border:1px solid var(--line-2);background:var(--card)}
+.sort select{appearance:none;-webkit-appearance:none;height:42px;padding:0 34px 0 14px;border:0;border-radius:22px;background:none;
+  font:600 16px/1 var(--font);letter-spacing:-.01em;color:var(--ink-2);cursor:pointer}
+.sort svg{position:absolute;right:10px;top:50%;width:18px;height:18px;margin-top:-9px;color:var(--ink-4);pointer-events:none}
+
+/* ── 테니스장 카드 — 어느 곳이든 같은 두 칸 ───────────── */
+.cards{display:grid;gap:12px;padding:0 16px}
+.vcard{position:relative;padding:14px 16px 16px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);transition:transform .12s}
+.vcard:has(.vname:active){transform:scale(.988)}
+.vhead{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;margin-bottom:8px}
+.vname{display:flex;align-items:center;flex-wrap:wrap;gap:2px 8px;min-width:0;min-height:44px}
+.vname b{font-size:18px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
+.vname .rg{font-size:13px;color:var(--ink-3)}
+.vname svg{width:18px;height:18px;margin-left:-4px;color:var(--ink-4)}
+.vname::after{content:'';position:absolute;inset:0;border-radius:20px}
+.bell{position:relative;z-index:1;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;width:44px;height:44px;
+  border-radius:22px;background:var(--fill);color:var(--ink-3);font-size:14px;font-weight:700;white-space:nowrap;transition:transform .12s,background .15s,color .15s}
+.bell svg{width:22px;height:22px}
+.bell.wide{width:auto;padding:0 14px 0 12px}
+.bell.wide svg{width:20px;height:20px}
+.bell.on{background:var(--brand-weak);color:var(--brand)}
+.bell:active{transform:scale(.94)}
+.busy{opacity:.55;pointer-events:none}
+.duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px}
+.cell{display:flex;flex-direction:column;gap:2px;min-height:84px;padding:12px;border-radius:14px;background:var(--fill)}
+.cell-k{font-size:12px;font-weight:600;color:var(--ink-3)}
+.cell-t{display:flex;align-items:center;gap:6px;font-size:clamp(14px,4.4vw,16px);line-height:1.4;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.cell-s{font-size:13px;line-height:1.4;color:var(--ink-2)}
+.dot{flex:none;width:8px;height:8px;border-radius:50%;background:currentColor}
+.cell.go{background:var(--go-bg)}
+.cell.go .cell-t{color:var(--go)}
+.cell.warn{background:var(--warn-bg)}
+.cell.warn .cell-t{color:var(--warn)}
+.cell.soon{background:var(--soon-bg)}
+.cell.soon .cell-t,.cell.soon .cell-s{color:var(--soon)}
+.cell.mute .cell-t{color:var(--ink-2)}
+.cell.hot .dot{--ping:rgba(8,117,74,.35);animation:ping 1.6s ease-out infinite}
+.newtag{display:inline-flex;align-items:center;flex:none;height:22px;padding:0 8px;border-radius:11px;background:var(--alert);color:var(--on-alert);
+  font-size:12px;line-height:1;font-weight:700;font-style:normal;letter-spacing:0;white-space:nowrap}
+.cards-note{padding:14px 20px 0;font-size:13px;line-height:1.5;color:var(--ink-3)}
+
+/* ── 한 곳 화면 ───────────────────────────────────────── */
+.back{display:inline-flex;align-items:center;gap:2px;height:44px;margin:0 8px;padding:0 12px 0 6px;border-radius:12px;font-size:14px;font-weight:600;color:var(--ink-2)}
+.back svg{width:20px;height:20px}
+.back:active{background:var(--press)}
+.one{margin:0 16px}
+.vtitles{min-width:0}
+.vtitle{font-size:22px;line-height:1.3;font-weight:700;letter-spacing:-.03em;outline:0}
+.vsrc{font-size:13px;color:var(--ink-3)}
+.one .vhead{align-items:flex-start;margin-bottom:12px}
+.mine{display:grid;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.mine-top{display:flex;align-items:center;gap:8px}
+.mine-top small{font-size:13px;color:var(--ink-3)}
+.mine-text{display:block;margin-top:4px;font-size:14px;line-height:1.5;color:var(--ink-2);white-space:pre-line}
+.sec{margin:12px 16px 0;padding:20px 16px 16px;border-radius:20px;background:var(--card);box-shadow:var(--shadow)}
+.sec-h{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:18px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
+.sec-h>span:first-child{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.cnt{flex:none;font-size:13px;font-weight:600;letter-spacing:-.01em;color:var(--ink-3)}
+.sec-lead{margin-top:6px;font-size:15px;color:var(--ink-2)}
+.sec-sub{margin-top:2px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+.venue-meta{font-size:13px;color:var(--ink-3)}
+.sec-lead+.venue-meta{margin-top:2px}
+.batch{margin-top:14px}
+.batch .picker{margin-top:8px}
+.sec>.picker{margin-top:14px}
+.note,.row-note{margin-top:14px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+.hint{margin-top:12px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+.hint.center{text-align:center}
+.empty{margin-top:12px;padding:14px 16px;border-radius:14px;background:var(--fill)}
+.empty strong{display:block;font-size:15px;font-weight:600}
+.empty p{margin-top:2px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+.more{margin-top:14px;border-top:1px solid var(--line)}
+.more>summary,.peek>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:52px;font-size:15px;font-weight:600;color:var(--ink-2)}
+.more .batch:first-of-type{margin-top:0}
+.more .row-note{margin-bottom:4px}
 .chev{width:20px;height:20px;color:var(--ink-4);transition:transform .2s}
 details[open]>summary .chev{transform:rotate(180deg)}
-
-.opened+.opened{margin-top:28px;padding-top:24px;border-top:1px solid var(--line-2)}
-.venue-title{margin-top:8px;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
-.opened .picker{margin-top:16px}
-.note{margin-top:16px;font-size:13px;line-height:1.5;color:var(--ink-2)}
-
-.none-title{margin-top:12px;font-size:20px;line-height:1.4;font-weight:700;letter-spacing:-.03em}
-.none-sub{margin-top:8px;font-size:14px;color:var(--ink-3)}
-.retry{display:inline-flex;align-items:center;height:48px;margin-top:20px;padding:0 20px;border-radius:12px;
-  border:1px solid var(--line-2);font-size:16px;font-weight:600}
-
-/* ── 섹션 ─────────────────────────────────────────────── */
-.band{height:8px;background:var(--band)}
-.sec{padding:24px 20px 8px}
-.sec h2{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
-.sec-sub{margin-top:4px;font-size:13px;color:var(--ink-3)}
-.sub-label{margin-top:24px;font-size:13px;font-weight:600;color:var(--ink-3)}
-.app.is-error .band,.app.is-error #schedule,.app.is-error #available,.app.is-error #play{display:none}
-
-.rows{margin-top:8px}
-.row{border-bottom:1px solid var(--line)}
-.row:last-child{border-bottom:0}
-.row>summary{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;min-height:72px;padding:12px 0}
-.when,.what,.when>*,.what>*{display:block}
-.when b{font-size:16px;line-height:1.4;font-weight:700;font-variant-numeric:tabular-nums}
-.when span{font-size:13px;color:var(--ink-3)}
-.what strong{font-size:16px;line-height:1.4;font-weight:600}
-.what span{font-size:13px;line-height:1.5;color:var(--ink-3)}
-.tail{display:flex;align-items:center;gap:8px}
-.dday{padding:4px 8px;border-radius:8px;background:var(--band);color:var(--ink-2);
-  font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-.dday.near{background:var(--brand-weak);color:var(--brand)}
-.row .picker{padding-bottom:16px}
-.row-note{padding-bottom:16px;font-size:13px;color:var(--ink-3)}
-.frow{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;min-height:72px;padding:12px 0}
-.frow .tail{padding-right:28px}   /* 펼침 표시가 없는 줄도 날짜 표시의 오른쪽 끝을 맞춘다 */
-.what .nx{color:var(--ink-2)}     /* 다음 오픈 — 회차 이름보다 한 톤 진하게 */
-.pend{padding:12px 0;border-bottom:1px solid var(--line)}
-.pend:last-child{border-bottom:0}
-
-/* ── 지금 접수 중인 코트 ──────────────────────────────── */
-.venue{padding:20px 0;border-bottom:1px solid var(--line)}
-.venue:last-child{border-bottom:0}
-.venue h3{display:flex;align-items:baseline;gap:8px;font-size:16px;line-height:1.4;font-weight:700;letter-spacing:-.03em}
-.venue h3 span{font-size:13px;font-weight:400;letter-spacing:-.01em;color:var(--ink-3)}
-.venue-meta{margin-top:4px;font-size:13px;color:var(--ink-3)}
-.venue-next{margin-top:2px;font-size:13px;line-height:1.5;color:var(--ink-2)}
-.venue-next+.batch{margin-top:8px}
-.batch+.batch{margin-top:20px}
-.venue .picker{margin-top:12px}
-.venue.has-more{padding-bottom:8px}
-.more{margin-top:8px}
-.more>summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;
-  font-size:14px;font-weight:600;color:var(--ink-2)}
-.more .batch+.batch{margin-top:4px}
-.more .venue-meta{margin:0}
-.more .picker{margin-top:8px;padding-bottom:16px}
-
-/* 접수 중인 코트가 없는 곳: 이름 · 상태 한 줄 — 누르면 코트별 예약 화면 링크가 펼쳐진다 */
-.vrow>summary,.vrow.flat{grid-template-columns:minmax(0,1fr) auto;min-height:64px}
-.vrow.flat{display:grid;align-items:center;gap:12px;padding:12px 0}
-.vrow.flat .tail{padding-right:28px}   /* 펼침 표시가 없는 줄도 상태 표시의 오른쪽 끝을 맞춘다 */
-.vrow .batch+.batch{margin-top:4px}
-.vrow .venue-meta{margin:0 0 8px}
-/* 접수하지 않는 코트 버튼: 누를 수는 있지만 한 톤 낮춘다 */
-.shut .court b,.shut .court b small,.shut .mno,.shut .mno small,.shut .chip span{color:var(--ink-3)}
+.orow{margin-top:12px;padding:14px 14px 4px;border-radius:14px;background:var(--fill)}
+.orow-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.orow-date{font-size:14px;font-weight:600;color:var(--ink-2)}
+.orow-time{font-size:34px;line-height:1.15;font-weight:700;letter-spacing:-.04em}
+.orow.small .orow-time{font-size:22px}
+.orow-meta{margin-top:4px;padding-bottom:10px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+.orow>.orow-top:last-child{padding-bottom:10px}
+.peek{border-top:1px solid var(--line)}
+.peek>summary{min-height:48px;font-size:14px}
+.peek .picker{padding-bottom:12px}
+.badge{flex:none;display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:14px;background:var(--card);
+  font-size:13px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.badge.soon{background:var(--soon-bg);color:var(--soon)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:0 16px;border-radius:14px;
+  font-size:16px;font-weight:700;transition:transform .12s,background .15s,color .15s}
+.btn svg{width:20px;height:20px}
+.btn.primary{background:var(--brand);color:var(--on-brand)}
+.btn.soft{background:var(--brand-weak);color:var(--brand)}
+.btn.line{border:1px solid var(--line-2);color:var(--ink)}
+.btn.mt{margin-top:14px}
+.btn:active{transform:scale(.985)}
+.alarm-btn{margin-top:16px}
 
 /* 코트 고르기: 코트마다 예약이 하나면 번호 타일, 여럿이면 '코트 번호 | 시간대 버튼' 줄 */
 .group+.group{margin-top:16px}
@@ -180,7 +262,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .courts[data-cols="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 .courts[data-cols="1"]{grid-template-columns:minmax(0,1fr)}
 .court,.chip{display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line-2);border-radius:12px;
-  background:var(--bg);transition:background .12s,border-color .12s}
+  background:var(--card);transition:background .12s,border-color .12s}
 .court{gap:2px;min-height:64px;padding:8px 12px}
 .court b,.mno{font-size:20px;line-height:1.3;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .court b small,.mno small{margin-left:1px;font-size:13px;font-weight:600;letter-spacing:-.01em;color:var(--ink-2)}
@@ -195,246 +277,332 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .mchips[data-cols="3"] .chip{padding-left:8px;padding-right:8px}
 .chip span{font-size:14px;line-height:1.4;font-weight:600}
 .chip.col2{grid-column:2}
-.court em,.chip em{font-style:normal;font-weight:600;color:var(--brand)}
+.court em,.chip em{font-style:normal;font-weight:600;color:var(--go)}
 .court:active,.chip:active{background:var(--press)}
 @media (hover:hover){.court:hover,.chip:hover{border-color:var(--ink-4)}}
-.off{opacity:.5}
+.court.off,.chip.off{opacity:.5}
+/* 예약 받지 않는 코트 버튼: 누를 수는 있지만 한 톤 낮춘다 */
+.shut .court b,.shut .court b small,.shut .mno,.shut .mno small,.shut .chip span{color:var(--ink-3)}
 
-/* ── 반포종합운동장(테니스플레이) 빈 시간 ─────────────── */
-.seg{display:flex;gap:8px;margin-top:16px}
-.seg button{flex:1;min-width:0;height:44px;border:1px solid var(--line-2);border-radius:12px;
+/* ── 반포(테니스플레이) 빈 시간 ───────────────────────── */
+.seg{display:flex;gap:8px;margin-top:14px}
+.seg button{flex:1;min-width:0;height:44px;border:1px solid var(--line-2);border-radius:12px;text-align:center;
   font-size:14px;font-weight:600;color:var(--ink-2);transition:background .12s,border-color .12s,color .12s}
 .seg button[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
 .seg button:not([aria-pressed=true]):active{background:var(--press)}
-.prow>summary,.prow.frow{grid-template-columns:60px minmax(0,1fr) auto}
-.prow .when span{white-space:nowrap}
-.prow .what strong.dim{font-weight:500;color:var(--ink-3)}
+.rows{margin-top:8px}
+.row{border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row>summary,.frow{display:grid;grid-template-columns:60px minmax(0,1fr) auto;align-items:center;gap:12px;min-height:64px;padding:10px 0}
+.when,.what,.when>*,.what>*{display:block}
+.when b{font-size:16px;line-height:1.4;font-weight:700;font-variant-numeric:tabular-nums}
+.when span{font-size:13px;color:var(--ink-3);white-space:nowrap}
+.what strong{font-size:16px;line-height:1.4;font-weight:600}
+.what span{font-size:13px;line-height:1.5;color:var(--ink-3)}
+.what strong.dim{font-weight:500;color:var(--ink-3)}
+.tail{display:flex;align-items:center;gap:8px}
+.frow .tail{padding-right:28px}
+.dday{padding:4px 8px;border-radius:8px;background:var(--fill);color:var(--ink-2);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dday.near{background:var(--soon-bg);color:var(--soon)}
 .phours{display:grid;gap:8px;padding:4px 0 12px}
 .phour{display:grid;grid-template-columns:84px minmax(0,1fr);align-items:start;gap:8px}
 .ph{padding-top:5px;font-size:14px;font-weight:600;color:var(--ink-2)}
 .ptags{display:flex;flex-wrap:wrap;gap:6px}
-.ptag{display:inline-flex;align-items:center;height:30px;padding:0 10px;border-radius:8px;
-  background:var(--brand-weak);color:var(--brand);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
-.pbook{display:flex;align-items:center;justify-content:center;gap:6px;height:48px;margin-bottom:16px;
-  border:1px solid var(--line-2);border-radius:12px;font-size:16px;font-weight:600}
-.pbook svg{width:18px;height:18px;color:var(--ink-3)}
-.pbook:active{background:var(--press)}
-.pbook.solo{margin-top:20px}
-.play-note{padding:12px 0 16px;font-size:13px;line-height:1.5;color:var(--ink-3)}
-#play{scroll-margin-top:64px}
-#play .alarm{margin:0 0 16px}
-.sheet-hint{margin-top:8px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+.ptag{display:inline-flex;align-items:center;height:30px;padding:0 10px;border-radius:8px;background:var(--go-bg);color:var(--go);
+  font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.row .btn{margin-bottom:14px}
+.btn.line svg{width:18px;height:18px;color:var(--ink-3)}
 
-/* ── 새 알림: 받은 알림을 앱 안에서도 ─────────────────── */
-.fresh{margin:4px 20px 0;border:1px solid var(--line-2);border-radius:12px;overflow:hidden}
+/* ── 새 알림 ──────────────────────────────────────────── */
+.fresh{margin:4px 16px 12px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
 .fresh-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-left:16px}
-.fresh-head h2{display:flex;align-items:center;gap:8px;font-size:14px;line-height:1.4;font-weight:700}
+.fresh-head h2{display:flex;align-items:center;gap:8px;font-size:15px;line-height:1.4;font-weight:700}
 .fresh-head h2::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:var(--alert)}
 .fresh-x{flex:none;height:44px;padding:0 16px;font-size:13px;font-weight:500;color:var(--ink-3)}
 .fresh-item{display:block;width:100%;padding:10px 16px 12px;border-top:1px solid var(--line);text-align:left}
 .fresh-item b{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-size:15px;font-weight:600}
 .fresh-item b small{flex:none;font-size:13px;font-weight:400;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.fresh-item b .newtag{margin-right:auto;margin-left:-4px;align-self:center}
 .fresh-item span{display:block;margin-top:2px;font-size:14px;line-height:1.5;color:var(--ink-2);white-space:pre-line}
-.fresh-item:active,.fresh-x:active{background:var(--press)}
-.fresh-more{padding:8px 16px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
-.newtag{display:inline-block;flex:none;margin-left:8px;padding:0 6px;border-radius:8px;background:var(--alert);color:var(--on-alert);
-  font-size:13px;line-height:1.5;font-weight:700;font-style:normal;letter-spacing:0;vertical-align:middle;white-space:nowrap}
-.venue h3 .newtag{margin-left:0;align-self:center}
+.fresh-item:active,.fresh-x:active,.fresh-more:active{background:var(--press)}
+.fresh-more{display:block;width:100%;min-height:44px;padding:10px 16px;border-top:1px solid var(--line);text-align:center;font-size:13px;font-weight:600;color:var(--ink-2)}
+.alist{margin:12px -16px 0;border-bottom:1px solid var(--line)}
 
-.empty{margin-top:12px;padding:20px 0 24px}
-.empty strong{display:block;font-weight:600}
-.empty p{margin-top:4px;font-size:14px;color:var(--ink-3)}
-
-/* ── 설정 줄 · 꼬리말 ─────────────────────────────────── */
-.cells{padding:4px 20px}
-.cell{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;text-align:left;border-bottom:1px solid var(--line)}
-.cell:last-child{border-bottom:0}
-.cell .lead{width:22px;height:22px;color:var(--ink-2)}
-.cell .t{flex:1;font-weight:500}
-.cell .v{font-size:14px;color:var(--ink-3)}
-.cell .v.on{font-weight:600;color:var(--brand)}
-.cell .chev-r{width:20px;height:20px;color:var(--ink-4)}
-.cell:active{background:var(--press)}
-.foot{padding:16px 20px 28px;font-size:13px;line-height:1.6;color:var(--ink-3)}
-
-/* ── 아래 탭: 코트 오픈 ↔ 스윙 코치 ───────────────────── */
-.app{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
-.tabs{position:fixed;left:50%;bottom:0;z-index:30;transform:translateX(-50%);display:grid;grid-template-columns:1fr 1fr;
-  width:100%;max-width:520px;padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--line);
-  background:var(--bg);background:color-mix(in srgb,var(--bg) 96%,transparent);
-  -webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px)}
-.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:56px;
-  font-size:11px;font-weight:600;color:var(--ink-3)}
-.tab svg{width:24px;height:24px}
-.tab.on{color:var(--brand)}
-.tab:active{background:var(--press)}
-
-/* ── 알림 시트 ────────────────────────────────────────── */
-dialog{width:100%;max-width:520px;max-height:90vh;max-height:min(90dvh,760px);margin:auto auto 0;padding:0;border:0;
-  border-radius:20px 20px 0 0;background:var(--bg);color:var(--ink);box-shadow:var(--shadow);overflow:auto}
-dialog::backdrop{background:rgba(8,10,12,.52)}
-dialog[open]{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
-@media (min-width:560px){dialog{max-width:440px;margin:auto;border-radius:20px}}
-.sheet{padding:8px 20px calc(20px + env(safe-area-inset-bottom))}
-.sheet-head{display:flex;align-items:center;justify-content:space-between;min-height:56px;margin-right:-10px}
-.sheet-head h2{font-size:20px;font-weight:700;letter-spacing:-.03em}
-.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;
-  border-bottom:1px solid var(--line);cursor:pointer}
-.switch:last-of-type{border-bottom:0}
-.switch.master{min-height:72px;border-bottom:0}
-.switch.master b{display:block;font-weight:600}
-.switch.master small{display:block;margin-top:2px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+/* ── 알림 · 더보기 ────────────────────────────────────── */
+.page-h{padding:12px 20px 4px;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.03em;outline:0}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;border-bottom:1px solid var(--line);cursor:pointer}
+.switch:last-child{border-bottom:0}
+.switch b{display:block;font-weight:600}
+.switch small{display:block;margin-top:2px;font-size:13px;line-height:1.5;color:var(--ink-3)}
+.switch.master{min-height:64px;border-bottom:0}
+.switch.master b{font-size:18px;font-weight:700;letter-spacing:-.03em}
 .switch input{appearance:none;-webkit-appearance:none;position:relative;flex:none;width:52px;height:32px;margin:0;
   border-radius:16px;background:var(--ink-4);transition:background .2s;cursor:pointer}
 .switch input::before{content:'';position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;
-  background:var(--bg);transition:transform .2s}
+  background:#FFFFFF;transition:transform .2s}
 .switch input:checked{background:var(--brand)}
 .switch input:checked::before{transform:translateX(20px)}
 .switch input:disabled{opacity:.4;cursor:default}
+.sec .switch:first-of-type{margin-top:6px}
+.sec.tight{padding-top:8px;padding-bottom:8px}
 .push-status{margin-top:4px;font-size:13px;line-height:1.5;color:var(--ink-2)}
 .push-status:empty{display:none}
-.install{margin-top:12px;padding:16px;border-radius:12px;background:var(--band);font-size:14px}
+.install{margin-top:12px;padding:16px;border-radius:14px;background:var(--fill);font-size:14px}
 .install strong{display:block;font-weight:600}
 .install p{margin-top:4px;color:var(--ink-2)}
-.install ol{margin:8px 0 0;padding-left:20px;color:var(--ink-2)}
+.install ol{margin:8px 0 0;padding-left:20px;list-style:decimal;color:var(--ink-2)}
 .install li{padding:2px 0}
-.sheet-label{margin:24px 0 4px;font-size:13px;font-weight:600;color:var(--ink-3)}
-.pick{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;
-  border-bottom:1px solid var(--line);cursor:pointer}
-.pick:last-of-type{border-bottom:0}
-.pick input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
-.pick svg{width:24px;height:24px}
-.pick svg circle{fill:none;stroke:var(--ink-4);stroke-width:1.8}
-.pick svg path{stroke:transparent;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.pick input:checked~svg circle{fill:var(--brand);stroke:var(--brand)}
-.pick input:checked~svg path{stroke:var(--bg)}
-.pick input:focus-visible~span{outline:2px solid var(--brand);outline-offset:4px;border-radius:8px}
 .text-btn{min-height:44px;font-size:14px;font-weight:500;color:var(--ink-2);
   text-decoration:underline;text-decoration-color:var(--ink-4);text-underline-offset:4px}
-.sheet-foot{margin-top:12px}
+.under{margin:8px 20px 0}
+.steps{counter-reset:s;display:grid;gap:16px;margin-top:16px}
+.steps li{position:relative;min-height:36px;padding-left:48px}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:2px;display:grid;place-items:center;width:36px;height:36px;
+  border-radius:50%;background:var(--brand-weak);color:var(--brand);font-size:16px;font-weight:700}
+.steps b{display:block;font-weight:700}
+.steps span{display:block;font-size:14px;line-height:1.5;color:var(--ink-2)}
+.legend{display:grid;gap:10px;margin-top:14px}
+.legend li{display:flex;align-items:center;gap:10px;font-size:14px;line-height:1.4;color:var(--ink-2)}
+.legend i{flex:none;width:12px;height:12px;border-radius:50%}
+.legend b{flex:none;min-width:34px;font-weight:700;color:var(--ink)}
+.legend .go{background:var(--go)} .legend .soon{background:var(--soon)} .legend .warn{background:var(--warn)}
+.legend .mute{background:var(--ink-4)} .legend .alert{background:var(--alert)}
+.lrow{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;border-bottom:1px solid var(--line);font-weight:600}
+.lrow:last-child,details.lrow-d:last-child>summary{border-bottom:0}
+.lrow .lead{width:22px;height:22px;color:var(--ink-2)}
+.lrow .t{flex:1}
+.lrow .chev-r{width:20px;height:20px;color:var(--ink-4)}
+.lrow:active{background:var(--press)}
+.lrow-d>summary{display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:1px solid var(--line);font-weight:600}
+.lrow-d[open]>summary{border-bottom:0}
+.lrow-d .body{padding:0 0 16px 34px;border-bottom:1px solid var(--line);font-size:14px;line-height:1.6;color:var(--ink-2)}
+.lrow-d:last-child .body{border-bottom:0}
+.lrow-d .body p+p{margin-top:8px}
+.lrow-d .body b{color:var(--ink)}
+.tip{position:relative;margin:16px 16px 0;padding:18px 16px 16px;border-radius:20px;background:var(--brand-weak)}
+.tip h2{font-size:16px;font-weight:700;letter-spacing:-.02em}
+.tip p{margin-top:12px;font-size:14px;line-height:1.5;color:var(--ink-2)}
+.tip .btn{margin-top:14px;min-height:46px;background:var(--card);font-size:15px}
+.foot{padding:16px 20px 0;font-size:13px;line-height:1.6;color:var(--ink-3)}
+
+/* ── 아래 탭 줄 ───────────────────────────────────────── */
+.nav{position:fixed;left:50%;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(3,1fr);width:100%;max-width:520px;
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);transform:translateX(-50%);
+  border-top:1px solid var(--line);background:var(--card);background:color-mix(in srgb,var(--card) 92%,transparent);
+  -webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px)}
+.nav button,.tabs .tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:11px;font-weight:600;color:var(--ink-3)}
+.nav svg,.tabs svg{width:24px;height:24px}
+.nav button[aria-current=page]{color:var(--brand)}
+.nav button:active svg,.tabs .tab:active svg{transform:scale(.9)}
+/* 스윙 코치로 가는 탭 — 열쇠가 있는 기기에만 서버가 이 탭 줄(.tabs)을 남긴다. 있으면 아래 탭 줄의 네 번째 칸이 된다.
+   '코트 오픈' 쪽 링크는 지금 화면이라 보이지 않게 둔다(스윙 코치 화면과 같은 탭 구성을 서버 · 시험이 확인한다). */
+.tabs{position:fixed;left:50%;bottom:0;z-index:41;display:flex;justify-content:flex-end;width:100%;max-width:520px;
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);transform:translateX(-50%);pointer-events:none}
+.tabs .tab{width:25%;pointer-events:auto}
+.tabs .tab.on{display:none}
+.tabs~.app .nav{padding-right:25%}
+.tab-badge{position:absolute;top:6px;left:calc(50% + 4px);display:grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+  background:var(--alert);color:var(--on-alert);font-size:11px;line-height:1;font-weight:700;font-style:normal}
 
 /* ── 토스트 · 뼈대 ────────────────────────────────────── */
-.toast{position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom));z-index:60;
-  max-width:min(92vw,440px);padding:12px 16px;border-radius:12px;background:var(--ink);color:var(--bg);
-  font-size:14px;font-weight:500;text-align:center;opacity:0;transform:translate(-50%,8px);pointer-events:none;
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));z-index:60;
+  width:max-content;max-width:min(92vw,440px);padding:12px 16px;border-radius:14px;background:var(--ink);color:var(--bg);
+  font-size:14px;line-height:1.45;font-weight:500;text-align:center;opacity:0;transform:translate(-50%,8px);pointer-events:none;
   transition:opacity .2s,transform .2s}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.sk{border-radius:8px;background:var(--band)}
+.sk{border-radius:10px;background:var(--line);animation:sk 1.2s ease-in-out infinite alternate}
+.hero.plain .sk{background:var(--fill)}
+.vcard .sk{background:var(--fill)}
 .slow{margin-top:16px;font-size:13px;color:var(--ink-3)}
+.page{animation:fade .18s ease}
 
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes sk{from{opacity:1}to{opacity:.55}}
+@keyframes ping{0%{box-shadow:0 0 0 0 var(--ping,rgba(216,242,92,.6))}70%{box-shadow:0 0 0 8px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
-@media (prefers-color-scheme:dark){.brand svg{box-shadow:0 0 0 1px var(--line-2)}}
+@media (prefers-color-scheme:dark){
+  .brand svg{box-shadow:0 0 0 1px var(--line-2)}
+  .hero{box-shadow:0 0 0 1px var(--line)}
+  .sec .ping,.cell.hot .dot{--ping:rgba(61,214,140,.35)}
+}
 @media (max-width:359px){
-  .next,.sec,.cells,.foot{padding-left:16px;padding-right:16px}
-  .bar{padding-left:16px}
-  .next-time{font-size:48px}
-  .remain{margin-top:11px}
+  .cards,.chips{padding-left:12px;padding-right:12px}
+  .hero,.sec,.one,.fresh,.tip,.stale{margin-left:12px;margin-right:12px}
+  .hero-time{font-size:42px}
   .court{padding-left:8px;padding-right:8px}
 }
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <header class="bar" id="bar">
-    <a class="brand" href="/" aria-label="코트 오픈 홈">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" fill="#0E2A20"/><circle cx="16" cy="16" r="8.5" fill="#D8F25C"/><path d="M9.6 10.4c2.7 1.6 4.1 3.5 4.1 5.6s-1.4 4-4.1 5.6M22.4 10.4c-2.7 1.6-4.1 3.5-4.1 5.6s1.4 4 4.1 5.6" fill="none" stroke="#0E2A20" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span>코트 오픈</span>
-    </a>
-    <div class="bar-actions">
-      <button class="sync" id="refresh" aria-label="서울시 정보 새로 고침">
-        <span id="stamp">불러오는 중</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>
-      </button>
-      <button class="icon-btn" id="bell" data-act="sheet" aria-label="오픈 알림 설정"></button>
-    </div>
-  </header>
-
-  <main>
-    <section class="fresh" id="fresh" aria-label="새 알림" hidden></section>
-    <section class="next" id="next" aria-label="다음 예약 오픈">
-      <div class="sk" style="width:96px;height:16px"></div>
-      <div class="sk" style="width:160px;height:20px;margin-top:16px"></div>
-      <div class="sk" style="width:180px;height:56px;margin-top:8px"></div>
-      <div class="sk" style="width:170px;height:28px;margin-top:12px"></div>
-      <div class="sk" style="width:220px;height:16px;margin-top:8px"></div>
-      <p class="slow" id="slow" hidden>불러오는 중이에요. 처음 열 때는 30초쯤 걸릴 수 있어요.</p>
-    </section>
-
-    <div class="band" id="band-next" hidden></div>
-    <section class="sec" id="schedule" aria-label="오픈 일정" hidden></section>
-
-    <div class="band"></div>
-    <section class="sec" id="available" aria-label="지금 접수 중인 코트">
-      <div class="sk" style="width:150px;height:24px"></div>
-      <div class="sk" style="height:64px;margin-top:20px;border-radius:12px"></div>
-      <div class="sk" style="height:64px;margin:8px 0 16px;border-radius:12px"></div>
-    </section>
-
-    <div class="band" id="band-play" hidden></div>
-    <section class="sec" id="play" aria-label="반포종합운동장 빈 시간" hidden></section>
-
-    <div class="band"></div>
-    <div class="cells">
-      <button class="cell" data-act="sheet">
-        <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
-        <span class="t">오픈 알림</span><span class="v" id="push-value">꺼짐</span>
-        <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-      </button>
-      <button class="cell" id="share">
-        <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="m8 8 4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
-        <span class="t">친구에게 공유</span>
-        <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-      </button>
-    </div>
-    <footer class="foot">서울시 공공서비스예약에 올라온 정보를 그대로 보여 드려요. ‘공지 일정’은 시설 안내문에 적힌 정기 오픈 날짜라 실제와 다를 수 있어요.</footer>
-  </main>
-</div>
-
 <nav class="tabs" id="tabs" aria-label="화면 바꾸기">
   <a class="tab on" aria-current="page" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3" width="15" height="18" rx="1.5"/><path d="M4.5 12h15M8 3v18M16 3v18M8 7.5h8M8 16.5h8"/></svg><span>코트 오픈</span></a>
   <a class="tab" href="/coach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="14.6" cy="8.6" rx="4.6" ry="6" transform="rotate(38 14.6 8.6)"/><path d="M10.9 13.3 5 20.5"/><circle cx="5.6" cy="6.4" r="1.7"/></svg><span>스윙 코치</span></a>
 </nav>
 
-<dialog id="sheet" aria-labelledby="sheet-title">
-  <div class="sheet">
-    <div class="sheet-head">
-      <h2 id="sheet-title" tabindex="-1">오픈 알림</h2>
-      <button class="icon-btn" id="sheet-close" aria-label="닫기">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-      </button>
-    </div>
-    <label class="switch master">
-      <span><b>이 기기로 알림 받기</b><small>예약이 열리기 전날 아침과 1시간 전에 알려 드려요.</small></span>
-      <input type="checkbox" role="switch" id="master">
-    </label>
-    <p class="push-status" id="push-status" role="status"></p>
-    <div class="install" id="install" hidden></div>
-    <div id="prefs">
-      <p class="sheet-label" id="areas-label">알림 받을 테니스장</p>
-      <div id="areas" role="group" aria-labelledby="areas-label"></div>
-      <p class="sheet-hint" id="play-hint" hidden>반포는 매일 09:00에 7일 뒤 날짜가 열려요. 전날 20시와 1시간 전에 알려 드려요.</p>
-      <p class="sheet-label" id="when-label">알림 시간</p>
-      <div role="group" aria-labelledby="when-label">
-        <label class="switch"><span>오픈 전날</span><input type="checkbox" role="switch" id="d1"></label>
-        <label class="switch"><span>오픈 1시간 전</span><input type="checkbox" role="switch" id="h1"></label>
-        <label class="switch" id="free-row" hidden><span>반포에 빈 시간이 생기면</span><input type="checkbox" role="switch" id="free"></label>
+<div class="app" id="app" data-tab="home">
+  <header class="bar" id="bar">
+    <a class="brand" href="/" data-act="home" aria-label="코트 오픈 처음 화면">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" fill="#0E2A20"/><circle cx="16" cy="16" r="8.5" fill="#D8F25C"/><path d="M9.6 10.4c2.7 1.6 4.1 3.5 4.1 5.6s-1.4 4-4.1 5.6M22.4 10.4c-2.7 1.6-4.1 3.5-4.1 5.6s1.4 4 4.1 5.6" fill="none" stroke="#0E2A20" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>코트 오픈</span>
+    </a>
+    <button class="sync" id="refresh" aria-label="정보 새로 고침">
+      <span id="stamp">불러오는 중</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>
+    </button>
+  </header>
+
+  <main id="main">
+    <!-- 홈: 테니스장 -->
+    <div class="page" id="page-home">
+      <nav class="chips" id="chips" aria-label="테니스장 고르기"></nav>
+      <div class="stale" id="stale" role="status" hidden></div>
+      <div id="home-all">
+        <section class="fresh" id="fresh" aria-label="새 알림" hidden></section>
+        <section class="hero plain" id="hero" aria-label="다음 예약 오픈">
+          <div class="sk" style="width:96px;height:16px"></div>
+          <div class="sk" style="width:170px;height:18px;margin-top:16px"></div>
+          <div class="sk" style="width:150px;height:48px;margin-top:8px"></div>
+          <div class="sk" style="width:180px;height:24px;margin-top:10px"></div>
+          <div class="sk" style="height:50px;margin-top:18px;border-radius:14px"></div>
+          <p class="slow" id="slow" hidden>불러오는 중이에요. 처음 열 때는 30초쯤 걸릴 수 있어요.</p>
+        </section>
+        <div class="list-head" id="list-head" hidden>
+          <h2 id="list-title">테니스장</h2>
+          <label class="sort"><select id="sort" aria-label="테니스장 정렬">
+            <option value="base">기본 순서</option>
+            <option value="now">예약 받는 곳 먼저</option>
+            <option value="soon">빨리 열리는 순</option>
+          </select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></label>
+        </div>
+        <div class="cards" id="cards" style="margin-top:16px">
+          <div class="vcard"><div class="sk" style="width:130px;height:24px;margin:10px 0 18px"></div><div class="sk" style="height:84px;border-radius:14px"></div></div>
+          <div class="vcard"><div class="sk" style="width:130px;height:24px;margin:10px 0 18px"></div><div class="sk" style="height:84px;border-radius:14px"></div></div>
+          <div class="vcard"><div class="sk" style="width:130px;height:24px;margin:10px 0 18px"></div><div class="sk" style="height:84px;border-radius:14px"></div></div>
+        </div>
+        <p class="cards-note" id="cards-note" hidden>‘예약 받는 중’은 예약 신청을 받는다는 뜻이에요. 날짜별 빈자리는 코트를 눌러 서울시 예약 화면에서 확인해요.</p>
+        <section class="tip" id="tip" aria-label="처음 쓰는 분께" hidden>
+          <h2>이렇게 보세요</h2>
+          <ul class="legend">
+            <li><i class="go"></i><b>초록</b>지금 예약을 받아요</li>
+            <li><i class="soon"></i><b>주황</b>24시간 안에 예약이 열려요</li>
+            <li><i class="mute"></i><b>회색</b>지금은 예약을 안 받아요</li>
+          </ul>
+          <p>종을 누르면 예약이 열리기 전날과 1시간 전에 알려 드려요.</p>
+          <button class="btn" data-act="tip-x">알겠어요</button>
+        </section>
       </div>
+      <div id="home-one" hidden></div>
     </div>
-    <div class="sheet-foot"><button class="text-btn" id="test" hidden>테스트 알림 보내기</button></div>
-  </div>
-</dialog>
+
+    <!-- 알림 -->
+    <div class="page" id="page-alerts" hidden>
+      <h1 class="page-h" id="alerts-title" tabindex="-1">알림</h1>
+      <section class="sec tight">
+        <label class="switch master">
+          <span><b>이 기기로 알림 받기</b><small id="push-sum">꺼져 있어요</small></span>
+          <input type="checkbox" role="switch" id="master" aria-label="이 기기로 알림 받기">
+        </label>
+        <p class="push-status" id="push-status" role="status"></p>
+        <div class="install" id="install" hidden></div>
+      </section>
+      <section class="sec" aria-labelledby="alist-h">
+        <h2 class="sec-h" id="alist-h"><span>알림 기록</span><span class="cnt">최근 24시간</span></h2>
+        <div id="alist"></div>
+      </section>
+      <div id="prefs">
+        <section class="sec" aria-labelledby="areas-label">
+          <h2 class="sec-h" id="areas-label"><span>알림 받을 테니스장</span></h2>
+          <p class="sec-sub">테니스장 카드의 종과 같아요. 여기서 한꺼번에 고를 수 있어요.</p>
+          <div id="areas" role="group" aria-labelledby="areas-label"></div>
+          <p class="hint" id="play-hint" hidden>반포는 매일 09:00에 7일 뒤 날짜가 열려요. 전날 20시와 1시간 전에 알려 드려요.</p>
+        </section>
+        <section class="sec" aria-labelledby="when-label">
+          <h2 class="sec-h" id="when-label"><span>언제 알려 드릴까요</span></h2>
+          <div role="group" aria-labelledby="when-label">
+            <label class="switch"><span>예약이 열리기 전날</span><input type="checkbox" role="switch" id="d1"></label>
+            <label class="switch"><span>예약이 열리기 1시간 전</span><input type="checkbox" role="switch" id="h1"></label>
+            <label class="switch" id="free-row" hidden><span><b>반포에 빈 시간이 생기면</b><small>누가 취소해서 자리가 나면 알려 드려요.</small></span><input type="checkbox" role="switch" id="free"></label>
+          </div>
+        </section>
+      </div>
+      <p class="under"><button class="text-btn" id="test" hidden>테스트 알림 보내기</button></p>
+    </div>
+
+    <!-- 더보기 -->
+    <div class="page" id="page-more" hidden>
+      <h1 class="page-h" id="more-title" tabindex="-1">더보기</h1>
+      <section class="sec">
+        <h2 class="sec-h"><span>이렇게 써요</span></h2>
+        <ol class="steps">
+          <li><b>테니스장을 골라요</b><span>홈 맨 위 줄에서 가고 싶은 곳을 누르면 그곳만 보여요.</span></li>
+          <li><b>‘지금 예약’ 칸을 봐요</b><span>초록색 ‘예약 받는 중’이면 코트를 눌러 예약 화면으로 가요.</span></li>
+          <li><b>종을 눌러 둬요</b><span>예약이 열리기 전날과 1시간 전에 알려 드려요.</span></li>
+        </ol>
+      </section>
+      <section class="sec">
+        <h2 class="sec-h"><span>색깔 뜻</span></h2>
+        <ul class="legend">
+          <li><i class="go"></i><b>초록</b>지금 예약을 받아요(반포는 빈 시간이 있어요)</li>
+          <li><i class="soon"></i><b>주황</b>24시간 안에 예약이 열려요</li>
+          <li><i class="warn"></i><b>노랑</b>예약 화면에서 직접 확인이 필요해요</li>
+          <li><i class="mute"></i><b>회색</b>지금은 예약을 안 받아요</li>
+          <li><i class="alert"></i><b>빨강</b>새 알림이 왔어요</li>
+        </ul>
+      </section>
+      <section class="sec tight">
+        <button class="lrow" data-act="share">
+          <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="m8 8 4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
+          <span class="t">친구에게 공유</span>
+          <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <details class="lrow-d">
+          <summary><svg class="lead" style="width:22px;height:22px;color:var(--ink-2)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg><span style="flex:1">홈 화면에 앱으로 추가하는 방법</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <div class="body">
+            <p><b>아이폰</b> Safari로 이 주소를 열고, 아래쪽 공유 버튼 → ‘홈 화면에 추가’를 눌러요. 그다음 홈 화면의 코트 오픈을 열어 알림을 켜요.</p>
+            <p><b>안드로이드</b> Chrome으로 이 주소를 열고, 오른쪽 위 메뉴(⋮) → ‘홈 화면에 추가’ 또는 ‘앱 설치’를 눌러요.</p>
+            <p><button class="text-btn" data-act="copy">이 주소 복사하기</button></p>
+          </div>
+        </details>
+        <details class="lrow-d">
+          <summary><svg class="lead" style="width:22px;height:22px;color:var(--ink-2)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg><span style="flex:1">정보는 어디서 오나요</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <div class="body">
+            <p><b>한남 · 장충 · 마루공원 · 선우공원 · 서울숲</b>은 서울시 공공서비스예약에 올라온 정보를 그대로 보여 드려요. 서울시는 날짜별 남은 자리를 알려 주지 않아서, ‘예약 받는 중’이어도 원하는 날이 찼을 수 있어요.</p>
+            <p><b>반포종합운동장</b>은 테니스플레이의 예약 현황으로 빈 시간을 계산해요.</p>
+            <p><b>공지 일정</b>은 시설 안내문에 적힌 정기 오픈 날짜예요. 실제와 다를 수 있어요.</p>
+          </div>
+        </details>
+      </section>
+      <p class="foot">예약은 이 앱이 아니라 서울시 예약 화면과 테니스플레이에서 직접 해요.</p>
+    </div>
+  </main>
+
+  <nav class="nav" id="nav" aria-label="메뉴">
+    <button data-act="tab" data-tab="home" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.2 12 4l8 7.2"/><path d="M6 10v9a1 1 0 0 0 1 1h3.5v-5h3v5H17a1 1 0 0 0 1-1v-9"/></svg>
+      <span>홈</span>
+    </button>
+    <button data-act="tab" data-tab="alerts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+      <span>알림</span><em class="tab-badge num" id="tab-badge" hidden></em>
+    </button>
+    <button data-act="tab" data-tab="more">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>
+      <span>더보기</span>
+    </button>
+  </nav>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <noscript><p style="padding:24px 20px">이 앱은 자바스크립트를 켜야 볼 수 있어요.</p></noscript>
 
 <script>
 'use strict';
-/* 코트 오픈 — 화면 스크립트.
-   서버(/board, /refresh, /push/*)만 호출한다. 서울시 예약 사이트 주소는 사람이 누르는 링크로만 쓴다. */
+/* 코트 오픈 v6 — 화면 스크립트(설계 기준: docs/REDESIGN_V6.md).
+   서버(/board, /refresh, /push/*)만 호출한다. 서울시 예약 사이트 주소는 사람이 누르는 링크로만 쓴다.
+   앞부분(…MODEL-END 까지)은 화면에 기대지 않는 계산이라 tests/js/venue_harness.js 가 그대로 떼어 돌린다. */
 const $ = (id) => document.getElementById(id);
-const sheet = $('sheet');
-const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr | new | playnew | feed | playfeed
+const MOCK = new URLSearchParams(location.search).get('mock');   // opened | late | next | soon | none | empty | notice | passed | play | playfull | playerr | new | playnew | feed | playfeed (&tip=1 처음 쓰는 사람 안내)
 const AREAS = ['한남', '장충', '마루공원', '선우공원', '서울숲'];
 const NAMES = {'한남': '한남테니스장', '장충': '장충테니스장', '마루공원': '마루공원', '선우공원': '선우공원', '서울숲': '서울숲 테니스장', '반포': '반포종합운동장'};
 // 반포(테니스플레이) 알림 — 고른 기기에만 간다. PLAY_AREA = 예약 오픈 예고, PLAY_FREE = 빈 시간이 새로 생기면
@@ -451,12 +619,15 @@ const safeURL = (s) => {
 };
 class UserError extends Error {}     // 사용자에게 그대로 보여 줘도 되는 안내 문구
 
+const SVG = (inner, cls = '') => `<svg${cls ? ` class="${cls}"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
 const ICON = {
-  chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
-  bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+  chev: SVG('<path d="m6 9 6 6 6-6"/>', 'chev'),
+  chevR: SVG('<path d="m9 6 6 6-6 6"/>'),
+  chevL: SVG('<path d="m15 6-6 6 6 6"/>'),
+  bell: SVG('<path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
   bellOn: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 8H4c0-1.5 2-3 2-8Z"/><path d="M10 20a2 2 0 0 0 4 0" fill="none"/></svg>',
-  check: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.3 3 3 6-6.4"/></svg>',
 };
+const BALL = '<svg class="hero-ball" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#D8F25C"/><path d="M11 12.500c8.700 5.200 13 11.700 13 19.500s-4.300 14.300-13 19.500M53 12.500c-8.700 5.200-13 11.700-13 19.500s4.300 14.300 13 19.500" fill="none" stroke="#0E2A20" stroke-opacity=".5" stroke-width="2.400" stroke-linecap="round"/></svg>';
 
 /* ── 시간: 서버 문자열은 모두 한국 시간 'YYYY-MM-DD HH:MM[:SS]' ─────── */
 let skew = 0;                                   // 서버 시계 − 기기 시계(ms). 기기 시계가 틀려도 서버 기준으로 계산한다.
@@ -465,7 +636,9 @@ const WD = ['일', '월', '화', '수', '목', '금', '토'];
 function kstMs(s) {
   s = String(s || '');
   if (s.length < 16) return NaN;
-  return Date.parse(`${s.slice(0, 10)}T${s.slice(11, 16)}:${s.length >= 19 ? s.slice(17, 19) : '00'}+09:00`);
+  const t = Date.parse(`${s.slice(0, 10)}T${s.slice(11, 16)}:${s.length >= 19 ? s.slice(17, 19) : '00'}+09:00`);
+  // 11월 31일처럼 없는 날짜는 받지 않는다(Date 가 다음 달로 넘겨 버린다)
+  return Number.isFinite(t) && new Date(t + 9 * 36e5).toISOString().slice(0, 16) === `${s.slice(0, 10)}T${s.slice(11, 16)}` ? t : NaN;
 }
 const dayFmt = new Intl.DateTimeFormat('sv-SE', {timeZone: 'Asia/Seoul'});
 const todayKST = () => dayFmt.format(new Date(nowMs()));
@@ -487,10 +660,8 @@ function remainText(ms, openAt) {
   const h = Math.floor(min / 60), m = min % 60;
   if (h < 24) return m ? `${h}시간 ${m}분 남음` : `${h}시간 남음`;
   if (h < 48) return h % 24 ? `1일 ${h % 24}시간 남음` : '1일 남음';
-  return `${dayDiff(openAt)}일 남음`;           // 이틀 넘게 남으면 달력 날짜 기준(일정 줄의 D-n 과 같게)
+  return `${dayDiff(openAt)}일 남음`;           // 이틀 넘게 남으면 달력 날짜 기준
 }
-const isSoon = (ms) => Math.ceil(ms / 60000) < 60;
-const ddayText = (n) => (n <= 0 ? '오늘' : n === 1 ? '내일' : `D-${n}`);
 
 /* ── 코트 고르기 ──────────────────────────────────────── */
 const STATE_TEXT = {full: '마감', ended: '접수 끝남', paused: '일시중지', unknown: '접수 상태 확인 필요'};   // 접수하지 않는 코트
@@ -596,311 +767,12 @@ function pickerHTML(courts, keepHours) {
 const dots = (t) => String(t || '').replace(/(\d{1,2})\/(\d{1,2})/g, '$1.$2');
 const periodText = (p) => (!p ? '' : /이용분$/.test(p) ? dots(p) : `${dots(p)} 이용분`);
 
-/* ── 새 알림: 받은 알림을 앱 안에서도 보여 준다 ─────────
-   서비스워커(sw.js)가 알림을 받을 때마다 보관함(Cache 'tn-inbox')에 적어 둔다. 앱을 열면 그것을 읽어 맨 위와
-   그 테니스장 이름 옆에 '새 알림'으로 보여 주고 보관함을 비운다 → 앱 아이콘 숫자(아직 안 본 알림 수)도 지운다.
-   한 번 본 알림은 10분이 지난 뒤 앱을 다시 열면 사라진다.
-   카카오톡으로만 받았거나 앱 알림이 이 기기에 도착하지 못한 알림은 서버의 보낸 알림 기록(/board 의 feed)에서 읽어
-   같은 자리에 보여 준다(아래 takeFeed). */
-const FRESH_KEEP = 10 * 60000, FRESH_AGE = 24 * 36e5, FRESH_ROWS = 5;
-let fresh = [];
-function freshItem(x) {
-  if (!x || typeof x !== 'object' || typeof x.text !== 'string' || !x.text.trim() || !Number.isFinite(x.at)) return null;
-  const s = (v, n) => String(v ?? '').slice(0, n);
-  return {area: s(x.area, 20), place: s(x.place, 40), kind: s(x.kind, 10), key: s(x.key || x.text, 120),
-    text: s(x.text, 300), at: x.at, seen: Number.isFinite(x.seen) ? x.seen : 0};
-}
-if (!MOCK) {
-  try {
-    const v = JSON.parse(localStorage.getItem('tn_fresh')), t = Date.now();
-    if (Array.isArray(v)) fresh = v.map(freshItem).filter((x) => x && t - x.seen < FRESH_KEEP && t - x.at < FRESH_AGE);
-  } catch {}
-} else if (/new$/.test(MOCK)) {                       // 미리보기 ?mock=new · ?mock=playnew
-  const t = Date.now();
-  fresh = [{area: '한남', place: '한남테니스장', kind: 'd1', key: 'open|a', text: '11.14(토) 09:00 예약 오픈', at: t - 5 * 60000, seen: t},
-    ...(MOCK === 'playnew' ? [
-      {area: '반포', place: '반포종합운동장 테니스장', kind: 'd1', key: 'open|b', text: '11.14(토) 09:00 예약 오픈 · 11.21(토) 이용분', at: t - 5 * 60000, seen: t},
-      {area: '반포', place: '반포종합운동장 테니스장', kind: 'free', key: 'free|c', text: '11.16(월) 14~15시 · 3번 코트\n11.17(화) 14~15시 · 2번, 6번 코트', at: t - 60000, seen: t}] : [])];
-}
-const saveFresh = () => { if (!MOCK) { try { localStorage.setItem('tn_fresh', JSON.stringify(fresh)); } catch {} } };
-
-/* 보낸 알림 기록(/board 의 feed) — 서버가 최근 24시간에 보낸 알림(카카오톡 · 앱 알림).
-   이 기기에서 이미 보여 준 알림은 seenAt(곳|key|종류 → 보낸 때)에 적어 두어 다시 '새 알림'으로 뜨지 않게 한다. */
-const FEED_TOL = 5 * 60000;                           // 같은 알림으로 보는 시각 차(앱 알림이 도착한 때 ↔ 서버가 보낸 때)
-let seenAt = {};
-if (!MOCK) {
-  try {
-    const v = JSON.parse(localStorage.getItem('tn_seen')), t = Date.now();
-    if (v && typeof v === 'object') {
-      Object.keys(v).forEach((k) => { if (Number.isFinite(v[k]) && t - v[k] < 2 * FRESH_AGE) seenAt[k] = v[k]; });
-    }
-  } catch {}
-}
-const seenId = (x) => `${x.area}|${x.key}|${x.kind}`;
-function markSeen(x) { const id = seenId(x); if (!(seenAt[id] >= x.at)) seenAt[id] = x.at; }
-function saveSeen() {
-  if (MOCK) return;
-  const t = Date.now();
-  Object.keys(seenAt).forEach((k) => { if (t - seenAt[k] >= 2 * FRESH_AGE) delete seenAt[k]; });
-  try { localStorage.setItem('tn_seen', JSON.stringify(seenAt)); } catch {}
-}
-// 카카오톡 알림에 든 링크(…?k=1)로 연 브라우저 = 카카오톡 알림을 받는 사람 → 서버가 보낸 알림을 모두 보여 준다.
-let showAll = new URLSearchParams(location.search).has('k');
-if (!MOCK) {
-  try { if (showAll) localStorage.setItem('tn_all', '1'); else showAll = localStorage.getItem('tn_all') === '1'; } catch {}
-}
-// 이 기기가 받기로 한 알림인가 — 알림 설정에서 고른 곳 · 시간(알림을 켜지 않은 기기는 기본값 = 5곳의 오픈 알림).
-function feedWanted(x, areas) {
-  if (showAll) return true;
-  if (x.kind === 'free') return settings.free === true;
-  if ((x.kind === 'd1' && !settings.d1) || (x.kind === 'h1' && !settings.h1)) return false;
-  return areas.some((a) => settings.areas.includes(a));
-}
-/* 보낸 알림 기록에서 이 기기가 아직 보여 주지 않은 것을 '새 알림'에 넣는다. 넣은 것이 있으면 true(그리기는 부른 쪽에서). */
-function takeFeed(list) {
-  if (!Array.isArray(list) || document.visibilityState !== 'visible') return false;   // 화면을 보고 있을 때만 '보여 줬다'고 적는다
-  const now = Date.now();
-  let added = false, noted = false;
-  list.forEach((raw) => {
-    const x = freshItem(raw);
-    if (!x || now - x.at >= FRESH_AGE) return;
-    const areas = Array.isArray(raw.areas) ? raw.areas.filter((a) => typeof a === 'string' && a) : [];
-    if (!feedWanted(x, areas.length ? areas : [x.area])) return;
-    const id = seenId(x);
-    if (seenAt[id] >= x.at - FEED_TOL) return;         // 이미 보여 준 알림(앱 알림으로 먼저 받았거나 지난번에 봄)
-    seenAt[id] = x.at;
-    noted = true;
-    const same = fresh.find((y) => y.area === x.area && y.key === x.key);
-    if (same && same.at >= x.at - FEED_TOL) return;    // 같은 알림이 이미 떠 있음
-    fresh = fresh.filter((y) => !(y.area === x.area && y.key === x.key));   // 전날 알림 → 1시간 전 알림은 한 줄로
-    fresh.push({...x, seen: now});
-    added = true;
-  });
-  if (noted) saveSeen();
-  if (added) saveFresh();
-  return added;
-}
-// 그 테니스장 이름 옆에 붙이는 표시
-const newTag = (area) => (area && fresh.some((x) => x.area === area) ? `<em class="newtag" data-area="${esc(area)}">새 알림</em>` : '');
-const freshName = (x) => (NAMES[x.area] || x.place || '코트 오픈') + (x.kind === 'free' ? ' 빈 시간' : '');
-const clockFmt = new Intl.DateTimeFormat('en-GB', {timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'});
-function freshWhen(at) {                              // 알림을 받은 때: '오늘 20:00' · '어제 20:00' · '11.12 20:00'
-  const d = new Date(at), day = dayFmt.format(d), diff = dayDiff(day);
-  return `${diff === 0 ? '오늘' : diff === -1 ? '어제' : shortDate(day)} ${clockFmt.format(d)}`;
-}
-function paintFreshBar() {
-  const el = $('fresh'), list = [...fresh].sort((a, b) => b.at - a.at);
-  el.hidden = !list.length;
-  el.innerHTML = !list.length ? ''
-    : `<div class="fresh-head"><h2>새 알림 ${list.length}건</h2><button class="fresh-x" data-act="fresh-x">닫기</button></div>`
-      + list.slice(0, FRESH_ROWS).map((x) => `<button class="fresh-item" data-act="fresh-go" data-area="${esc(x.area)}">
-        <b>${esc(freshName(x))}<small>${esc(freshWhen(x.at))} 알림</small></b><span class="num">${esc(x.text)}</span></button>`).join('')
-      + (list.length > FRESH_ROWS ? `<p class="fresh-more">외 ${list.length - FRESH_ROWS}건</p>` : '');
-}
-function paintFresh() {
-  paintFreshBar();
-  if (board) { try { renderBoard(board); } catch (e) { console.error(e); } }   // 테니스장 옆 '새 알림' 표시도 다시 그린다
-}
-function clearBadge() {                               // 앱을 열면 아이콘 숫자를 지운다
-  try { if (navigator.clearAppBadge) Promise.resolve(navigator.clearAppBadge()).catch(() => {}); } catch {}
-}
-async function clearTray() {                          // 알림 목록에 남은 이 앱의 알림도 치운다(안드로이드는 이것이 아이콘의 숫자·점)
-  try {
-    const reg = await navigator.serviceWorker.getRegistration();
-    if (reg && reg.getNotifications) (await reg.getNotifications()).forEach((n) => n.close());
-  } catch {}
-}
-let inboxBusy = null;
-/* opened: 앱을 열었거나 다른 앱에서 돌아옴(true) · 앱을 보고 있는 중에 알림이 옴(false) */
-function checkInbox(opened) {
-  if (MOCK) return Promise.resolve();
-  if (inboxBusy) return inboxBusy;
-  inboxBusy = (async () => {
-    clearBadge();
-    if (opened) clearTray();
-    let got = [];
-    try {
-      const c = await caches.open('tn-inbox'), r = await c.match('/__tn_inbox');
-      if (r) { const v = await r.json(); await c.delete('/__tn_inbox'); if (Array.isArray(v)) got = v; }
-    } catch {}
-    const now = Date.now(), before = JSON.stringify(fresh);
-    if (opened) fresh = fresh.filter((x) => now - x.seen < FRESH_KEEP);      // 본 지 10분 넘은 것은 다시 열 때 치운다
-    fresh = fresh.filter((x) => now - x.at < FRESH_AGE);
-    got.map(freshItem).filter(Boolean).forEach((x) => {
-      fresh = fresh.filter((y) => !(y.area === x.area && y.key === x.key));
-      fresh.push({...x, seen: now});
-      markSeen(x);                                    // 같은 알림이 보낸 알림 기록으로 한 번 더 뜨지 않게
-    });
-    if (got.length) saveSeen();
-    if (JSON.stringify(fresh) !== before) { saveFresh(); paintFresh(); }
-  })().finally(() => { inboxBusy = null; });
-  return inboxBusy;
-}
-function goFresh(area) {                              // 새 알림 줄을 누르면 그 테니스장 자리로
-  const tag = [...document.querySelectorAll('.newtag')].find((t) => t.dataset.area === area);
-  const to = area === PLAY_AREA ? $('play') : tag && (tag.closest('.row, .venue, .opened, .pend') || tag);
-  if (!to || to.hidden) return;
-  const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  try { to.scrollIntoView({block: to.id === 'play' ? 'start' : 'center', behavior: calm ? 'auto' : 'smooth'}); } catch {}
-}
-
-/* ── 그리기 ───────────────────────────────────────────── */
-const HOT_MS = 2 * 36e5;   // 예약이 열리고 2시간까지는 맨 위에 코트 버튼을 펼쳐 둔다
-let board = null, updatedAt = '', nextOpenMs = null, nextOpenAt = '', coolAtMs = null, renderedDay = '';
-const placeOf = (x) => x.place || NAMES[x.area] || x.area;
-const keyOf = (x) => `${x.area}|${x.open_at}|${x.period || ''}`;
-
-function alarmHTML(area) {
-  const on = subscribedTo(area);
-  return `<button class="alarm${on ? ' on' : ''}" data-act="sheet" data-alarm="${esc(area)}">${on ? ICON.bellOn : ICON.bell}<span>${on ? '알림 켜짐' : '알림 받기'}</span></button>`;
-}
-function metaOf(x) {
-  const n = courtCount(x.courts);
-  return [periodText(x.period), n ? `코트 ${n}면` : '', commonHours(x.courts)].filter(Boolean).join(' · ');
-}
-function openedHTML(x, i) {
-  if (x.expected) {
-    // 시설 공지의 오픈 시각은 지났는데 서울시 자료에 새 회차가 아직 없다 — '열렸다'고 하지 않는다
-    return `<article class="opened">
-    <p class="eyebrow">공지된 오픈 시각이 지났어요${newTag(x.area)}</p>
-    <${i ? 'h2' : 'h1'} class="venue-title">${esc(placeOf(x))}</${i ? 'h2' : 'h1'}>
-    <p class="next-meta">오늘 ${esc(hm(x.open_at))} · 공지 일정</p>
-    ${x.courts.length ? pickerHTML(x.courts) : ''}
-    <p class="note">${x.courts.length
-      ? '서울시 자료에는 새 회차가 아직 안 올라왔어요. 지난 회차 코트를 눌러 예약 화면에서 직접 확인해 주세요.'
-      : '서울시 자료에 새 회차가 올라오면 코트 번호가 여기에 나와요.'}</p>
-  </article>`;
-  }
-  const allOk = x.courts.length > 0 && x.courts.every((c) => c.confirmed);
-  const meta = metaOf(x);
-  return `<article class="opened">
-    <p class="eyebrow live">오늘 ${esc(hm(x.open_at))}에 예약이 열렸어요${newTag(x.area)}</p>
-    <${i ? 'h2' : 'h1'} class="venue-title">${esc(placeOf(x))}</${i ? 'h2' : 'h1'}>
-    ${meta ? `<p class="next-meta">${esc(meta)}</p>` : ''}
-    ${pickerHTML(x.courts)}
-    <p class="note">${allOk ? '코트를 누르면 서울시 예약 화면이 열려요.'
-      : '서울시 화면에 마감 여부가 아직 안 올라왔어요. 이미 찬 코트도 있을 수 있어요.'}</p>
-  </article>`;
-}
-function nextHTML(x) {
-  const diff = dayDiff(x.open_at), ms = kstMs(x.open_at) - nowMs();
-  const meta = x.expected ? ['공지 일정', x.rule].filter(Boolean).join(' · ') : metaOf(x);   // 시설 공지의 정기 오픈 일정
-  const rel = diff === 0 ? '오늘 · ' : diff === 1 ? '내일 · ' : '';
-  return `<p class="eyebrow">다음 예약 오픈${newTag(x.area)}</p>
-    <p class="next-date">${rel}${longDate(x.open_at)}</p>
-    <div class="next-row">
-      <h1 class="next-h"><span class="next-time">${esc(hm(x.open_at))}</span> <span class="next-venue">${esc(placeOf(x))}</span></h1>
-      <span class="remain${isSoon(ms) ? ' soon' : ''}" id="remain">${remainText(ms, x.open_at)}</span>
-    </div>
-    ${meta ? `<p class="next-meta">${esc(meta)}</p>` : ''}
-    ${alarmHTML(x.area)}
-    ${x.courts.length ? `<details class="peek" data-key="${esc(keyOf(x))}"><summary><span>열리는 코트 보기</span>${ICON.chev}</summary>${pickerHTML(x.courts)}</details>` : ''}`;
-}
-function noneHTML(noData) {
-  return noData
-    ? `<p class="eyebrow">다음 예약 오픈</p>
-      <h1 class="none-title">서울시 정보를 아직 받지 못했어요</h1>
-      <p class="none-sub">잠시 뒤 위쪽의 새로 고침을 눌러 주세요.</p>`
-    : `<p class="eyebrow">다음 예약 오픈</p>
-      <h1 class="none-title">다음 오픈 날짜가 아직 안 나왔어요</h1>
-      <p class="none-sub">서울시가 일정을 올리면 여기에 바로 보여 드려요.</p>
-      ${alarmHTML('')}`;
-}
-function rowHTML(x) {
-  const diff = dayDiff(x.open_at);
-  const sub = [`${hm(x.open_at)} 오픈`, periodText(x.period)].filter(Boolean).join(' · ');
-  const chip = x.opened ? '<span class="dday near">열림</span>' : `<span class="dday${diff <= 1 ? ' near' : ''}">${ddayText(diff)}</span>`;
-  if (x.expected) {                               // 공지 일정 — 코트 목록이 아직 없어 펼치지 않는 줄
-    return `<div class="row frow">
-      <span class="when"><b>${shortDate(x.open_at)}</b><span>${weekday(x.open_at)}요일</span></span>
-      <span class="what"><strong>${esc(placeOf(x))}${newTag(x.area)}</strong><span>${esc(`${hm(x.open_at)} 오픈 · 공지 일정`)}</span></span>
-      <span class="tail">${chip}</span></div>`;
-  }
-  return `<details class="row" data-key="${esc(keyOf(x))}"><summary>
-      <span class="when"><b>${shortDate(x.open_at)}</b><span>${weekday(x.open_at)}요일</span></span>
-      <span class="what"><strong>${esc(placeOf(x))}${newTag(x.area)}</strong><span>${esc(sub)}</span></span>
-      <span class="tail">${chip}${ICON.chev}</span>
-    </summary>${pickerHTML(x.courts, true)}${x.opened ? '<p class="row-note">이미 찬 코트도 있을 수 있어요. 예약 화면에서 확인해 주세요.</p>' : ''}</details>`;
-}
-function pendHTML(p) {
-  const past = (p.past_opens || []).slice(0, 2).map((s) => `${shortDate(s)}(${weekday(s)}) ${hm(s)}`).join(', ');
-  return `<div class="pend what"><strong>${esc(placeOf(p))}${newTag(p.area)}</strong><span class="num">지난번 ${esc(past)}에 열림</span></div>`;
-}
-/* 접수하지 않는 코트(마감 · 접수 끝남 · 일시중지 · 열렸지만 상태 미확인) — 눌러서 예약 화면은 볼 수 있다 */
-function shutChip(groups) {                      // 한 곳의 상태를 한마디로
-  const st = new Set(groups.flatMap((g) => g.courts.map((c) => c.state || g.state)));
-  if (st.has('unknown')) return '확인 필요';
-  if (st.size === 1 && st.has('ended')) return '접수 끝남';
-  if (st.size === 1 && st.has('paused')) return '일시중지';
-  return '모두 마감';
-}
-const batchName = (g) => (g.until_kind === 'use' && g.period ? periodText(g.period) : dots(g.until_label || ''));
-function batchNames(groups) {                    // '11.1~11.15, 11.16~11.30 이용분'
-  const names = [...new Set(groups.map(batchName).filter(Boolean))];
-  const same = names.every((n) => / 이용분$/.test(n));
-  return names.map((n, i) => (same && i < names.length - 1 ? n.replace(/ 이용분$/, '') : n)).join(', ');
-}
-function shutNote(groups) {
-  const chip = shutChip(groups);
-  return chip === '확인 필요' ? '예약은 열렸지만 서울시 화면에 접수 상태가 아직 안 올라왔어요. 코트를 눌러 직접 확인해 주세요.'
-    : chip === '모두 마감' ? '코트를 누르면 서울시 예약 화면이 열려요. 취소로 빈자리가 났는지 직접 확인할 수 있어요.'
-    : '코트를 누르면 서울시 예약 화면이 열려요.';
-}
-function shutBody(groups) {                      // 회차별 코트 버튼
-  const many = groups.length > 1;
-  return groups.map((g) => {
-    const n = courtCount(g.courts);
-    const meta = [many ? batchName(g) : '', many || g.state === 'mixed' ? STATE_TEXT[g.state] || '' : '',
-      n ? `코트 ${n}면` : '', commonHours(g.courts)].filter(Boolean).join(' · ');
-    return `<div class="batch shut">${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}${pickerHTML(g.courts)}</div>`;
-  }).join('') + `<p class="row-note">${shutNote(groups)}</p>`;
-}
-function nextOpenText(p) {                       // '다음 오픈 11.15(일) 09:00 · 공지 일정'
-  if (!p || !p.next_open || !(kstMs(p.next_open) > nowMs())) return '';
-  return `다음 오픈 ${shortDate(p.next_open)}(${weekday(p.next_open)}) ${hm(p.next_open)}${p.next_expected ? ' · 공지 일정' : ''}`;
-}
-function idleHTML(p, groups) {                   // 접수 중인 코트가 없는 곳 한 줄
-  const name = `<strong>${esc(placeOf(p))}${newTag(p.area)}</strong>`;
-  const nx = nextOpenText(p), nxLine = nx ? `<span class="num nx">${esc(nx)}</span>` : '';
-  if (!groups.length) {
-    return `<div class="row vrow flat"><span class="what">${name}<span>서울시에 올라온 예약이 없어요</span>${nxLine}</span>
-      <span class="tail"><span class="dday">정보 없음</span></span></div>`;
-  }
-  return `<details class="row vrow" data-key="idle|${esc(p.area)}"><summary>
-      <span class="what">${name}<span class="num">${esc(batchNames(groups))}</span>${nxLine}</span>
-      <span class="tail"><span class="dday">${shutChip(groups)}</span>${ICON.chev}</span>
-    </summary>${shutBody(groups)}</details>`;
-}
-function venueHTML(g, shut, legacy, place) {     // 접수 중인 곳 — 회차(이용 기간)가 여럿이면 제목은 한 번, 회차별로 나눠서
-  const first = g[0], nx = nextOpenText(place);
-  const n = shut.reduce((t, x) => t + x.courts.length, 0);
-  const allFull = shut.every((x) => x.courts.every((c) => (c.state || x.state) === 'full'));
-  return `<article class="venue${n ? ' has-more' : ''}">
-    <h3>${esc(placeOf(first))}${first.region ? `<span>${esc(first.region)}</span>` : ''}${newTag(first.area)}</h3>
-    ${nx ? `<p class="venue-next num">${esc(nx)}</p>` : ''}
-    ${g.map((p) => {
-      const full = legacy ? Number(p.full_count) || 0 : 0;
-      const meta = [
-        p.until_kind === 'use' && p.period ? periodText(p.period) : dots(p.until_label),
-        full ? `다른 코트·시간대 ${full}건 마감` : '',
-        commonHours(p.courts),
-      ].filter(Boolean).join(' · ');
-      return `<div class="batch">${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}${pickerHTML(p.courts)}</div>`;
-    }).join('')}
-    ${n ? `<details class="more" data-key="more|${esc(first.area)}"><summary><span>${allFull ? '마감된' : '접수 중이 아닌'} 코트·시간대 ${n}건 보기</span>${ICON.chev}</summary>${shutBody(shut)}</details>` : ''}
-  </article>`;
-}
-
-/* ── 반포종합운동장(테니스플레이) 빈 시간 ─────────────────
-   서버가 테니스플레이의 예약 현황으로 계산해 준 날짜별 빈 시간(코트 번호)을 보여 준다. 예약은 링크로만. */
+/* ── 반포종합운동장(테니스플레이) 빈 시간 계산 ─────────── */
 const playURL = (s) => {
   try { const u = new URL(s); return u.protocol === 'https:' && u.hostname === 'www.thetennisplay.com' ? u.href : ''; }
   catch { return ''; }
 };
 const PARTS = [['all', '전체', 0, 99], ['am', '오전', 0, 12], ['pm', '오후', 12, 18], ['eve', '저녁', 18, 99]];
-let playPart = 'all', playData = null;
-try { const v = localStorage.getItem('tn_play_part'); if (PARTS.some((p) => p[0] === v)) playPart = v; } catch {}
-const EXT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"/><path d="M19 5 10 14"/><path d="M19 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4"/></svg>';
 function spanText(s, e) {                         // 20~22시 · 9:30~10:00
   const f = (t) => { const h = Math.floor(t + 1e-6), m = Math.round((t - h) * 60); return [h % 24, m]; };
   const [h1, m1] = f(s), [h2, m2] = f(e);
@@ -917,596 +789,10 @@ function playRanges(slots) {                      // 이어진 칸은 한 구간
 }
 function playCourtsText(names, all) {             // '2번 코트' · '1·3·5번 코트' · '코트 6면'(그날 빈 시간이 있는 코트)
   const uniq = all.filter((n) => names.has(n)).concat([...names].filter((n) => !all.includes(n)));
-  if (uniq.length > 4) return `코트 ${uniq.length}면`;
+  if (uniq.length > 4) return `코트 ${uniq.length}개`;
   if (uniq.every((n) => /^\d+번$/.test(n))) return `${uniq.map((n) => n.slice(0, -1)).join('·')}번 코트`;
   return uniq.join(' · ');
 }
-function playWhen(date) {
-  const diff = dayDiff(date);
-  return diff === 0 || diff === 1
-    ? `<span class="when"><b>${diff ? '내일' : '오늘'}</b><span class="num">${shortDate(date)} ${weekday(date)}</span></span>`
-    : `<span class="when"><b class="num">${shortDate(date)}</b><span>${weekday(date)}요일</span></span>`;
-}
-function playDayHTML(day, p, book) {
-  const part = PARTS.find((x) => x[0] === playPart) || PARTS[0];
-  const every = (Array.isArray(day.slots) ? day.slots : []).filter((x) => x && Number.isFinite(x.s) && Number.isFinite(x.e) && Array.isArray(x.courts) && x.courts.length);
-  const slots = every.filter((x) => x.s >= part[2] && x.s < part[3]);
-  const all = (Array.isArray(p.courts) ? p.courts : []).map(String);
-  if (!slots.length) {
-    const text = every.length ? `${part[1]}에는 빈 시간이 없어요` : '빈 시간이 없어요';
-    return `<div class="row frow prow">${playWhen(day.date)}<span class="what"><strong class="dim">${text}</strong></span>
-      <span class="tail">${every.length ? '' : '<span class="dday">마감</span>'}</span></div>`;
-  }
-  const ranges = playRanges(slots).map(([a, b]) => spanText(a, b));
-  const head = ranges.length > 3 ? `${ranges.slice(0, 3).join(' · ')} 외` : ranges.join(' · ');
-  const names = new Set(slots.flatMap((x) => x.courts.map(String)));
-  const rows = slots.map((x) => `<div class="phour"><span class="ph num">${spanText(x.s, x.e)}</span><span class="ptags">${
-    all.length >= 5 && x.courts.length === all.length ? `<span class="ptag">모든 코트 ${all.length}면</span>`
-      : x.courts.map((n) => `<span class="ptag">${esc(n)}</span>`).join('')}</span></div>`).join('');
-  return `<details class="row prow" data-key="play|${esc(day.date)}"><summary>${playWhen(day.date)}
-      <span class="what"><strong class="num">${esc(head)}</strong><span class="num">${esc(playCourtsText(names, all))}</span></span>
-      <span class="tail">${ICON.chev}</span></summary>
-    <div class="phours">${rows}</div>${book}</details>`;
-}
-function renderPlay(p) {
-  const sec = $('play'), band = $('band-play');
-  playData = p && typeof p === 'object' ? p : null;
-  sec.hidden = band.hidden = !playData;
-  if (!playData) { sec.innerHTML = ''; return; }
-  const openKeys = new Set([...sec.querySelectorAll('details[data-key][open]')].map((el) => el.dataset.key));
-  const name = esc(String(p.place || '반포종합운동장').replace(/\s*테니스장$/, ''));
-  const link = playURL(p.url);
-  const bookBtn = (cls) => (link ? `<a class="pbook${cls}" href="${esc(link)}" target="_blank" rel="noopener noreferrer">테니스플레이에서 예약하기${EXT}</a>` : '');
-  const days = (Array.isArray(p.days) ? p.days : []).filter((d) => d && /^\d{4}-\d{2}-\d{2}$/.test(d.date || '') && dayDiff(d.date) >= 0);
-  if (!p.ok || !days.length) {
-    sec.innerHTML = `<h2>${name} 빈 시간${newTag(PLAY_AREA)}</h2><div class="empty"><strong>${p.state === 'loading' ? '빈 시간을 불러오는 중이에요' : '지금은 빈 시간을 불러오지 못했어요'}</strong>
-      <p>${p.state === 'loading' ? '잠시 뒤 다시 열어 주세요.' : '테니스플레이에서 직접 확인해 주세요.'}</p></div>${bookBtn(' solo')}`;
-    return;
-  }
-  const at = String(p.updated_at || '');
-  const stamp = at ? `테니스플레이 ${at.slice(0, 10) === todayKST() ? '' : `${shortDate(at)} `}${hm(at)} 기준${p.stale ? ' · 오래됨' : ''}` : '테니스플레이 기준';
-  const seg = `<div class="seg" role="group" aria-label="시간대 고르기">${PARTS.map(([k, t]) =>
-    `<button type="button" data-act="play-part" data-part="${k}" aria-pressed="${k === playPart}">${t}</button>`).join('')}</div>`;
-  const no = p.next_open;
-  let openRow = '';
-  if (no && /^\d{4}-\d{2}-\d{2}$/.test(no.date || '') && Number.isFinite(kstMs(no.at)) && !days.some((d) => d.date === no.date)) {
-    const diff = dayDiff(no.at);
-    openRow = `<div class="row frow prow">${playWhen(no.date)}
-      <span class="what"><strong class="dim num">${diff <= 0 ? '오늘' : diff === 1 ? '내일' : shortDate(no.at)} ${hm(no.at)}에 예약이 열려요</strong></span>
-      <span class="tail"><span class="dday${diff <= 0 ? ' near' : ''}">오픈 전</span></span></div>`;
-  }
-  const anyFree = days.some((d) => Array.isArray(d.slots) && d.slots.length);
-  const al = p.alerts && typeof p.alerts === 'object' ? p.alerts : {};
-  const alarm = al.open || al.free ? alarmHTML(PLAY_AREA) : '';     // 반포 알림(오픈 예고 · 빈 시간)
-  sec.innerHTML = `<h2>${name} 빈 시간${newTag(PLAY_AREA)}</h2><p class="sec-sub num">${esc(stamp)}</p>${seg}
-    <div class="rows">${days.map((d) => playDayHTML(d, p, bookBtn(''))).join('')}${openRow}</div>
-    <p class="play-note">날짜를 누르면 시간별 빈 코트 번호가 나와요. 그 사이 예약이 찼을 수 있으니 테니스플레이에서 확인해 주세요.</p>${anyFree ? '' : bookBtn('')}${alarm}`;
-  sec.querySelectorAll('details[data-key]').forEach((el) => { if (openKeys.has(el.dataset.key)) el.open = true; });
-}
-
-function renderBoard(d) {
-  if (d.updated_at) updatedAt = d.updated_at;
-  renderedDay = todayKST();
-  const now = nowMs();
-  const arr = (v) => (Array.isArray(v) ? v.filter(Boolean) : []);
-  // 잘못된 항목은 빼고 그린다. 열린 예약은 오늘 것만(서버 기준과 같게).
-  // 공지된 오픈 시각이 지난 곳은 지난 회차(접수 끝남) 코트로 예약 화면에 들어가 볼 수 있게 한다
-  const lastCourts = (area) => arr(d.closed).filter((g) => g && g.area === area)
-    .flatMap((g) => arr(g.courts).filter((c) => (c.state || g.state) === 'ended'));
-  const openings = arr(d.openings).filter((x) => Number.isFinite(kstMs(x.open_at)))
-    .map((x) => ({...x, courts: arr(x.courts), opened: Boolean(x.opened) || kstMs(x.open_at) <= now}))
-    .filter((x) => !x.opened || dayDiff(x.open_at) === 0)
-    .filter((x) => !(x.expected && x.opened && now - kstMs(x.open_at) >= HOT_MS))   // 공지 일정은 '열림'으로 남기지 않는다
-    .map((x) => (x.expected && x.opened ? {...x, courts: lastCourts(x.area)} : x))
-    .sort((a, b) => String(a.open_at).localeCompare(String(b.open_at)));
-  const opened = openings.filter((x) => x.opened);
-  const hot = opened.filter((x) => now - kstMs(x.open_at) < HOT_MS);      // 방금 열림 → 맨 위에 펼침
-  const cold = opened.filter((x) => !hot.includes(x));                    // 열린 지 오래됨 → 일정 줄로
-  const upcoming = openings.filter((x) => !x.opened);
-  // 맨 위에서 이미 보여 준 코트는 '지금 접수 중인 코트'에서 다시 보여 주지 않는다.
-  const shown = new Set(hot.flatMap((x) => x.courts.map((c) => c.reserve_url)).filter(Boolean));
-  const avail = arr(d.available).map((p) => ({...p, courts: arr(p.courts).filter((c) => !shown.has(c.reserve_url))}))
-    .filter((p) => p.courts.length);
-  const venues = new Map();                                               // 곳별로 묶기(회차가 여럿이어도 제목은 한 번)
-  avail.forEach((p) => venues.set(p.area, [...(venues.get(p.area) || []), p]));
-  const shut = arr(d.closed).map((p) => ({...p, courts: arr(p.courts).filter((c) => !shown.has(c.reserve_url))}))
-    .filter((p) => p.courts.length);
-  const shutBy = new Map();                                               // 곳별 접수하지 않는 코트
-  shut.forEach((p) => shutBy.set(p.area, [...(shutBy.get(p.area) || []), p]));
-  // 접수 중인 코트가 없는 곳 — 5곳이 빠짐없이 보이게(방금 열려 맨 위에 펼쳐진 곳은 빼고)
-  const hotAreas = new Set(hot.map((x) => x.area));
-  const idle = avail.length || shut.length ? arr(d.places).filter((p) => p.area && !venues.has(p.area) && !hotAreas.has(p.area)) : [];
-
-  const openKeys = new Set([...document.querySelectorAll('details[data-key][open]')].map((el) => el.dataset.key));
-  $('app').classList.remove('is-error');
-  const next = $('next');
-  next.className = 'next' + (hot.some((x) => !x.expected) ? ' is-open' : !hot.length && upcoming.length && upcoming[0].courts.length ? ' has-peek' : '');
-  next.setAttribute('aria-label', !hot.length ? '다음 예약 오픈' : hot.some((x) => !x.expected) ? '오늘 열린 예약' : '공지된 오픈 시각이 지난 예약');
-  next.innerHTML = hot.length ? hot.map(openedHTML).join('')
-    : upcoming.length ? nextHTML(upcoming[0])
-    : noneHTML(!MOCK && !d.updated_at && !avail.length);
-
-  const rest = [...cold, ...(hot.length ? upcoming : upcoming.slice(1))];
-  const busy = new Set(openings.map((x) => x.area));
-  const pending = arr(d.places).filter((p) => !busy.has(p.area) && arr(p.past_opens).length);
-  const sameTime = !hot.length && rest.length && upcoming.length && rest[0].open_at === upcoming[0].open_at;
-  const title = cold.length || sameTime ? '오픈 일정' : hot.length ? '다음 오픈 일정' : '이후 오픈 일정';
-  const sch = $('schedule');
-  sch.hidden = !rest.length && !pending.length;
-  $('band-next').hidden = sch.hidden || hot.length > 0;
-  sch.innerHTML = (rest.length
-      ? `<h2>${title}</h2><div class="rows">${rest.map(rowHTML).join('')}</div>`
-        + (pending.length ? '<p class="sub-label">오픈 날짜 미정</p>' : '')
-      : '<h2>오픈 날짜 미정</h2><p class="sec-sub">지난번에 열린 날짜를 참고해 주세요.</p>')
-    + (pending.length ? `<div class="rows">${pending.map(pendHTML).join('')}</div>` : '');
-
-  const placeBy = new Map(arr(d.places).map((p) => [p.area, p]));
-  const idleRows = idle.map((p) => idleHTML(p, shutBy.get(p.area) || [])).join('');
-  const noneText = shown.size ? '위에 보이는 코트 말고는 접수 중인 코트가 없어요' : '지금 접수 중인 코트가 없어요';
-  $('available').innerHTML = '<h2>지금 접수 중인 코트</h2>'
-    + (venues.size
-      ? '<p class="sec-sub">코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈 시간은 그 화면에서 확인해 주세요.</p>'
-        + [...venues.entries()].map(([a, g]) => venueHTML(g, shutBy.get(a) || [], !Array.isArray(d.closed), placeBy.get(a))).join('')
-        + (idleRows ? `<p class="sub-label">접수 중인 코트가 없는 곳</p><div class="rows">${idleRows}</div>` : '')
-      : idleRows
-        ? `<p class="sec-sub">${noneText}. 마감된 코트도 눌러서 서울시 예약 화면을 볼 수 있어요.</p><div class="rows">${idleRows}</div>`
-        : `<div class="empty"><strong>${noneText}</strong><p>예약이 열리면 여기에 코트 번호가 나타나요.</p></div>`);
-
-  renderPlay(d.play);
-  document.querySelectorAll('details[data-key]').forEach((el) => { if (openKeys.has(el.dataset.key)) el.open = true; });   // 펼쳐 둔 목록 유지
-  board = d;
-  syncPlayPrefs();
-  nextOpenAt = upcoming.length ? upcoming[0].open_at : '';
-  nextOpenMs = upcoming.length ? kstMs(nextOpenAt) : null;
-  coolAtMs = hot.length ? Math.min(...hot.map((x) => kstMs(x.open_at) + HOT_MS)) : null;
-  paintStamp();
-  paintPush();
-}
-function renderError() {
-  $('app').classList.add('is-error');
-  $('next').className = 'next';
-  $('next').innerHTML = `<p class="eyebrow">연결 문제</p><h1 class="none-title">정보를 불러오지 못했어요</h1>
-    <p class="none-sub">인터넷 연결을 확인하고 다시 시도해 주세요.</p><button class="retry" data-act="retry">다시 시도</button>`;
-  $('stamp').textContent = '연결 안 됨';
-}
-function paintStamp() {
-  const el = $('stamp');
-  if (!updatedAt) { el.textContent = '정보 없음'; return; }
-  const same = updatedAt.slice(0, 10) === todayKST();
-  const old = nowMs() - kstMs(updatedAt) > 20 * 60000;
-  const text = (same ? `${hm(updatedAt)} 기준` : `${shortDate(updatedAt)} ${hm(updatedAt)} 기준`) + (old ? ' · 오래됨' : '');
-  el.textContent = text;
-  $('refresh').setAttribute('aria-label', `서울시 정보 새로 고침, ${text}`);
-}
-function tick() {
-  if (sheetShown && !sheet.open) sheetClosed();        // 닫힘 이벤트를 놓쳤어도 스크롤 잠금이 남지 않게
-  if (!board) return;
-  const now = nowMs();
-  if (renderedDay !== todayKST()) { renderBoard(board); refreshData(); return; }      // 자정이 지남 → 날짜 문구 다시
-  const opening = Boolean(nextOpenMs && now >= nextOpenMs);
-  if (opening || (coolAtMs && now >= coolAtMs)) { renderBoard(board); if (opening) refreshData(); return; }
-  const el = $('remain');
-  if (el && nextOpenMs) {
-    const ms = nextOpenMs - now, text = remainText(ms, nextOpenAt);
-    if (el.textContent !== text) el.textContent = text;
-    el.classList.toggle('soon', isSoon(ms));
-  }
-}
-
-/* ── 토스트 ───────────────────────────────────────────── */
-let toastTimer = 0;
-function toast(msg) {
-  if (sheet.open) { say(msg); return; }                // 알림 시트가 열려 있으면 시트 안에 보여 준다(토스트는 시트에 가려짐)
-  const t = $('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
-}
-
-/* ── 서버 호출 · 새로 고침 ────────────────────────────── */
-async function api(path, body) {
-  if (MOCK) return path === '/board' ? mockBoard(MOCK) : {ok: true, refreshed: false, reason: 'recent', updated_at: mockStamp(), publicKey: ''};
-  if (!/^\/(board|refresh|push\/(key|subscribe|unsubscribe|test))$/.test(path)) throw Error('허용되지 않은 요청');
-  const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 65000);
-  try {
-    const r = await fetch(path, {signal: ctrl.signal, ...(body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {})});
-    let d = null;
-    try { d = await r.json(); } catch {}
-    if (!r.ok || !d || d.ok === false) {
-      const msg = d && (typeof d.detail === 'string' ? d.detail : typeof d.error === 'string' ? d.error : '');
-      const e = msg ? new UserError(msg) : Error('서버 응답 오류');   // 서버가 적어 준 안내만 그대로 보여 준다
-      e.status = r.status;
-      throw e;
-    }
-    return d;
-  } finally { clearTimeout(timer); }
-}
-let boardReq = 0, refreshing = null, lastSig = '';
-async function loadBoard() {
-  const id = ++boardReq;
-  let d;
-  try { d = await api('/board'); }
-  catch { if (id === boardReq && !board) renderError(); return false; }
-  if (id !== boardReq) return 'ignored';                                         // 더 새 요청이 있음
-  if (updatedAt && d.updated_at && d.updated_at < updatedAt) return 'ignored';   // 더 오래된 응답
-  if (Number.isFinite(d.now_ms)) { const s = d.now_ms - Date.now(); skew = Math.abs(s) < 1500 ? 0 : s; }
-  const fed = takeFeed(d.feed);                                                  // 카카오톡으로만 온 알림도 '새 알림'으로
-  const sig = JSON.stringify([d.openings, d.available, d.places, d.closed, d.play]);
-  if (board && sig === lastSig && renderedDay === todayKST()) {                  // 내용이 같으면 다시 그리지 않는다
-    board = d;
-    if (d.updated_at) updatedAt = d.updated_at;
-    paintStamp();
-    if (fed) paintFresh();
-    return true;
-  }
-  try { renderBoard(d); lastSig = sig; return true; }
-  catch (e) { console.error(e); if (!lastSig) renderError(); return false; }
-  finally { if (fed) paintFreshBar(); }
-}
-function refreshData(manual = false) {
-  if (refreshing) { if (manual) refreshing.then(() => toast('이미 최신 정보예요.')); return refreshing; }
-  ++boardReq;
-  const btn = $('refresh');
-  btn.setAttribute('aria-busy', 'true');
-  refreshing = (async () => {
-    try {
-      let res;
-      try { res = await api('/refresh', {}); } catch { res = {reason: 'error'}; }
-      const loaded = await loadBoard();
-      if (manual) {
-        toast(loaded === false ? '정보를 받지 못했어요. 잠시 뒤 다시 시도해 주세요.'
-          : ['error', 'empty'].includes(res.reason) ? '서울시 정보를 받지 못해 마지막 정보를 보여 드려요.'
-          : res.refreshed && loaded === true ? '새 정보를 불러왔어요.' : '이미 최신 정보예요.');
-      }
-      return res;
-    } finally {
-      btn.setAttribute('aria-busy', 'false');
-      refreshing = null;
-    }
-  })();
-  return refreshing;
-}
-const isStale = () => { const t = kstMs(updatedAt); return !Number.isFinite(t) || nowMs() - t > 180000; };
-
-/* ── 알림(웹 푸시) ────────────────────────────────────── */
-let sub = null, swReady = null, pushBusy = false, pushAgain = false, saveTimer = 0;
-let serverOk = false, retryTimer = 0, retryStep = 0;   // serverOk: 이번에 서버 등록까지 확인됨
-let settings = {areas: [...AREAS], d1: true, h1: true, free: false, enabled: false, off: false};
-if (!MOCK) {
-  try {
-    const v = JSON.parse(localStorage.getItem('tn_push'));
-    if (v) {
-      settings = {...settings, ...v};
-      settings.areas = Array.isArray(v.areas) ? v.areas.filter((a) => AREAS.includes(a) || a === PLAY_AREA) : [...AREAS];
-      settings.free = v.free === true;
-      if (!settings.areas.length) settings.areas = [...AREAS];
-    }
-  } catch {}
-}
-// 서버에 보내는 알림 이름 목록: 고른 테니스장 + (켰으면) 반포 빈 시간
-const sentAreas = () => [...settings.areas, ...(settings.free ? [PLAY_FREE] : [])];
-let cacheWrite = Promise.resolve();
-function saveSettings() {
-  if (MOCK) return;                                   // 미리보기는 기기에 아무것도 남기지 않는다
-  try { localStorage.setItem('tn_push', JSON.stringify(settings)); } catch {}
-  // 서비스워커가 구독을 다시 만들 때 읽는 사본
-  const value = JSON.stringify({areas: sentAreas(), d1: settings.d1, h1: settings.h1});
-  cacheWrite = cacheWrite.then(async () => {
-    try { await (await caches.open('tn-settings')).put('/__tn_push_settings', new Response(value, {headers: {'Content-Type': 'application/json'}})); } catch {}
-  });
-}
-saveSettings();
-
-const UA = navigator.userAgent || '';
-const isiOS = /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const standalone = Boolean(navigator.standalone) || matchMedia('(display-mode: standalone)').matches;
-const inApp = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(UA);    // 카카오톡 등 앱 안 브라우저
-const needInstall = isiOS && !standalone;
-const canPush = 'Notification' in window && 'PushManager' in window && 'serviceWorker' in navigator;
-const blocked = !MOCK && (needInstall || !canPush);   // 이 화면에서는 알림을 켤 수 없음
-let booting = !MOCK && !blocked && settings.enabled && !settings.off && Notification.permission === 'granted';
-const pushOn = () => Boolean(sub && settings.enabled);
-const subscribedTo = (area) => pushOn() && (!area || settings.areas.includes(area) || (area === PLAY_AREA && settings.free));
-const say = (msg) => { $('push-status').textContent = msg; };
-const deniedText = () => (isiOS && standalone
-  ? '알림이 꺼져 있어요. 아이폰 설정 > 알림 > 코트 오픈에서 허용해 주세요.'
-  : '알림이 차단되어 있어요. 브라우저 설정에서 이 사이트의 알림을 허용한 뒤 다시 켜 주세요.');
-
-function b64Bytes(s) {
-  const n = s.replace(/-/g, '+').replace(/_/g, '/');
-  return Uint8Array.from(atob(n + '='.repeat((4 - n.length % 4) % 4)), (c) => c.charCodeAt(0));
-}
-function sameKey(a, b) {
-  if (!a) return false;
-  const x = new Uint8Array(a), y = new Uint8Array(b);
-  return x.length === y.length && x.every((v, i) => v === y[i]);
-}
-function worker() {
-  if (!('serviceWorker' in navigator)) return Promise.reject(new UserError('이 브라우저에서는 알림을 켤 수 없어요.'));
-  if (!swReady) {
-    swReady = navigator.serviceWorker.register('/sw.js')
-      .then(async (r) => { await navigator.serviceWorker.ready; return r; })
-      .catch((e) => { swReady = null; throw e; });
-  }
-  return swReady;
-}
-/* mode: 'auto' 앱을 열 때 서버에 다시 등록 · 'user' 스위치를 켬 · 'save' 설정 변경 저장 */
-async function syncPush(mode) {
-  if (pushBusy) { if (mode === 'save') pushAgain = true; return; }   // 저장 중에 또 바뀜 → 끝나면 최신 설정을 다시 보냄
-  pushBusy = true;
-  $('master').disabled = true;
-  try {
-    if (MOCK) {
-      if (mode === 'auto') return;
-      sub = {endpoint: 'mock'}; settings.enabled = true; settings.off = false; serverOk = true;
-      say(mode === 'user' ? '미리보기예요. 실제 알림은 보내지 않아요.' : '바꾼 내용을 저장했어요.');
-      return;
-    }
-    if (needInstall) return;
-    if (mode === 'auto' && settings.off) return;                     // 직접 끈 기기는 다시 등록하지 않음
-    if (!canPush) throw new UserError('이 브라우저에서는 알림을 켤 수 없어요. Chrome이나 Safari에서 열어 주세요.');
-    if (mode !== 'user' && Notification.permission !== 'granted') return;
-    if (mode === 'user') {
-      const p = await Notification.requestPermission();
-      if (p !== 'granted') throw new UserError(p === 'denied' ? deniedText() : '알림을 허용해야 받을 수 있어요.');
-    }
-    const reg = await worker();
-    sub = await reg.pushManager.getSubscription();
-    if (mode !== 'user' && !sub && !settings.enabled) return;        // 켠 적이 없는 기기
-    const {publicKey} = await api('/push/key'), key = b64Bytes(publicKey);
-    if (sub && !sameKey(sub.options.applicationServerKey, key)) {     // 서버 키가 바뀌었으면 다시 구독
-      const old = sub;
-      await old.unsubscribe();
-      sub = null;
-      try { await api('/push/unsubscribe', {endpoint: old.endpoint}); } catch {}
-    }
-    // 켜 둔 기기인데 브라우저가 구독을 지웠으면 조용히 다시 만든다(권한은 이미 허용됨).
-    if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: key});
-    await api('/push/subscribe', {subscription: sub.toJSON(), areas: sentAreas(), d1: settings.d1, h1: settings.h1});
-    settings.enabled = true;
-    settings.off = false;
-    serverOk = true;
-    retryStep = 0;
-    clearTimeout(retryTimer);
-    saveSettings();
-    if (mode === 'user') say('알림을 켰어요. 예약이 열리기 전에 알려 드릴게요.');
-    else if (mode === 'save') say('바꾼 내용을 저장했어요.');
-  } catch (e) {
-    if (mode === 'user') say(e instanceof UserError ? e.message : '연결이 원활하지 않아요. 잠시 뒤 다시 켜 주세요.');
-    else {                                                           // 서버 등록이 안 됨 → 표시하고 다시 시도
-      serverOk = false;
-      retryLater();
-      if (mode === 'save') say('바꾼 내용을 저장하지 못했어요. 연결되면 다시 보낼게요.');
-    }
-  } finally {
-    pushBusy = false;
-    booting = false;
-    paintPush();
-    resave();
-  }
-}
-function resave() {
-  if (!pushAgain) return;
-  pushAgain = false;
-  if (pushOn()) syncPush('save');
-}
-function retryLater() {                               // 30초 뒤, 2분 뒤에 한 번씩 더
-  clearTimeout(retryTimer);
-  if (retryStep >= 2) return;
-  retryTimer = setTimeout(() => syncPush('auto'), [30000, 120000][retryStep++]);
-}
-const wantsPush = () => !blocked && !MOCK && (settings.enabled || Boolean(sub)) && !settings.off;
-function reconnectPush() {                            // 화면으로 돌아오거나 인터넷이 다시 연결됐을 때
-  if (!wantsPush() || serverOk || pushBusy) return;
-  retryStep = 0;
-  syncPush('auto');
-}
-/* 화면을 열어 둔 사이 권한이 바뀌었거나 구독이 사라졌는지 다시 확인한다. */
-async function checkPush() {
-  if (MOCK || blocked || pushBusy) return;
-  try {
-    let cur = null;
-    if (Notification.permission === 'granted') cur = await (await worker()).pushManager.getSubscription();
-    if (pushBusy) return;
-    if ((cur && cur.endpoint) !== (sub && sub.endpoint)) {
-      sub = cur;
-      serverOk = false;
-      paintPush();
-      sheetNote();
-      reconnectPush();
-    }
-  } catch {}
-}
-async function turnOff() {
-  if (pushBusy) return;
-  pushBusy = true;
-  clearTimeout(saveTimer);
-  clearTimeout(retryTimer);
-  pushAgain = false;
-  $('master').disabled = true;
-  try {
-    if (sub && !MOCK) {
-      await api('/push/unsubscribe', {endpoint: sub.endpoint});
-      try { await sub.unsubscribe(); } catch {}      // 서버에서는 이미 지워졌으므로 화면은 꺼짐으로 맞춘다
-    }
-    sub = null; serverOk = false; settings.enabled = false; settings.off = true;
-    saveSettings();
-    say('알림을 껐어요. 언제든 다시 켤 수 있어요.');
-  } catch { say('알림을 끄지 못했어요. 다시 시도해 주세요.'); }
-  finally { pushBusy = false; paintPush(); }
-}
-function settingsChanged() {
-  saveSettings();
-  paintPush();
-  if (!pushOn()) return;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => syncPush('save'), 500);
-}
-function paintPush() {
-  const on = pushOn();
-  $('bell').innerHTML = on ? ICON.bellOn : ICON.bell;
-  $('bell').classList.toggle('on', on);
-  $('bell').setAttribute('aria-label', on ? '오픈 알림 설정, 켜져 있음' : '오픈 알림 설정, 꺼져 있음');
-  const v = $('push-value');
-  v.textContent = on ? (serverOk ? `켜짐 · ${pickedAreas().length}곳` : '연결 확인 중') : booting ? '확인 중' : '꺼짐';
-  v.classList.toggle('on', on);
-  document.querySelectorAll('[data-alarm]').forEach((el) => {
-    const mine = subscribedTo(el.dataset.alarm);
-    el.classList.toggle('on', mine);
-    el.innerHTML = `${mine ? ICON.bellOn : ICON.bell}<span>${mine ? '알림 켜짐' : '알림 받기'}</span>`;
-  });
-  const m = $('master');
-  m.checked = on;
-  m.disabled = pushBusy || blocked;
-  $('install').hidden = !blocked;
-  $('prefs').hidden = blocked;                        // 여기서 고른 설정은 홈 화면 앱·다른 브라우저로 이어지지 않는다
-  $('test').hidden = !on;
-}
-function sheetNote() {
-  if (blocked) say('');
-  else if (pushOn()) say(serverOk || MOCK ? '알림이 켜져 있어요. 바꾼 내용은 바로 저장돼요.' : '서버 연결을 확인하고 있어요. 잠시 뒤 자동으로 다시 등록돼요.');
-  else if (!MOCK && Notification.permission === 'denied') say(deniedText());
-  else say('');
-}
-// 반포 알림은 그 서버가 반포를 읽고 있을 때만 고를 수 있다.
-const playAlerts = () => (board && board.play && typeof board.play.alerts === 'object' && board.play.alerts) || {};
-const areaList = () => [...AREAS, ...(playAlerts().open ? [PLAY_AREA] : [])];
-const pickedAreas = () => settings.areas.filter((a) => areaList().includes(a));
-let playPrefsOn = null;
-function syncPlayPrefs() {                            // 화면 자료를 받을 때마다: 반포 고르기·스위치를 보이거나 숨긴다
-  const a = playAlerts(), on = Boolean(a.open);
-  if (on !== playPrefsOn) { playPrefsOn = on; renderAreas(); }
-  $('play-hint').hidden = !on;
-  $('free-row').hidden = !a.free;
-  $('free').checked = Boolean(settings.free);
-}
-function pickPlay() {                                 // 반포 구역의 [알림 받기]로 열었고 아직 고른 적이 없으면 두 가지를 골라 둔다
-  const a = playAlerts();
-  if (settings.areas.includes(PLAY_AREA) || settings.free || !(a.open || a.free)) return;
-  if (a.open) settings.areas = [...settings.areas, PLAY_AREA];
-  if (a.free) settings.free = true;
-  renderAreas();
-  $('free').checked = Boolean(settings.free);
-  settingsChanged();
-  say(pushOn() ? '반포 알림을 켰어요. 바꾼 내용은 바로 저장돼요.' : '반포 알림을 골랐어요. 위의 스위치를 켜면 받기 시작해요.');
-}
-function renderAreas() {
-  $('areas').innerHTML = areaList().map((a) => `<label class="pick"><input type="checkbox" value="${esc(a)}"${settings.areas.includes(a) ? ' checked' : ''}><span>${esc(NAMES[a] || a)}</span>${ICON.check}</label>`).join('');
-}
-function renderInstall() {                            // 이 화면에서 알림을 켤 수 없을 때의 안내
-  if (!blocked) return;
-  const copy = '<p><button class="text-btn" data-act="copy">이 주소 복사하기</button></p>';
-  $('install').innerHTML = needInstall && !inApp
-    ? `<strong>아이폰은 홈 화면에 추가한 뒤에 켤 수 있어요</strong>
-       <ol><li>Safari 아래쪽 공유 버튼 누르기</li><li>‘홈 화면에 추가’ 선택</li><li>홈 화면에서 코트 오픈을 열고 알림 켜기</li></ol>`
-    : needInstall
-      ? `<strong>이 화면에서는 알림을 켤 수 없어요</strong><p>Safari에서 이 주소를 연 다음, 공유 버튼에서 ‘홈 화면에 추가’를 선택해 주세요.</p>${copy}`
-      : `<strong>이 브라우저에서는 알림을 켤 수 없어요</strong><p>Chrome이나 Safari에서 이 주소를 열어 주세요.</p>${copy}`;
-}
-$('areas').addEventListener('change', (e) => {
-  const box = e.target;
-  if (!areaList().includes(box.value)) return;
-  const picked = box.checked ? [...new Set([...settings.areas, box.value])] : settings.areas.filter((a) => a !== box.value);
-  if (!picked.length) { box.checked = true; toast('테니스장을 한 곳 이상 골라 주세요.'); return; }
-  settings.areas = [...AREAS, PLAY_AREA].filter((a) => picked.includes(a));
-  settingsChanged();
-});
-['d1', 'h1'].forEach((id) => {
-  $(id).checked = settings[id];
-  $(id).addEventListener('change', () => {
-    if (!$('d1').checked && !$('h1').checked) { $(id).checked = true; toast('알림 시간을 하나 이상 켜 주세요.'); return; }
-    settings[id] = $(id).checked;
-    settingsChanged();
-  });
-});
-$('free').addEventListener('change', () => { settings.free = $('free').checked; settingsChanged(); });
-$('master').addEventListener('change', () => ($('master').checked ? syncPush('user') : turnOff()));
-$('test').onclick = async () => {
-  if (MOCK) { say('미리보기에서는 알림을 보내지 않아요.'); return; }
-  if (!sub || pushBusy) return;
-  $('test').disabled = true;
-  try {
-    try { await api('/push/test', {endpoint: sub.endpoint}); }
-    catch (e) {
-      if (e.status !== 400 || !/찾지 못했/.test(e.message)) throw e;
-      await syncPush('auto');                         // 서버에 이 기기 등록이 없으면 다시 등록하고 한 번 더 보낸다
-      if (!serverOk || !sub) throw e;
-      await api('/push/test', {endpoint: sub.endpoint});
-    }
-    say('테스트 알림을 보냈어요. 기기 알림을 확인해 주세요.');
-  } catch (e) { say(e instanceof UserError ? e.message : '테스트 알림을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.'); }
-  finally { $('test').disabled = false; }
-};
-
-/* ── 시트 · 공유 · 공통 동작 ──────────────────────────── */
-let sheetOpener = null, sheetShown = false;
-function openSheet(from) {
-  if (sheet.open) return;
-  sheetShown = true;
-  sheetOpener = from || document.activeElement;
-  sheetNote();
-  if (from && from.dataset && from.dataset.alarm === PLAY_AREA) pickPlay();
-  checkPush();
-  sheet.showModal();
-  document.documentElement.classList.add('lock');
-  $('sheet-title').focus({preventScroll: true});
-}
-function sheetClosed() {          // 닫기 버튼·바깥 누름·Esc 어느 쪽으로 닫혀도 한 번만
-  if (!sheetShown) return;
-  sheetShown = false;
-  document.documentElement.classList.remove('lock');
-  const back = sheetOpener && sheetOpener.isConnected ? sheetOpener : $('bell');   // 연 버튼이 다시 그려져 사라졌으면 종 버튼으로
-  sheetOpener = null;
-  try { back.focus({preventScroll: true}); } catch {}
-}
-const closeSheet = () => { sheet.close(); sheetClosed(); };
-sheet.addEventListener('close', sheetClosed);
-sheet.addEventListener('cancel', () => setTimeout(() => { if (!sheet.open) sheetClosed(); }, 0));   // Esc
-sheet.addEventListener('click', (e) => { if (e.target === sheet) closeSheet(); });
-$('sheet-close').onclick = closeSheet;
-const appURL = () => { const u = new URL(location.href); u.search = ''; u.hash = ''; return u.href; };
-document.addEventListener('click', async (e) => {
-  const el = e.target.closest('[data-act]');
-  if (!el) return;
-  if (el.dataset.act === 'sheet') openSheet(el);
-  if (el.dataset.act === 'fresh-x') { fresh = []; saveFresh(); paintFresh(); return; }
-  if (el.dataset.act === 'fresh-go') { goFresh(el.dataset.area); return; }
-  if (el.dataset.act === 'play-part') {
-    playPart = el.dataset.part;
-    try { localStorage.setItem('tn_play_part', playPart); } catch {}
-    renderPlay(playData);
-    const again = document.querySelector(`#play [data-part="${playPart}"]`);
-    if (again) { try { again.focus({preventScroll: true}); } catch {} }
-    return;
-  }
-  if (el.dataset.act === 'retry') { $('next').innerHTML = '<div class="sk" style="width:180px;height:56px"></div>'; loadBoard(); }
-  if (el.dataset.act === 'copy') {
-    try { await navigator.clipboard.writeText(appURL()); toast('주소를 복사했어요.'); }
-    catch { toast('복사하지 못했어요. 주소창의 주소를 길게 눌러 복사해 주세요.'); }
-  }
-});
-$('refresh').onclick = () => refreshData(true);
-$('share').onclick = async () => {
-  try {
-    if (navigator.share) await navigator.share({title: '코트 오픈', text: '한남·장충·마루공원·선우공원·서울숲 테니스장 예약이 언제 열리는지 알려 주는 앱이에요.', url: appURL()});
-    else { await navigator.clipboard.writeText(appURL()); toast('주소를 복사했어요.'); }
-  } catch (e) { if (e.name !== 'AbortError') toast('공유하지 못했어요. 주소창의 주소를 복사해 주세요.'); }
-};
-const onScroll = () => $('bar').classList.toggle('scrolled', window.scrollY > 4);
-window.addEventListener('scroll', onScroll, {passive: true});
-window.addEventListener('online', reconnectPush);
-window.addEventListener('focus', () => checkInbox(true));
-window.addEventListener('pageshow', (e) => { if (e.persisted) checkInbox(true); });
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
-  checkInbox(true);                                  // 새 알림 보여 주기 + 아이콘 숫자 지우기
-  if (board && takeFeed(board.feed)) paintFresh();   // 화면을 안 보는 사이 받아 둔 보낸 알림 기록
-  tick();
-  checkPush();
-  reconnectPush();
-  if (!MOCK && isStale()) refreshData();
-});
 
 /* ── 미리보기 데이터(?mock=opened|late|next|soon|none|empty|notice|passed) ── */
 function mockStamp() {
@@ -1608,20 +894,1318 @@ function mockPlay(kind, day) {                 // 반포종합운동장(테니�
   return {...base, ok: true, updated_at: mockStamp(), stale: false, courts, days};
 }
 
-/* ── 시작 ─────────────────────────────────────────────── */
-function goPlay() {                                   // '반포 빈 시간' 알림을 눌러 들어온 경우 그 구역으로
-  const sec = $('play');
-  if (sec && !sec.hidden) { try { sec.scrollIntoView({block: 'start'}); } catch {} }
+/* ── 테니스장 모델 ────────────────────────────────────────
+   /board 응답을 '테니스장별 같은 모양'으로 바꾼다 — 화면은 이 결과만 보고 그린다.
+   상태 · 수량은 서버가 준 원본으로 판정하고, 겹치는 코트 빼기는 보여 줄 목록에만 한다. */
+const HOT_MS = 2 * 36e5, DAY_MS = 864e5;        // 예약이 열리고 2시간까지는 '오늘 열림'으로 맨 위에 둔다
+const SLUG = {'한남': 'hannam', '장충': 'jangchung', '마루공원': 'maru', '선우공원': 'sunwoo', '서울숲': 'forest', '반포': 'play'};
+const placeOf = (x) => x.place || NAMES[x.area] || x.area;
+const keyOf = (x) => `${x.area}|${x.open_at}|${x.period || ''}`;
+const validDay = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s || '') && new Date(utcDay(s)).toISOString().slice(0, 10) === s;   // 실제로 있는 날짜만
+const dayWord = (s) => { const n = dayDiff(s); return n === 0 ? '오늘' : n === 1 ? '내일' : `${shortDate(s)}(${weekday(s)})`; };
+const whenShort = (s) => `${dayWord(s)} ${hm(s)}`;                       // '오늘 09:03' · '내일 09:00' · '11.25(수) 10:00'
+/* '코트 3개'(같은 코트의 시간대별 예약은 한 번만) — 번호 없는 예약이 섞이면 '예약 3건' */
+function courtsLabel(courts) {
+  const n = courtCount(courts);
+  return n ? `코트 ${n}개` : courts && courts.length ? `예약 ${courts.length}건` : '';
 }
+const CELL = (state, tone, title, sub) => ({state, tone, title, sub});
+
+function seoulNow(v, rawAvail, rawShut) {
+  const real = v.hot.filter((x) => !x.expected), notice = v.hot.filter((x) => x.expected);
+  const open = rawAvail.flatMap((g) => g.courts);
+  const shutCourts = rawShut.flatMap((g) => g.courts.map((c) => ({...c, state: c.state || g.state || ''})));
+  const states = new Set(shutCourts.map((c) => c.state));
+  if (real.length) {
+    return CELL('hot', 'go', '오늘 열림', [`${hm(real[0].open_at)} 시작`, courtsLabel(real.flatMap((x) => x.courts))].filter(Boolean).join(' · '));
+  }
+  if (open.length) return CELL('open', 'go', '예약 받는 중', courtsLabel(open));
+  if (notice.length) return CELL('check', 'warn', '확인 필요', `${hm(notice[0].open_at)} 공지 시각 지남`);
+  if (states.has('unknown')) return CELL('check', 'warn', '확인 필요', '예약 화면에서 확인');
+  if (!shutCourts.length) {
+    return v.upcoming.length ? CELL('wait', 'off', '예약 시작 전', '열리는 날을 기다려요') : CELL('none', 'off', '정보 없음', '올라온 예약이 없어요');
+  }
+  if (states.has('full')) return CELL('full', 'off', '모두 마감', courtsLabel(shutCourts.filter((c) => c.state === 'full')));
+  if (states.size === 1 && states.has('ended')) return CELL('ended', 'off', '예약 끝남', '다음 오픈을 기다려요');
+  if (states.size === 1 && states.has('paused')) return CELL('paused', 'off', '잠시 멈춤', '시설 사정으로 멈췄어요');
+  return CELL('closed', 'off', '예약 안 받는 중', '다음 오픈을 기다려요');
+}
+function seoulNext(v, now, rawAvail, rawShut) {
+  const x = v.upcoming[0];
+  if (x) {
+    const ms = kstMs(x.open_at) - now;
+    return {state: 'date', at: x.open_at, title: whenShort(x.open_at), sub: remainText(ms, x.open_at) + (x.expected ? ' · 공지 일정' : ''),
+      expected: Boolean(x.expected), soon: ms < DAY_MS};
+  }
+  if ([...rawAvail, ...rawShut].some((g) => !g.until_kind && !g.past)) {      // 상시 예약 — 오픈 날이 따로 없는 곳
+    return {state: 'always', at: '', title: '따로 없음', sub: '정해진 날이 없어요', expected: false, soon: false};
+  }
+  const last = v.past[0];
+  return {state: 'unknown', at: '', title: '아직 몰라요', sub: last ? `지난번 ${shortDate(last)}(${weekday(last)}) ${hm(last)}` : '일정이 아직 없어요',
+    expected: false, soon: false};
+}
+/* 반포종합운동장(테니스플레이) — 날짜 · 시간별 빈 코트를 실제로 안다 */
+function playVenue(p, now) {
+  const okSlot = (x) => x && Number.isFinite(x.s) && Number.isFinite(x.e) && Array.isArray(x.courts) && x.courts.length;
+  // 오늘부터의 날짜만, 날짜 · 시각 순으로(서버가 순서를 지키지 않아도 '가장 이른 빈 시간'이 맞게)
+  const days = (Array.isArray(p.days) ? p.days : []).filter((d) => d && validDay(d.date) && dayDiff(d.date) >= 0)
+    .map((d) => ({...d, slots: (Array.isArray(d.slots) ? d.slots : []).filter(okSlot).sort((a, b) => a.s - b.s)}))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  let cell;
+  if (!p.ok || !days.length) {
+    cell = p.state === 'loading' ? CELL('loading', 'off', '불러오는 중', '잠시 뒤 다시 열어 주세요') : CELL('error', 'off', '확인 못 함', '테니스플레이에서 확인');
+  } else {
+    const free = days.filter((d) => d.slots.length);
+    if (free.length) {
+      const r = playRanges(free[0].slots);
+      cell = CELL('free', p.stale ? 'warn' : 'go', '빈 시간 있음',
+        `${p.stale ? '오래된 정보 · ' : ''}${dayWord(free[0].date)} ${spanText(r[0][0], r[0][1])}${r.length > 1 || free.length > 1 ? ' 외' : ''}`);
+    } else {
+      cell = CELL('full', 'off', '빈 시간 없음', `${shortDate(days[0].date)}~${shortDate(days[days.length - 1].date)} 확인`);
+    }
+  }
+  const no = p.next_open && typeof p.next_open === 'object' ? p.next_open : {};
+  const at = typeof no.at === 'string' ? no.at : '', ms = kstMs(at) - now;
+  const next = ms > 0
+    ? {state: 'date', at, title: whenShort(at), sub: remainText(ms, at), expected: false, soon: ms < DAY_MS}
+    : {state: 'unknown', at: '', title: '아직 몰라요', sub: '일정이 아직 없어요', expected: false, soon: false};
+  return {area: PLAY_AREA, name: NAMES[PLAY_AREA], region: '서초구', kind: 'play', now: cell, next,
+    hot: [], cold: [], upcoming: [], avail: [], shut: [], past: [], rule: '',
+    play: {...p, days, next_open: {at, date: validDay(no.date) ? no.date : ''}}};
+}
+/* now 는 nowMs() 와 같은 값이어야 한다(날짜 계산은 nowMs() 기준 — 시험에서는 Date.now 를 고정한다). */
+function buildVenues(d, now) {
+  d = d && typeof d === 'object' && !Array.isArray(d) ? d : {};          // 잘못된 응답이 와도 5곳은 그린다
+  const arr = (v) => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object') : []);
+  // 공지된 오픈 시각이 지난 곳은 지난번(접수 끝남) 코트로 예약 화면에 들어가 볼 수 있게 한다
+  const lastCourts = (area) => arr(d.closed).filter((g) => g.area === area)
+    .flatMap((g) => arr(g.courts).filter((c) => (c.state || g.state) === 'ended'));
+  // 잘못된 항목은 뺀다. 열린 예약은 오늘 것만(서버 기준과 같게). 공지 일정은 2시간이 지나면 '열림'으로 남기지 않는다.
+  const openings = arr(d.openings).filter((x) => Number.isFinite(kstMs(x.open_at)))
+    .map((x) => ({...x, courts: arr(x.courts), opened: Boolean(x.opened) || kstMs(x.open_at) <= now}))
+    .filter((x) => !x.opened || dayDiff(x.open_at) === 0)
+    .filter((x) => !(x.expected && x.opened && now - kstMs(x.open_at) >= HOT_MS))
+    .map((x) => (x.expected && x.opened ? {...x, courts: lastCourts(x.area)} : x))
+    .sort((a, b) => String(a.open_at).localeCompare(String(b.open_at)));
+  const isHot = (x) => x.opened && now - kstMs(x.open_at) < HOT_MS;
+  const hot = openings.filter(isHot);
+  // '오늘 열린 예약'에서 이미 보여 준 코트는 아래 목록에서 다시 보여 주지 않는다(예약 주소 기준)
+  const shown = new Set(hot.flatMap((x) => x.courts.map((c) => c.reserve_url)).filter(Boolean));
+  const groups = (list) => arr(list).map((g) => ({...g, courts: arr(g.courts)})).filter((g) => g.courts.length);
+  const strip = (list) => list.map((g) => ({...g, courts: g.courts.filter((c) => !shown.has(c.reserve_url))})).filter((g) => g.courts.length);
+  const rawAvail = groups(d.available), rawShut = groups(d.closed);
+  const places = new Map(arr(d.places).map((p) => [p.area, p]));
+  const list = AREAS.map((area) => {
+    const p = places.get(area) || {};
+    const mine = openings.filter((x) => x.area === area);
+    const ra = rawAvail.filter((g) => g.area === area), rs = rawShut.filter((g) => g.area === area);
+    const v = {area, name: NAMES[area] || p.place || area,
+      region: p.region || ([...mine, ...ra, ...rs].find((x) => x.region) || {}).region || '', kind: 'seoul',
+      hot: mine.filter(isHot), cold: mine.filter((x) => x.opened && !isHot(x)), upcoming: mine.filter((x) => !x.opened),
+      avail: strip(ra), shut: strip(rs),
+      past: (Array.isArray(p.past_opens) ? p.past_opens : []).filter((s) => Number.isFinite(kstMs(s))), rule: p.open_rule || '', play: null};
+    v.now = seoulNow(v, ra, rs);
+    v.next = seoulNext(v, now, ra, rs);
+    return v;
+  });
+  if (d.play && typeof d.play === 'object') list.push(playVenue(d.play, now));
+  return {list, hot, next: openings.find((x) => !x.opened) || null};      // next = 5곳에서 가장 빨리 열리는 예약
+}
+/* 정렬: base 늘 같은 자리 · now 예약 받는 곳 먼저 · soon 빨리 열리는 순. 같으면 기본 순서. */
+function sortVenues(list, key) {
+  const idx = new Map(list.map((v, i) => [v.area, i]));
+  const rank = (v) => (v.now.state === 'hot' ? 0 : v.now.tone === 'go' ? 1 : v.now.tone === 'warn' ? 2 : 3);
+  const at = (v) => (v.next.state === 'date' ? kstMs(v.next.at) : Infinity);
+  return [...list].sort((a, b) => (key === 'now' ? rank(a) - rank(b) : key === 'soon' ? (at(a) === at(b) ? 0 : at(a) - at(b)) : 0)
+    || idx.get(a.area) - idx.get(b.area));
+}
+/* MODEL-END */
+
+/* ── 새 알림: 받은 알림을 앱 안에서도 보여 준다 ─────────
+   서비스워커(sw.js)가 알림을 받을 때마다 보관함(Cache 'tn-inbox')에 적어 둔다. 앱을 열면 그것을 읽어 맨 위와
+   그 테니스장 이름 옆에 '새 알림'으로 보여 주고 보관함을 비운다 → 앱 아이콘 숫자(아직 안 본 알림 수)도 지운다.
+   한 번 본 알림은 10분이 지난 뒤 앱을 다시 열면 사라진다.
+   카카오톡으로만 받았거나 앱 알림이 이 기기에 도착하지 못한 알림은 서버의 보낸 알림 기록(/board 의 feed)에서 읽어
+   같은 자리에 보여 준다(아래 takeFeed). */
+const FRESH_KEEP = 10 * 60000, FRESH_AGE = 24 * 36e5, FRESH_ROWS = 5;
+let fresh = [];
+function freshItem(x) {
+  if (!x || typeof x !== 'object' || typeof x.text !== 'string' || !x.text.trim() || !Number.isFinite(x.at)) return null;
+  const s = (v, n) => String(v ?? '').slice(0, n);
+  return {area: s(x.area, 20), place: s(x.place, 40), kind: s(x.kind, 10), key: s(x.key || x.text, 120),
+    text: s(x.text, 300), at: x.at, seen: Number.isFinite(x.seen) ? x.seen : 0};
+}
+if (!MOCK) {
+  try {
+    const v = JSON.parse(localStorage.getItem('tn_fresh')), t = Date.now();
+    if (Array.isArray(v)) fresh = v.map(freshItem).filter((x) => x && t - x.seen < FRESH_KEEP && t - x.at < FRESH_AGE);
+  } catch {}
+} else if (/new$/.test(MOCK)) {                       // 미리보기 ?mock=new · ?mock=playnew
+  const t = Date.now();
+  fresh = [{area: '한남', place: '한남테니스장', kind: 'd1', key: 'open|a', text: '11.14(토) 09:00 예약 오픈', at: t - 5 * 60000, seen: t},
+    ...(MOCK === 'playnew' ? [
+      {area: '반포', place: '반포종합운동장 테니스장', kind: 'd1', key: 'open|b', text: '11.14(토) 09:00 예약 오픈 · 11.21(토) 이용분', at: t - 5 * 60000, seen: t},
+      {area: '반포', place: '반포종합운동장 테니스장', kind: 'free', key: 'free|c', text: '11.16(월) 14~15시 · 3번 코트\n11.17(화) 14~15시 · 2번, 6번 코트', at: t - 60000, seen: t}] : [])];
+}
+const saveFresh = () => { if (!MOCK) { try { localStorage.setItem('tn_fresh', JSON.stringify(fresh)); } catch {} } };
+
+/* 보낸 알림 기록(/board 의 feed) — 서버가 최근 24시간에 보낸 알림(카카오톡 · 앱 알림).
+   이 기기에서 이미 보여 준 알림은 seenAt(곳|key|종류 → 보낸 때)에 적어 두어 다시 '새 알림'으로 뜨지 않게 한다. */
+const FEED_TOL = 5 * 60000;                           // 같은 알림으로 보는 시각 차(앱 알림이 도착한 때 ↔ 서버가 보낸 때)
+let seenAt = {};
+if (!MOCK) {
+  try {
+    const v = JSON.parse(localStorage.getItem('tn_seen')), t = Date.now();
+    if (v && typeof v === 'object') {
+      Object.keys(v).forEach((k) => { if (Number.isFinite(v[k]) && t - v[k] < 2 * FRESH_AGE) seenAt[k] = v[k]; });
+    }
+  } catch {}
+}
+const seenId = (x) => `${x.area}|${x.key}|${x.kind}`;
+function markSeen(x) { const id = seenId(x); if (!(seenAt[id] >= x.at)) seenAt[id] = x.at; }
+function saveSeen() {
+  if (MOCK) return;
+  const t = Date.now();
+  Object.keys(seenAt).forEach((k) => { if (t - seenAt[k] >= 2 * FRESH_AGE) delete seenAt[k]; });
+  try { localStorage.setItem('tn_seen', JSON.stringify(seenAt)); } catch {}
+}
+// 카카오톡 알림에 든 링크(…?k=1)로 연 브라우저 = 카카오톡 알림을 받는 사람 → 서버가 보낸 알림을 모두 보여 준다.
+let showAll = new URLSearchParams(location.search).has('k');
+if (!MOCK) {
+  try { if (showAll) localStorage.setItem('tn_all', '1'); else showAll = localStorage.getItem('tn_all') === '1'; } catch {}
+}
+// 이 기기가 받기로 한 알림인가 — 알림 설정에서 고른 곳 · 시간(알림을 켜지 않은 기기는 기본값 = 5곳의 오픈 알림).
+function feedWanted(x, areas) {
+  if (showAll) return true;
+  if (x.kind === 'free') return settings.free === true;
+  if ((x.kind === 'd1' && !settings.d1) || (x.kind === 'h1' && !settings.h1)) return false;
+  return areas.some((a) => settings.areas.includes(a));
+}
+/* 보낸 알림 기록에서 이 기기가 아직 보여 주지 않은 것을 '새 알림'에 넣는다. 넣은 것이 있으면 true(그리기는 부른 쪽에서). */
+function takeFeed(list) {
+  if (!Array.isArray(list) || document.visibilityState !== 'visible') return false;   // 화면을 보고 있을 때만 '보여 줬다'고 적는다
+  const now = Date.now();
+  let added = false, noted = false;
+  list.forEach((raw) => {
+    const x = freshItem(raw);
+    if (!x || now - x.at >= FRESH_AGE) return;
+    const areas = Array.isArray(raw.areas) ? raw.areas.filter((a) => typeof a === 'string' && a) : [];
+    if (!feedWanted(x, areas.length ? areas : [x.area])) return;
+    const id = seenId(x);
+    if (seenAt[id] >= x.at - FEED_TOL) return;         // 이미 보여 준 알림(앱 알림으로 먼저 받았거나 지난번에 봄)
+    seenAt[id] = x.at;
+    noted = true;
+    const same = fresh.find((y) => y.area === x.area && y.key === x.key);
+    if (same && same.at >= x.at - FEED_TOL) return;    // 같은 알림이 이미 떠 있음
+    fresh = fresh.filter((y) => !(y.area === x.area && y.key === x.key));   // 전날 알림 → 1시간 전 알림은 한 줄로
+    fresh.push({...x, seen: now});
+    added = true;
+  });
+  if (noted) saveSeen();
+  if (added) saveFresh();
+  return added;
+}
+// 그 테니스장 이름 옆에 붙이는 표시
+const newTag = (area) => (area && fresh.some((x) => x.area === area) ? `<em class="newtag" data-area="${esc(area)}">새 알림</em>` : '');
+const freshName = (x) => (NAMES[x.area] || x.place || '코트 오픈') + (x.kind === 'free' ? ' 빈 시간' : '');
+const clockFmt = new Intl.DateTimeFormat('en-GB', {timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'});
+function freshWhen(at) {                              // 알림을 받은 때: '오늘 20:00' · '어제 20:00' · '11.12 20:00'
+  const d = new Date(at), day = dayFmt.format(d), diff = dayDiff(day);
+  return `${diff === 0 ? '오늘' : diff === -1 ? '어제' : shortDate(day)} ${clockFmt.format(d)}`;
+}
+const FRESH_SHOW = 3;                                 // 홈 맨 위 띠에 보여 주는 줄 수(나머지는 알림 탭)
+const freshRowHTML = (x, tag) => `<button class="fresh-item" data-act="fresh-go" data-area="${esc(x.area)}">
+  <b>${esc(freshName(x))}${tag ? '<em class="newtag">새 알림</em>' : ''}<small>${esc(freshWhen(x.at))} 알림</small></b><span class="num">${esc(x.text)}</span></button>`;
+function paintFreshBar() {
+  const el = $('fresh'), list = [...fresh].sort((a, b) => b.at - a.at);
+  el.hidden = !list.length;
+  el.innerHTML = !list.length ? ''
+    : `<div class="fresh-head"><h2>새 알림 ${list.length}건</h2><button class="fresh-x" data-act="fresh-x">닫기</button></div>`
+      + list.slice(0, FRESH_SHOW).map((x) => freshRowHTML(x)).join('')
+      + (list.length > FRESH_SHOW ? `<button class="fresh-more" data-act="tab" data-tab="alerts">알림 ${list.length}건 모두 보기</button>` : '');
+}
+function paintFresh() {                               // 새 알림이 바뀌면: 띠 · 테니스장 옆 표시 · 알림 탭의 숫자와 기록
+  paintFreshBar();
+  if (model) { try { paintChips(); paintHome(); } catch (e) { console.error(e); } }
+  paintAlerts();
+  paintTabs();
+}
+function clearBadge() {                               // 앱을 열면 아이콘 숫자를 지운다
+  try { if (navigator.clearAppBadge) Promise.resolve(navigator.clearAppBadge()).catch(() => {}); } catch {}
+}
+async function clearTray() {                          // 알림 목록에 남은 이 앱의 알림도 치운다(안드로이드는 이것이 아이콘의 숫자·점)
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg && reg.getNotifications) (await reg.getNotifications()).forEach((n) => n.close());
+  } catch {}
+}
+let inboxBusy = null;
+/* opened: 앱을 열었거나 다른 앱에서 돌아옴(true) · 앱을 보고 있는 중에 알림이 옴(false) */
+function checkInbox(opened) {
+  if (MOCK) return Promise.resolve();
+  if (inboxBusy) return inboxBusy;
+  inboxBusy = (async () => {
+    clearBadge();
+    if (opened) clearTray();
+    let got = [];
+    try {
+      const c = await caches.open('tn-inbox'), r = await c.match('/__tn_inbox');
+      if (r) { const v = await r.json(); await c.delete('/__tn_inbox'); if (Array.isArray(v)) got = v; }
+    } catch {}
+    const now = Date.now(), before = JSON.stringify(fresh);
+    if (opened) fresh = fresh.filter((x) => now - x.seen < FRESH_KEEP);      // 본 지 10분 넘은 것은 다시 열 때 치운다
+    fresh = fresh.filter((x) => now - x.at < FRESH_AGE);
+    got.map(freshItem).filter(Boolean).forEach((x) => {
+      fresh = fresh.filter((y) => !(y.area === x.area && y.key === x.key));
+      fresh.push({...x, seen: now});
+      markSeen(x);                                    // 같은 알림이 보낸 알림 기록으로 한 번 더 뜨지 않게
+    });
+    if (got.length) saveSeen();
+    if (JSON.stringify(fresh) !== before) { saveFresh(); paintFresh(); }
+  })().finally(() => { inboxBusy = null; });
+  return inboxBusy;
+}
+
+/* ── 그리기 ───────────────────────────────────────────── */
+let board = null, model = null, updatedAt = '', nextOpenMs = null, coolAtMs = null, soonAtMs = null, renderedDay = '', stampAt = 0;
+let view = {tab: 'home', area: ''};                   // tab: home | alerts | more · area: 홈에서 고른 테니스장('' = 전체)
+let sortKey = 'base', tipDone = MOCK ? !new URLSearchParams(location.search).has('tip') : false;
+if (!MOCK) {
+  try {
+    const v = localStorage.getItem('tn_sort');
+    if (['base', 'now', 'soon'].includes(v)) sortKey = v;
+    tipDone = localStorage.getItem('tn_tip') === '1';
+  } catch {}
+}
+const calm = () => Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+const metaOf = (x) => [periodText(x.period), courtsLabel(x.courts), commonHours(x.courts)].filter(Boolean).join(' · ');
+// 알림이 오는 때 — 이 기기에서 고른 시점만 말한다(반포의 전날 알림은 20시)
+const whenText = (area) => {
+  const d1 = area === PLAY_AREA ? '전날 20시' : '전날';
+  return settings.d1 && settings.h1 ? `${d1}${area === PLAY_AREA ? '와' : '과'} 1시간 전` : settings.d1 ? d1 : '1시간 전';
+};
+/* 다시 그릴 때 키보드 초점이 사라지지 않게: 그리기 전에 초점이 있던 버튼을 '뜻'으로 기억했다가 같은 버튼에 돌려준다 */
+function focusMark() {
+  const el = document.activeElement;
+  if (!el || !el.closest || !el.closest('#page-home')) return '';
+  const d = el.dataset || {}, q = (v) => String(v).replace(/["\\]/g, '\\$&');
+  if (el.tagName === 'A' && el.getAttribute('href')) return `a[href="${q(el.getAttribute('href'))}"]`;
+  if (el.tagName === 'SUMMARY' && el.parentElement && el.parentElement.dataset.key) return `details[data-key="${q(el.parentElement.dataset.key)}"] > summary`;
+  if (d.alarm) return `[data-alarm="${q(d.alarm)}"][data-kind="${q(d.kind || 'icon')}"]`;
+  if (d.act === 'venue') return `${el.classList.contains('vchip') ? '.vchip' : el.classList.contains('vname') ? '.vname' : '.back'}[data-area="${q(d.area || '')}"]`;
+  if (d.part) return `[data-part="${q(d.part)}"]`;
+  if (d.free) return '[data-free]';
+  return el.id ? `#${el.id}` : '';
+}
+function focusBack(sel) {
+  const cur = document.activeElement;
+  if (!sel || (cur && cur !== document.body && cur.isConnected)) return;     // 초점이 그대로 있으면 건드리지 않는다
+  try { const el = document.querySelector(`#page-home ${sel}`); if (el) el.focus({preventScroll: true}); } catch {}
+}
+const untilText = (s) => dots(s || '').replace('까지 접수', '까지 신청').replace('상시 예약', '늘 예약 받아요');
+
+/* 알림 종 — 그 테니스장의 예약 오픈 알림을 켜고 끈다. kind: icon(카드) · wide(한 곳 머리) · hero(큰 카드) · btn(큰 버튼) */
+const canAlarm = (v) => v.kind === 'seoul' || Boolean(playAlerts().open);
+const alarmInner = (kind, on) => (on ? ICON.bellOn : ICON.bell) + (kind === 'icon' ? ''
+  : `<span>${kind === 'btn' ? (on ? '알림 받는 중 · 누르면 꺼져요' : '열리기 전에 알림 받기') : on ? '알림 받는 중' : '알림 받기'}</span>`);
+const alarmLabel = (area, on) => `${NAMES[area] || area} 알림 ${on ? '끄기, 지금 켜져 있음' : '켜기, 지금 꺼져 있음'}`;
+function alarmHTML(area, kind) {
+  const on = subscribedTo(area);
+  const cls = kind === 'btn' ? `btn alarm-btn ${on ? 'soft' : 'primary'}` : kind === 'hero' ? 'hero-bell' : kind === 'wide' ? 'bell wide' : 'bell';
+  return `<button class="${cls}${on ? ' on' : ''}" data-act="alarm" data-alarm="${esc(area)}" data-kind="${kind}" aria-pressed="${on}" aria-label="${esc(alarmLabel(area, on))}">${alarmInner(kind, on)}</button>`;
+}
+
+/* 두 칸 — 어느 테니스장이든 '지금 예약'과 '다음 예약 오픈' */
+function duoHTML(v) {
+  const n = v.now, x = v.next;
+  const cd = x.state === 'date' ? ` data-cd="${esc(x.at)}"${x.expected ? ' data-tail=" · 공지 일정"' : ''}` : '';
+  return `<div class="duo">
+    <div class="cell ${n.state === 'hot' ? 'go hot' : n.tone === 'off' ? 'mute' : n.tone}"><span class="cell-k">지금 예약</span><b class="cell-t"><i class="dot"></i>${esc(n.title)}</b><span class="cell-s num">${esc(n.sub)}</span></div>
+    <div class="cell ${x.soon ? 'soon' : 'plain'}"><span class="cell-k">다음 예약 오픈</span><b class="cell-t num">${esc(x.title)}</b><span class="cell-s num"${cd}>${esc(x.sub)}</span></div>
+  </div>`;
+}
+function cardHTML(v) {
+  const label = `${v.name}${v.region ? `, ${v.region}` : ''}. 지금 예약 ${v.now.title}, ${v.now.sub}. 다음 예약 오픈 ${v.next.title}, ${v.next.sub}. 자세히 보기`;
+  return `<article class="vcard" data-area="${esc(v.area)}">
+    <div class="vhead">
+      <button class="vname" data-act="venue" data-area="${esc(v.area)}" aria-label="${esc(label)}"><b>${esc(v.name)}</b>${v.region ? `<span class="rg">${esc(v.region)}</span>` : ''}${newTag(v.area)}${ICON.chevR}</button>
+      ${canAlarm(v) ? alarmHTML(v.area, 'icon') : ''}
+    </div>${duoHTML(v)}</article>`;
+}
+
+/* 맨 위 큰 카드(전체 화면) — 오늘 열린 예약이 있으면 그것, 없으면 다음 예약 오픈. 5곳(서울시) 기준 */
+function heroHTML(m) {
+  const now = nowMs();
+  const real = m.hot.filter((x) => !x.expected), notice = m.hot.filter((x) => x.expected);
+  const soon = m.next && kstMs(m.next.open_at) - now < DAY_MS ? m.next : null;      // 24시간 안에 열리는 예약은 가려지지 않게 늘 같이 보여 준다
+  if (m.hot.length) {
+    const byArea = new Map();
+    [...real, ...notice].forEach((x) => { if (!byArea.has(x.area)) byArea.set(x.area, x); });
+    const tops = [...byArea.values()], top = tops[0];
+    const line = (x) => (x.expected ? `오늘 ${hm(x.open_at)} · 공지 일정` : [`오늘 ${hm(x.open_at)} 시작`, courtsLabel(x.courts)].filter(Boolean).join(' · '));
+    const rows = tops.slice(1).map((x) => `<button class="hero-item" data-act="venue" data-area="${esc(x.area)}"><span class="hi"><b>${esc(placeOf(x))}</b><span class="num">${esc(line(x))}</span></span>${ICON.chevR}</button>`).join('')
+      + (soon ? `<button class="hero-item" data-act="venue" data-area="${esc(soon.area)}"><span class="hi"><b>곧 열려요 · ${esc(placeOf(soon))}</b><span class="num">${esc(whenShort(soon.open_at))}${soon.expected ? ' · 공지 일정' : ''}</span></span><em class="num" data-cd="${esc(soon.open_at)}">${remainText(kstMs(soon.open_at) - now, soon.open_at)}</em></button>` : '');
+    return {cls: 'hero', label: top.expected ? '공지된 오픈 시각이 지난 예약' : '오늘 열린 예약', html: `${BALL}
+      <p class="hero-k"><i class="ping"></i>${top.expected ? '공지된 오픈 시각이 지났어요' : '오늘 예약이 열렸어요'}</p>
+      <h1 class="hero-title">${esc(placeOf(top))}</h1>
+      <p class="hero-meta num">${esc(line(top))}</p>
+      <div class="hero-actions"><button class="hero-btn" data-act="venue" data-area="${esc(top.area)}">${esc(top.area)} ${top.expected ? '확인하러 가기' : '코트 보기'}${ICON.chevR}</button></div>
+      ${rows ? `<div class="hero-list">${rows}</div>` : ''}
+      <p class="hero-note">${top.expected ? '서울시 자료에는 새 예약이 아직 안 올라왔어요. 예약 화면에서 직접 확인해 주세요.' : '빈자리가 있는지는 코트를 눌러 서울시 예약 화면에서 확인해요.'}</p>`};
+  }
+  if (m.next) {
+    const x = m.next, diff = dayDiff(x.open_at);
+    const meta = x.expected ? ['공지 일정', x.rule].filter(Boolean).join(' · ') : metaOf(x);
+    return {cls: 'hero', label: '다음 예약 오픈', html: `${BALL}
+      <p class="hero-k">다음 예약 오픈</p>
+      <p class="hero-date num">${diff === 0 ? '오늘 · ' : diff === 1 ? '내일 · ' : ''}${longDate(x.open_at)}</p>
+      <div class="hero-row"><h1 class="hero-h"><span class="hero-time num">${esc(hm(x.open_at))}</span><span class="hero-venue">${esc(placeOf(x))}</span></h1>
+        <span class="hero-chip num" data-cd="${esc(x.open_at)}">${remainText(kstMs(x.open_at) - now, x.open_at)}</span></div>
+      ${meta ? `<p class="hero-meta num">${esc(meta)}</p>` : ''}
+      <div class="hero-actions"><button class="hero-btn" data-act="venue" data-area="${esc(x.area)}">${esc(x.area)} 보기</button>${alarmHTML(x.area, 'hero')}</div>`};
+  }
+  const noData = !MOCK && !board.updated_at && !m.list.some((v) => v.kind === 'seoul' && v.now.state !== 'none');
+  return {cls: 'hero plain', label: '다음 예약 오픈', html: noData
+    ? `<p class="hero-k">다음 예약 오픈</p><h1 class="hero-title">서울시 정보를 아직 받지 못했어요</h1><p class="hero-meta">잠시 뒤 새로 고침을 눌러 주세요.</p>
+       <div class="hero-actions"><button class="hero-btn" data-act="refresh">새로 고침</button></div>`
+    : `<p class="hero-k">다음 예약 오픈</p><h1 class="hero-title">다음 오픈 날짜가 아직 안 나왔어요</h1><p class="hero-meta">서울시가 일정을 올리면 여기에 바로 보여 드려요.</p>`};
+}
+
+/* ── 한 곳 화면: 구역 순서는 늘 같다 — (오늘 열린 예약) → 지금 예약 받는 코트 → 다음 예약 오픈 ── */
+function hotSecHTML(x) {
+  if (x.expected) {
+    // 시설 공지의 오픈 시각은 지났는데 서울시 자료에 새 예약이 아직 없다 — '열렸다'고 하지 않는다
+    return `<section class="sec"><h2 class="sec-h"><span><i class="ping warn"></i>공지된 오픈 시각이 지났어요</span></h2>
+      <p class="sec-lead num">오늘 ${esc(hm(x.open_at))} · 공지 일정${x.rule ? ` · ${esc(x.rule)}` : ''}</p>
+      ${x.courts.length ? pickerHTML(x.courts) : ''}
+      <p class="note">${x.courts.length
+        ? '서울시 자료에는 새 예약이 아직 안 올라왔어요. 지난번 코트를 눌러 예약 화면에서 직접 확인해 주세요.'
+        : '서울시 자료에 새 예약이 올라오면 코트 번호가 여기에 나와요.'}</p></section>`;
+  }
+  const allOk = x.courts.length > 0 && x.courts.every((c) => c.confirmed);
+  const meta = metaOf(x);
+  return `<section class="sec"><h2 class="sec-h"><span><i class="ping"></i>오늘 열린 예약</span></h2>
+    <p class="sec-lead num">오늘 ${esc(hm(x.open_at))}에 예약이 열렸어요</p>
+    ${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}
+    ${pickerHTML(x.courts)}
+    <p class="note">${allOk ? '코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈자리는 그 화면에서 확인해요.'
+      : '서울시 화면에 마감 여부가 아직 안 올라왔어요. 이미 찬 코트도 있을 수 있어요.'}</p></section>`;
+}
+/* 예약 받지 않는 코트(마감 · 접수 끝남 · 일시중지 · 열렸지만 상태 미확인) — 눌러서 예약 화면은 볼 수 있다 */
+function shutChip(groups) {                      // 한 곳의 상태를 한마디로
+  const st = new Set(groups.flatMap((g) => g.courts.map((c) => c.state || g.state)));
+  if (st.has('unknown')) return '확인 필요';
+  if (st.size === 1 && st.has('ended')) return '접수 끝남';
+  if (st.size === 1 && st.has('paused')) return '일시중지';
+  return '모두 마감';
+}
+const batchName = (g) => (g.until_kind === 'use' && g.period ? periodText(g.period) : untilText(g.until_label));
+function batchNames(groups) {                    // '11.1~11.15, 11.16~11.30 이용분'
+  const names = [...new Set(groups.map(batchName).filter(Boolean))];
+  const same = names.every((n) => / 이용분$/.test(n));
+  return names.map((n, i) => (same && i < names.length - 1 ? n.replace(/ 이용분$/, '') : n)).join(', ');
+}
+function shutNote(groups) {
+  const chip = shutChip(groups);
+  return chip === '확인 필요' ? '예약은 열렸지만 서울시 화면에 접수 상태가 아직 안 올라왔어요. 코트를 눌러 직접 확인해 주세요.'
+    : chip === '모두 마감' ? '코트를 누르면 서울시 예약 화면이 열려요. 취소로 빈자리가 났는지 직접 확인할 수 있어요.'
+    : '코트를 누르면 서울시 예약 화면이 열려요.';
+}
+function shutBody(groups) {                      // 회차별 코트 버튼
+  const many = groups.length > 1;
+  return groups.map((g) => {
+    const n = courtCount(g.courts);
+    const meta = [many ? batchName(g) : '', many || g.state === 'mixed' ? STATE_TEXT[g.state] || '' : '',
+      n ? `코트 ${n}개` : '', commonHours(g.courts)].filter(Boolean).join(' · ');
+    return `<div class="batch shut">${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}${pickerHTML(g.courts)}</div>`;
+  }).join('') + `<p class="row-note">${shutNote(groups)}</p>`;
+}
+function nowSecHTML(v) {
+  const legacy = !Array.isArray(board.closed);
+  const courts = v.avail.flatMap((g) => g.courts);
+  const known = new Set([...courts, ...v.shut.flatMap((g) => g.courts)].map((c) => c.reserve_url));
+  const left = v.cold.flatMap((x) => x.courts).filter((c) => c.reserve_url && !known.has(c.reserve_url));   // 오늘 열렸는데 어느 묶음에도 없는 코트
+  const nShut = v.shut.reduce((t, g) => t + g.courts.length, 0);
+  const allFull = v.shut.every((g) => g.courts.every((c) => (c.state || g.state) === 'full'));
+  const s = v.now.state;
+  // 오늘 열린 지 2시간이 넘은 예약 — 몇 시에 어떤 이용 기간이 열렸는지 예약마다 한 줄씩 남긴다(코트는 아래 묶음에 있다)
+  let body = v.cold.map((x) => `<p class="sec-lead num">오늘 ${esc(hm(x.open_at))}에 예약이 열렸어요${metaOf(x) ? ` <span class="venue-meta">· ${esc(metaOf(x))}</span>` : ''}</p>`).join('');
+  if (courts.length) {
+    body += v.avail.map((g) => {
+      const full = legacy ? Number(g.full_count) || 0 : 0;
+      const meta = [g.until_kind === 'use' && g.period ? periodText(g.period) : untilText(g.until_label),
+        full ? `다른 코트·시간대 ${full}건 마감` : '', commonHours(g.courts)].filter(Boolean).join(' · ');
+      return `<div class="batch">${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}${pickerHTML(g.courts)}</div>`;
+    }).join('') + '<p class="note">코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈자리는 그 화면에서 확인해요.</p>';
+  } else {
+    body += `<div class="empty"><strong>${v.hot.length ? '위에서 안내한 예약 말고는 예약 받는 코트가 없어요' : '지금은 예약 받는 코트가 없어요'}</strong><p>${
+      v.hot.length ? '위쪽 코트를 눌러 예약 화면에서 확인해 주세요.'
+      : s === 'check' ? '예약은 열렸지만 접수 상태가 아직 안 올라왔어요. 아래 코트를 눌러 직접 확인해 주세요.'
+      : s === 'full' ? '취소로 빈자리가 났는지는 아래 마감된 코트를 눌러 확인할 수 있어요.'
+      : s === 'none' ? '서울시에 예약이 올라오면 여기에 코트 번호가 나타나요.' : '다음 예약 오픈을 기다려 주세요.'}</p></div>`;
+  }
+  if (left.length) body += `<div class="batch"><p class="venue-meta">오늘 열린 코트 · 접수 상태 확인 필요</p>${pickerHTML(left)}</div>`;
+  if (nShut) {
+    body += `<details class="more" data-key="more|${esc(v.area)}"${!courts.length && s === 'check' ? ' open' : ''}><summary><span>${allFull ? '마감된' : '예약 받지 않는'} 코트·시간대 ${nShut}건 보기</span>${ICON.chev}</summary>${shutBody(v.shut)}</details>`;
+  }
+  const cnt = courtsLabel(courts);
+  return `<section class="sec" id="sec-now"><h2 class="sec-h"><span>지금 예약 받는 코트</span>${cnt ? `<span class="cnt num">${esc(cnt)}</span>` : ''}</h2>${body}</section>`;
+}
+function openRowHTML(x, i) {
+  const ms = kstMs(x.open_at) - nowMs(), diff = dayDiff(x.open_at);
+  const meta = x.expected ? ['공지 일정', x.rule, '바뀔 수 있어요'].filter(Boolean).join(' · ') : metaOf(x);
+  return `<div class="orow${i ? ' small' : ''}">
+    <div class="orow-top"><div><p class="orow-date num">${diff === 0 ? '오늘 · ' : diff === 1 ? '내일 · ' : ''}${longDate(x.open_at)}</p><p class="orow-time num">${esc(hm(x.open_at))}</p></div>
+      <span class="badge${ms < DAY_MS ? ' soon' : ''} num" data-cd="${esc(x.open_at)}">${remainText(ms, x.open_at)}</span></div>
+    ${meta ? `<p class="orow-meta num">${esc(meta)}</p>` : ''}
+    ${x.courts.length ? `<details class="peek" data-key="${esc(keyOf(x))}"><summary><span>열리는 코트 미리 보기</span>${ICON.chev}</summary>${pickerHTML(x.courts, true)}</details>` : ''}
+  </div>`;
+}
+function alarmBlockHTML(v) {
+  if (!canAlarm(v)) return '';
+  return `${alarmHTML(v.area, 'btn')}<p class="hint center">예약이 열리기 ${whenText(v.area)}에 알려 드려요.</p>`;
+}
+function nextSecHTML(v) {
+  const past = v.past.slice(0, 3).map((s) => `${shortDate(s)}(${weekday(s)}) ${hm(s)}`).join(', ');
+  let body = v.upcoming.map(openRowHTML).join('');
+  if (!v.upcoming.length) {
+    body = v.next.state === 'always'
+      ? '<div class="empty"><strong>오픈 날이 따로 없어요</strong><p>정해진 오픈 날 없이 예약을 받는 곳이에요. 예약을 받을 때는 위의 코트를 눌러 날짜를 골라요.</p></div>'
+      : '<div class="empty"><strong>다음 오픈 날짜가 아직 안 나왔어요</strong><p>서울시가 일정을 올리면 여기에 바로 보여 드려요.</p></div>';
+  }
+  if (v.upcoming.some((x) => x.expected)) body += '<p class="hint">‘공지 일정’은 시설 안내문에 적힌 정기 오픈 날짜예요. 실제와 다를 수 있어요.</p>';
+  else if (v.rule) body += `<p class="hint">시설 안내문에는 ${esc(v.rule)}에 연다고 적혀 있어요.</p>`;
+  if (past) body += `<p class="hint num">지난번에는 ${esc(past)}에 열렸어요.</p>`;
+  return `<section class="sec" id="sec-next"><h2 class="sec-h"><span>다음 예약 오픈</span></h2>${body}${alarmBlockHTML(v)}</section>`;
+}
+
+/* 반포종합운동장(테니스플레이) — 서버가 예약 현황으로 계산해 준 날짜별 빈 시간(코트 번호). 예약은 링크로만. */
+let playPart = 'all', playData = null;
+try { const v = localStorage.getItem('tn_play_part'); if (PARTS.some((p) => p[0] === v)) playPart = v; } catch {}
+const EXT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"/><path d="M19 5 10 14"/><path d="M19 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4"/></svg>';
+function playWhen(date) {
+  const diff = dayDiff(date);
+  return diff === 0 || diff === 1
+    ? `<span class="when"><b>${diff ? '내일' : '오늘'}</b><span class="num">${shortDate(date)} ${weekday(date)}</span></span>`
+    : `<span class="when"><b class="num">${shortDate(date)}</b><span>${weekday(date)}요일</span></span>`;
+}
+function playDayHTML(day, p, book) {
+  const part = PARTS.find((x) => x[0] === playPart) || PARTS[0];
+  const every = (Array.isArray(day.slots) ? day.slots : []).filter((x) => x && Number.isFinite(x.s) && Number.isFinite(x.e) && Array.isArray(x.courts) && x.courts.length);
+  const slots = every.filter((x) => x.s >= part[2] && x.s < part[3]);
+  const all = (Array.isArray(p.courts) ? p.courts : []).map(String);
+  if (!slots.length) {
+    const text = every.length ? `${part[1]}에는 빈 시간이 없어요` : '빈 시간이 없어요';
+    return `<div class="row frow prow">${playWhen(day.date)}<span class="what"><strong class="dim">${text}</strong></span>
+      <span class="tail">${every.length ? '' : '<span class="dday">마감</span>'}</span></div>`;
+  }
+  const ranges = playRanges(slots).map(([a, b]) => spanText(a, b));
+  const head = ranges.length > 3 ? `${ranges.slice(0, 3).join(' · ')} 외` : ranges.join(' · ');
+  const names = new Set(slots.flatMap((x) => x.courts.map(String)));
+  const rows = slots.map((x) => `<div class="phour"><span class="ph num">${spanText(x.s, x.e)}</span><span class="ptags">${
+    all.length >= 5 && x.courts.length === all.length ? `<span class="ptag">모든 코트 ${all.length}개</span>`
+      : x.courts.map((n) => `<span class="ptag">${esc(n)}</span>`).join('')}</span></div>`).join('');
+  return `<details class="row prow" data-key="play|${esc(day.date)}"><summary>${playWhen(day.date)}
+      <span class="what"><strong class="num">${esc(head)}</strong><span class="num">${esc(playCourtsText(names, all))}</span></span>
+      <span class="tail">${ICON.chev}</span></summary>
+    <div class="phours">${rows}</div>${book}</details>`;
+}
+function playNowSecHTML(v) {
+  const p = v.play, link = playURL(p.url), a = playAlerts();
+  const bookBtn = (cls) => (link ? `<a class="btn line${cls}" href="${esc(link)}" target="_blank" rel="noopener noreferrer">테니스플레이에서 예약하기${EXT}</a>` : '');
+  const freeSw = a.free ? `<label class="switch" style="margin-top:8px;border-top:1px solid var(--line);border-bottom:0"><span><b>빈 시간이 생기면 알림</b><small>누가 취소해서 자리가 나면 알려 드려요.</small></span><input type="checkbox" role="switch" data-free="1"${freeOn() ? ' checked' : ''}></label>` : '';
+  if (!p.ok || !p.days.length) {
+    return `<section class="sec" id="sec-now"><h2 class="sec-h"><span>지금 빈 시간</span></h2>
+      <div class="empty"><strong>${p.state === 'loading' ? '빈 시간을 불러오는 중이에요' : '지금은 빈 시간을 불러오지 못했어요'}</strong>
+      <p>${p.state === 'loading' ? '잠시 뒤 다시 열어 주세요.' : '테니스플레이에서 직접 확인해 주세요.'}</p></div>${bookBtn(' mt')}${freeSw}</section>`;
+  }
+  const at = String(p.updated_at || '');
+  const stamp = at ? `${at.slice(0, 10) === todayKST() ? '' : `${shortDate(at)} `}${hm(at)} 기준${p.stale ? ' · 오래됨' : ''}` : '';
+  const seg = `<div class="seg" role="group" aria-label="시간대 고르기">${PARTS.map(([k, t]) =>
+    `<button type="button" data-act="play-part" data-part="${k}" aria-pressed="${k === playPart}">${t}</button>`).join('')}</div>`;
+  const no = p.next_open;
+  let openRow = '';
+  if (v.next.state === 'date' && no.date && !p.days.some((d) => d.date === no.date)) {      // 아직 안 열린 날짜만 '오픈 전'으로
+    const diff = dayDiff(no.at);
+    openRow = `<div class="row frow prow">${playWhen(no.date)}
+      <span class="what"><strong class="dim num">${diff <= 0 ? '오늘' : diff === 1 ? '내일' : shortDate(no.at)} ${hm(no.at)}에 예약이 열려요</strong></span>
+      <span class="tail"><span class="dday${diff <= 0 ? ' near' : ''}">오픈 전</span></span></div>`;
+  }
+  const anyFree = p.days.some((d) => Array.isArray(d.slots) && d.slots.length);
+  return `<section class="sec" id="sec-now"><h2 class="sec-h"><span>지금 빈 시간</span>${stamp ? `<span class="cnt num">${esc(stamp)}</span>` : ''}</h2>${seg}
+    <div class="rows">${p.days.map((d) => playDayHTML(d, p, bookBtn(''))).join('')}${openRow}</div>
+    <p class="note">날짜를 누르면 시간별 빈 코트 번호가 나와요. 그 사이 예약이 찼을 수 있으니 테니스플레이에서 확인해 주세요.</p>${anyFree ? '' : bookBtn(' mt')}${freeSw}</section>`;
+}
+function playNextSecHTML(v) {
+  const no = v.play.next_open;
+  let body;
+  if (v.next.state === 'date') {
+    const at = v.next.at, ms = kstMs(at) - nowMs(), diff = dayDiff(at);
+    body = `<div class="orow">
+      <div class="orow-top"><div><p class="orow-date num">${diff === 0 ? '오늘 · ' : diff === 1 ? '내일 · ' : ''}${longDate(at)}</p><p class="orow-time num">${esc(hm(at))}</p></div>
+        <span class="badge${ms < DAY_MS ? ' soon' : ''} num" data-cd="${esc(at)}">${remainText(ms, at)}</span></div>
+      ${no.date ? `<p class="orow-meta num">${shortDate(no.date)}(${weekday(no.date)}) 이용분이 열려요</p>` : ''}</div>
+      <p class="hint">반포는 매일 한 번, 며칠 뒤 날짜의 예약이 새로 열려요.</p>`;
+  } else {
+    body = '<div class="empty"><strong>다음 오픈 시각을 아직 몰라요</strong><p>테니스플레이에서 직접 확인해 주세요.</p></div>';
+  }
+  return `<section class="sec" id="sec-next"><h2 class="sec-h"><span>다음 예약 오픈</span></h2>${body}${alarmBlockHTML(v)}</section>`;
+}
+function oneHTML(v) {
+  const mine = fresh.filter((x) => x.area === v.area).sort((a, b) => b.at - a.at);
+  const src = v.kind === 'play' ? '테니스플레이 예약' : '서울시 공공예약';
+  return `<button class="back" data-act="venue" data-area="">${ICON.chevL}<span>전체 테니스장</span></button>
+    <article class="vcard one">
+      <div class="vhead"><div class="vtitles"><h1 class="vtitle" id="one-title" tabindex="-1">${esc(v.name)}</h1><p class="vsrc">${esc([v.region, src].filter(Boolean).join(' · '))}</p></div>${canAlarm(v) ? alarmHTML(v.area, 'wide') : ''}</div>
+      ${duoHTML(v)}
+      ${mine.length ? `<div class="mine">${mine.map((x) => `<p class="mine-item"><span class="mine-top"><em class="newtag">새 알림</em><small class="num">${esc(freshWhen(x.at))} 알림${x.kind === 'free' ? ' · 빈 시간' : ''}</small></span><span class="mine-text num">${esc(x.text)}</span></p>`).join('')}</div>` : ''}
+    </article>
+    ${v.kind === 'play' ? playNowSecHTML(v) + playNextSecHTML(v) : v.hot.map(hotSecHTML).join('') + nowSecHTML(v) + nextSecHTML(v)}`;
+}
+
+/* ── 칠하기 ───────────────────────────────────────────── */
+function paintChips(center) {
+  const el = $('chips'), x = el.scrollLeft, mark = focusMark();
+  const list = model ? model.list : AREAS.map((a) => ({area: a}));
+  const isNew = (a) => fresh.some((f) => f.area === a);
+  el.innerHTML = `<button class="vchip" data-act="venue" data-area="" aria-pressed="${!view.area}">전체</button>`
+    + list.map((v) => `<button class="vchip" data-act="venue" data-area="${esc(v.area)}" aria-pressed="${view.area === v.area}"${
+      isNew(v.area) ? ` aria-label="${esc(v.area)}, 새 알림 있음"` : ''}>${esc(v.area)}${isNew(v.area) ? '<i class="ndot"></i>' : ''}</button>`).join('');
+  el.scrollLeft = x;
+  focusBack(mark);
+  // 고른 테니스장 버튼은 가운데로(화면을 옮겼을 때, 또는 버튼이 가려져 있을 때)
+  const on = el.querySelector('[aria-pressed="true"]');
+  if (on && (center || on.offsetLeft < el.scrollLeft || on.offsetLeft + on.offsetWidth > el.scrollLeft + el.clientWidth)) {
+    el.scrollLeft = Math.max(0, on.offsetLeft - (el.clientWidth - on.offsetWidth) / 2);
+  }
+}
+function paintHome() {
+  const all = $('home-all'), one = $('home-one');
+  const v = model && view.area ? model.list.find((x) => x.area === view.area) : null;
+  all.hidden = Boolean(v);
+  one.hidden = !v;
+  if (!model) return;
+  const mark = focusMark();
+  const openKeys = new Set([...document.querySelectorAll('#page-home details[data-key][open]')].map((el) => el.dataset.key));
+  const shutKeys = new Set([...document.querySelectorAll('#page-home details[data-key]:not([open])')].map((el) => el.dataset.key));
+  if (v) one.innerHTML = oneHTML(v);
+  else {
+    const h = heroHTML(model), hero = $('hero');
+    hero.className = h.cls;
+    hero.setAttribute('aria-label', h.label);
+    hero.innerHTML = h.html;
+    $('list-head').hidden = false;
+    $('list-title').textContent = `테니스장 ${model.list.length}곳`;
+    const cards = $('cards');
+    cards.style.marginTop = '';
+    cards.innerHTML = sortVenues(model.list, sortKey).map(cardHTML).join('');
+    $('cards-note').hidden = false;
+    $('tip').hidden = tipDone;
+  }
+  // 펼치거나 접어 둔 목록은 다시 그려도 그대로
+  document.querySelectorAll('#page-home details[data-key]').forEach((el) => {
+    if (openKeys.has(el.dataset.key)) el.open = true; else if (shutKeys.has(el.dataset.key)) el.open = false;
+  });
+  focusBack(mark);
+}
+/* 알림 기록: 서버가 최근 24시간에 보낸 알림(이 기기가 받기로 한 것) + 이 기기가 받은 새 알림 */
+function inboxList() {
+  const now = Date.now(), map = new Map();
+  const add = (x) => { const k = `${x.area}|${x.key}`, old = map.get(k); if (!old || x.at > old.at) map.set(k, x); };
+  (board && Array.isArray(board.feed) ? board.feed : []).forEach((raw) => {
+    const x = freshItem(raw);
+    if (!x || now - x.at >= FRESH_AGE) return;
+    const areas = Array.isArray(raw.areas) ? raw.areas.filter((a) => typeof a === 'string' && a) : [];
+    if (feedWanted(x, areas.length ? areas : [x.area])) add(x);
+  });
+  fresh.forEach(add);
+  return [...map.values()].sort((a, b) => b.at - a.at);
+}
+function paintAlerts() {
+  const list = inboxList(), isNew = new Set(fresh.map((x) => `${x.area}|${x.key}`));
+  $('alist').innerHTML = list.length
+    ? `<div class="alist">${list.map((x) => freshRowHTML(x, isNew.has(`${x.area}|${x.key}`))).join('')}</div><p class="hint">서버가 보낸 알림 기록이에요. 이 기기에 오지 않은 알림도 보일 수 있어요.</p>`
+    : '<div class="empty"><strong>최근 24시간 동안 온 알림이 없어요</strong><p>알림을 켜 두면 예약이 열리기 전에 휴대폰으로 알려 드리고, 여기에도 남겨 둬요.</p></div>';
+}
+function paintTabs() {
+  document.querySelectorAll('#nav [data-tab]').forEach((b) => {
+    if (b.dataset.tab === view.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  const n = fresh.length, badge = $('tab-badge');
+  badge.hidden = !n;
+  badge.textContent = n > 9 ? '9+' : String(n);
+  badge.setAttribute('aria-label', `새 알림 ${n}건`);
+}
+function paintView() {
+  $('app').dataset.tab = view.tab;
+  $('page-home').hidden = view.tab !== 'home';
+  $('page-alerts').hidden = view.tab !== 'alerts';
+  $('page-more').hidden = view.tab !== 'more';
+  paintTabs();
+  if (view.tab === 'home') { paintChips(true); paintHome(); paintPush(); }
+  if (view.tab === 'alerts') { sheetNote(); checkPush(); paintAlerts(); }
+}
+function renderBoard(d) {                             // 서버 자료가 바뀌었거나 시각이 넘어갔을 때 전부 다시 그린다
+  if (d.updated_at) updatedAt = d.updated_at;
+  renderedDay = todayKST();
+  board = d;
+  model = buildVenues(d, nowMs());
+  $('app').classList.remove('is-error');
+  syncPlayPrefs();
+  if (view.tab === 'home' && view.area && !model.list.some((v) => v.area === view.area)) leaveMissing();   // 이 서버에는 없는 곳(반포)
+  paintFreshBar();
+  paintChips();
+  paintHome();
+  paintAlerts();
+  paintTabs();
+  paintPush();
+  const ups = model.list.map((v) => (v.next.state === 'date' ? kstMs(v.next.at) : NaN)).filter(Number.isFinite);
+  nextOpenMs = ups.length ? Math.min(...ups) : null;
+  coolAtMs = model.hot.length ? Math.min(...model.hot.map((x) => kstMs(x.open_at) + HOT_MS)) : null;
+  // 24시간 안으로 들어오는 때(주황 칸 · 큰 카드의 '곧 열려요' 줄이 생기는 때)에도 다시 그린다
+  const soons = model.list.map((v) => (v.next.state === 'date' && !v.next.soon ? kstMs(v.next.at) - DAY_MS : NaN)).filter(Number.isFinite);
+  soonAtMs = soons.length ? Math.min(...soons) : null;
+  paintStamp();
+}
+function renderError() {
+  $('app').classList.add('is-error');
+  $('home-all').hidden = false;
+  $('home-one').hidden = true;
+  const hero = $('hero');
+  hero.className = 'hero plain';
+  hero.innerHTML = `<p class="hero-k">연결 문제</p><h1 class="hero-title">정보를 불러오지 못했어요</h1>
+    <p class="hero-meta">인터넷 연결을 확인하고 다시 시도해 주세요.</p><div class="hero-actions"><button class="hero-btn" data-act="retry">다시 시도</button></div>`;
+  $('cards').innerHTML = '';
+  $('list-head').hidden = true;
+  $('stamp').textContent = '연결 안 됨';
+}
+function paintStamp() {
+  const el = $('stamp'), st = $('stale');
+  stampAt = Date.now();
+  if (!updatedAt) { el.textContent = '정보 없음'; st.hidden = true; return; }
+  const when = updatedAt.slice(0, 10) === todayKST() ? hm(updatedAt) : `${shortDate(updatedAt)} ${hm(updatedAt)}`;
+  const old = nowMs() - kstMs(updatedAt) > 20 * 60000;
+  el.textContent = `${when} 기준`;
+  $('refresh').setAttribute('aria-label', `정보 새로 고침, ${when} 기준${old ? ', 오래된 정보' : ''}`);
+  if (st.hidden === old || st.dataset.when !== when) {
+    st.hidden = !old;
+    st.dataset.when = when;
+    st.innerHTML = old ? `<span class="num">${esc(when)} 정보예요. 오래됐을 수 있어요.</span><button data-act="refresh">새로 고침</button>` : '';
+  }
+}
+function tick() {
+  if (!board) return;
+  const now = nowMs();
+  if (renderedDay !== todayKST()) { renderBoard(board); refreshData(); return; }      // 자정이 지남 → 날짜 문구 다시
+  const opening = Boolean(nextOpenMs && now >= nextOpenMs);
+  if (opening || (coolAtMs && now >= coolAtMs) || (soonAtMs && now >= soonAtMs)) { renderBoard(board); if (opening) refreshData(); return; }
+  document.querySelectorAll('[data-cd]').forEach((el) => {                              // 남은 시간
+    const at = el.dataset.cd, text = remainText(kstMs(at) - now, at) + (el.dataset.tail || '');
+    if (el.textContent !== text) el.textContent = text;
+  });
+  if (Date.now() - stampAt > 30000) paintStamp();                                      // 오래된 정보 표시
+}
+
+/* ── 토스트 ───────────────────────────────────────────── */
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), Math.min(6000, 2200 + String(msg).length * 60));
+}
+
+/* ── 서버 호출 · 새로 고침 ────────────────────────────── */
+async function api(path, body) {
+  if (MOCK) return path === '/board' ? mockBoard(MOCK) : {ok: true, refreshed: false, reason: 'recent', updated_at: mockStamp(), publicKey: ''};
+  if (!/^\/(board|refresh|push\/(key|subscribe|unsubscribe|test))$/.test(path)) throw Error('허용되지 않은 요청');
+  const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 65000);
+  try {
+    const r = await fetch(path, {signal: ctrl.signal, ...(body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {})});
+    let d = null;
+    try { d = await r.json(); } catch {}
+    if (!r.ok || !d || d.ok === false) {
+      const msg = d && (typeof d.detail === 'string' ? d.detail : typeof d.error === 'string' ? d.error : '');
+      const e = msg ? new UserError(msg) : Error('서버 응답 오류');   // 서버가 적어 준 안내만 그대로 보여 준다
+      e.status = r.status;
+      throw e;
+    }
+    return d;
+  } finally { clearTimeout(timer); }
+}
+let boardReq = 0, refreshing = null, lastSig = '';
+async function loadBoard() {
+  const id = ++boardReq;
+  let d;
+  try { d = await api('/board'); }
+  catch { if (id === boardReq && !board) renderError(); return false; }
+  if (id !== boardReq) return 'ignored';                                         // 더 새 요청이 있음
+  if (updatedAt && d.updated_at && d.updated_at < updatedAt) return 'ignored';   // 더 오래된 응답
+  if (Number.isFinite(d.now_ms)) { const s = d.now_ms - Date.now(); skew = Math.abs(s) < 1500 ? 0 : s; }
+  const fed = takeFeed(d.feed);                                                  // 카카오톡으로만 온 알림도 '새 알림'으로
+  const sig = JSON.stringify([d.openings, d.available, d.places, d.closed, d.play]);
+  if (board && sig === lastSig && renderedDay === todayKST()) {                  // 내용이 같으면 다시 그리지 않는다
+    board = d;
+    if (d.updated_at) updatedAt = d.updated_at;
+    paintStamp();
+    if (fed) paintFresh();
+    return true;
+  }
+  try { renderBoard(d); lastSig = sig; return true; }
+  catch (e) { console.error(e); if (!lastSig) renderError(); return false; }
+  finally { if (fed) paintFreshBar(); }
+}
+function refreshData(manual = false) {
+  if (refreshing) { if (manual) refreshing.then(() => toast('이미 최신 정보예요.')); return refreshing; }
+  ++boardReq;
+  const btn = $('refresh');
+  btn.setAttribute('aria-busy', 'true');
+  refreshing = (async () => {
+    try {
+      let res;
+      try { res = await api('/refresh', {}); } catch { res = {reason: 'error'}; }
+      const loaded = await loadBoard();
+      if (manual) {
+        toast(loaded === false ? '정보를 받지 못했어요. 잠시 뒤 다시 시도해 주세요.'
+          : ['error', 'empty'].includes(res.reason) ? '서울시 정보를 받지 못해 마지막 정보를 보여 드려요.'
+          : res.refreshed && loaded === true ? '새 정보를 불러왔어요.' : '이미 최신 정보예요.');
+      }
+      return res;
+    } finally {
+      btn.setAttribute('aria-busy', 'false');
+      refreshing = null;
+    }
+  })();
+  return refreshing;
+}
+const isStale = () => { const t = kstMs(updatedAt); return !Number.isFinite(t) || nowMs() - t > 180000; };
+
+/* ── 알림(웹 푸시) ────────────────────────────────────── */
+let sub = null, swReady = null, pushBusy = false, pushAgain = false, saveTimer = 0;
+let serverOk = false, retryTimer = 0, retryStep = 0;   // serverOk: 이번에 서버 등록까지 확인됨
+let settings = {areas: [...AREAS], d1: true, h1: true, free: false, enabled: false, off: false};
+if (!MOCK) {
+  try {
+    const v = JSON.parse(localStorage.getItem('tn_push'));
+    if (v) {
+      settings = {...settings, ...v};
+      settings.areas = Array.isArray(v.areas) ? v.areas.filter((a) => AREAS.includes(a) || a === PLAY_AREA) : [...AREAS];
+      settings.free = v.free === true;
+      if (!settings.areas.length && !settings.free) settings.areas = [...AREAS];   // 반포 빈 시간만 받는 기기는 그대로 둔다
+    }
+  } catch {}
+}
+// 서버에 보내는 알림 이름 목록: 고른 테니스장 + (켰으면) 반포 빈 시간
+const sentAreas = () => [...settings.areas, ...(settings.free ? [PLAY_FREE] : [])];
+let cacheWrite = Promise.resolve();
+function saveSettings() {
+  if (MOCK) return;                                   // 미리보기는 기기에 아무것도 남기지 않는다
+  try { localStorage.setItem('tn_push', JSON.stringify(settings)); } catch {}
+  // 서비스워커가 구독을 다시 만들 때 읽는 사본
+  const value = JSON.stringify({areas: sentAreas(), d1: settings.d1, h1: settings.h1});
+  cacheWrite = cacheWrite.then(async () => {
+    try { await (await caches.open('tn-settings')).put('/__tn_push_settings', new Response(value, {headers: {'Content-Type': 'application/json'}})); } catch {}
+  });
+}
+saveSettings();
+
+const UA = navigator.userAgent || '';
+const isiOS = /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standalone = Boolean(navigator.standalone) || matchMedia('(display-mode: standalone)').matches;
+const inApp = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(UA);    // 카카오톡 등 앱 안 브라우저
+const needInstall = isiOS && !standalone;
+const canPush = 'Notification' in window && 'PushManager' in window && 'serviceWorker' in navigator;
+const blocked = !MOCK && (needInstall || !canPush);   // 이 화면에서는 알림을 켤 수 없음
+let booting = !MOCK && !blocked && settings.enabled && !settings.off && Notification.permission === 'granted';
+const pushOn = () => Boolean(sub && settings.enabled);
+// 종 = 그 테니스장의 예약 오픈 알림. 반포 빈 시간 알림(freeOn)은 따로 켜고 끈다.
+const subscribedTo = (area) => pushOn() && (!area || settings.areas.includes(area));
+const freeOn = () => pushOn() && settings.free === true;
+let sayLoud = false;                                  // 종을 눌러 켜고 끌 때는 결과를 토스트로도 알려 준다(알림 탭 밖에서는 상태 줄이 안 보이므로)
+const say = (msg) => { $('push-status').textContent = msg; if (sayLoud && msg && view.tab !== 'alerts') toast(msg); };
+const deniedText = () => (isiOS && standalone
+  ? '알림이 꺼져 있어요. 아이폰 설정 > 알림 > 코트 오픈에서 허용해 주세요.'
+  : '알림이 차단되어 있어요. 브라우저 설정에서 이 사이트의 알림을 허용한 뒤 다시 켜 주세요.');
+
+function b64Bytes(s) {
+  const n = s.replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(n + '='.repeat((4 - n.length % 4) % 4)), (c) => c.charCodeAt(0));
+}
+function sameKey(a, b) {
+  if (!a) return false;
+  const x = new Uint8Array(a), y = new Uint8Array(b);
+  return x.length === y.length && x.every((v, i) => v === y[i]);
+}
+function worker() {
+  if (!('serviceWorker' in navigator)) return Promise.reject(new UserError('이 브라우저에서는 알림을 켤 수 없어요.'));
+  if (!swReady) {
+    swReady = navigator.serviceWorker.register('/sw.js')
+      .then(async (r) => { await Promise.race([navigator.serviceWorker.ready, new Promise((_, no) => setTimeout(() => no(Error('서비스워커 준비 시간 초과')), 12000))]); return r; })
+      .catch((e) => { swReady = null; throw e; });
+  }
+  return swReady;
+}
+/* mode: 'auto' 앱을 열 때 서버에 다시 등록 · 'user' 스위치를 켬 · 'save' 설정 변경 저장 */
+async function syncPush(mode) {
+  if (pushBusy) { if (mode === 'save') pushAgain = true; return; }   // 저장 중에 또 바뀜 → 끝나면 최신 설정을 다시 보냄
+  pushBusy = true;
+  $('master').disabled = true;
+  try {
+    if (MOCK) {
+      if (mode === 'auto') return;
+      sub = {endpoint: 'mock'}; settings.enabled = true; settings.off = false; serverOk = true;
+      say(mode === 'user' ? '미리보기예요. 실제 알림은 보내지 않아요.' : '바꾼 내용을 저장했어요.');
+      return;
+    }
+    if (needInstall) return;
+    if (mode === 'auto' && settings.off) return;                     // 직접 끈 기기는 다시 등록하지 않음
+    if (!canPush) throw new UserError('이 브라우저에서는 알림을 켤 수 없어요. Chrome이나 Safari에서 열어 주세요.');
+    if (mode !== 'user' && Notification.permission !== 'granted') return;
+    if (mode === 'user') {
+      const p = await Notification.requestPermission();
+      if (p !== 'granted') throw new UserError(p === 'denied' ? deniedText() : '알림을 허용해야 받을 수 있어요.');
+    }
+    const reg = await worker();
+    sub = await reg.pushManager.getSubscription();
+    if (mode !== 'user' && !sub && !settings.enabled) return;        // 켠 적이 없는 기기
+    const {publicKey} = await api('/push/key'), key = b64Bytes(publicKey);
+    if (sub && !sameKey(sub.options.applicationServerKey, key)) {     // 서버 키가 바뀌었으면 다시 구독
+      const old = sub;
+      await old.unsubscribe();
+      sub = null;
+      try { await api('/push/unsubscribe', {endpoint: old.endpoint}); } catch {}
+    }
+    // 켜 둔 기기인데 브라우저가 구독을 지웠으면 조용히 다시 만든다(권한은 이미 허용됨).
+    if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: key});
+    await api('/push/subscribe', {subscription: sub.toJSON(), areas: sentAreas(), d1: settings.d1, h1: settings.h1});
+    settings.enabled = true;
+    settings.off = false;
+    serverOk = true;
+    retryStep = 0;
+    clearTimeout(retryTimer);
+    saveSettings();
+    if (mode === 'user') say('알림을 켰어요. 예약이 열리기 전에 알려 드릴게요.');
+    else if (mode === 'save') say('바꾼 내용을 저장했어요.');
+  } catch (e) {
+    if (mode === 'user') say(e instanceof UserError ? e.message : '연결이 원활하지 않아요. 잠시 뒤 다시 켜 주세요.');
+    else {                                                           // 서버 등록이 안 됨 → 표시하고 다시 시도
+      serverOk = false;
+      retryLater();
+      if (mode === 'save') { say('바꾼 내용을 저장하지 못했어요. 연결되면 다시 보낼게요.'); if (view.tab !== 'alerts') toast('바꾼 알림 설정을 저장하지 못했어요. 연결되면 다시 보낼게요.'); }
+    }
+  } finally {
+    pushBusy = false;
+    booting = false;
+    paintPush();
+    resave();
+  }
+}
+function resave() {
+  if (!pushAgain) return;
+  pushAgain = false;
+  if (pushOn()) syncPush('save');
+}
+function retryLater() {                               // 30초 뒤, 2분 뒤에 한 번씩 더
+  clearTimeout(retryTimer);
+  if (retryStep >= 2) return;
+  retryTimer = setTimeout(() => syncPush('auto'), [30000, 120000][retryStep++]);
+}
+const wantsPush = () => !blocked && !MOCK && (settings.enabled || Boolean(sub)) && !settings.off;
+function reconnectPush() {                            // 화면으로 돌아오거나 인터넷이 다시 연결됐을 때
+  if (!wantsPush() || serverOk || pushBusy) return;
+  retryStep = 0;
+  syncPush('auto');
+}
+/* 화면을 열어 둔 사이 권한이 바뀌었거나 구독이 사라졌는지 다시 확인한다. */
+async function checkPush() {
+  if (MOCK || blocked || pushBusy) return;
+  try {
+    let cur = null;
+    if (Notification.permission === 'granted') cur = await (await worker()).pushManager.getSubscription();
+    if (pushBusy) return;
+    if ((cur && cur.endpoint) !== (sub && sub.endpoint)) {
+      sub = cur;
+      serverOk = false;
+      paintPush();
+      sheetNote();
+      reconnectPush();
+    }
+  } catch {}
+}
+async function turnOff() {
+  if (pushBusy) return;
+  pushBusy = true;
+  clearTimeout(saveTimer);
+  clearTimeout(retryTimer);
+  pushAgain = false;
+  $('master').disabled = true;
+  try {
+    if (sub && !MOCK) {
+      await api('/push/unsubscribe', {endpoint: sub.endpoint});
+      try { await sub.unsubscribe(); } catch {}      // 서버에서는 이미 지워졌으므로 화면은 꺼짐으로 맞춘다
+    }
+    sub = null; serverOk = false; settings.enabled = false; settings.off = true;
+    saveSettings();
+    say('알림을 껐어요. 언제든 다시 켤 수 있어요.');
+  } catch { say('알림을 끄지 못했어요. 다시 시도해 주세요.'); }
+  finally { pushBusy = false; paintPush(); }
+}
+function settingsChanged() {
+  saveSettings();
+  paintPush();
+  if (!pushOn()) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => syncPush('save'), 500);
+}
+function paintAlarms() {                              // 화면에 있는 모든 종을 지금 설정에 맞춘다
+  document.querySelectorAll('[data-alarm]').forEach((el) => {
+    const area = el.dataset.alarm, kind = el.dataset.kind || 'icon', on = subscribedTo(area);
+    el.classList.toggle('on', on);
+    if (kind === 'btn') { el.classList.toggle('primary', !on); el.classList.toggle('soft', on); }
+    el.setAttribute('aria-pressed', String(on));
+    el.setAttribute('aria-label', alarmLabel(area, on));
+    el.innerHTML = alarmInner(kind, on);
+  });
+}
+function sumText() {
+  const picked = pickedAreas();
+  if (!picked.length) return settings.free ? '반포 빈 시간 알림을 받고 있어요' : '켜져 있어요';
+  const tail = settings.free && playAlerts().free ? ' · 반포 빈 시간' : '';
+  return (picked.length === 1 ? `${NAMES[picked[0]] || picked[0]} 알림을 받고 있어요` : `${picked[0]} 외 ${picked.length - 1}곳 알림을 받고 있어요`) + tail;
+}
+function paintPush() {
+  const on = pushOn();
+  paintAlarms();
+  $('push-sum').textContent = on ? (serverOk || MOCK ? sumText() : '서버 연결을 확인하고 있어요')
+    : booting ? '확인하고 있어요' : blocked ? '이 화면에서는 켤 수 없어요' : '꺼져 있어요. 켜면 예약이 열리기 전에 알려 드려요.';
+  const m = $('master');
+  m.checked = on;
+  m.disabled = pushBusy || blocked;
+  $('install').hidden = !blocked;
+  $('prefs').hidden = blocked;                        // 여기서 고른 설정은 홈 화면 앱·다른 브라우저로 이어지지 않는다
+  $('test').hidden = !on;
+  // 알림 탭의 테니스장 줄 = 카드의 종과 같은 것(지금 실제로 받는 곳만 켜짐으로 보인다)
+  $('areas').querySelectorAll('input').forEach((i) => { i.checked = subscribedTo(i.value); i.disabled = pushBusy; });
+  $('free').checked = freeOn();
+  document.querySelectorAll('[data-free]').forEach((i) => { i.checked = freeOn(); i.disabled = pushBusy; });
+}
+function sheetNote() {                                // 알림 탭의 상태 한 줄
+  const el = $('push-status');
+  if (blocked) el.textContent = '';
+  else if (pushOn()) el.textContent = serverOk || MOCK ? '알림이 켜져 있어요. 바꾼 내용은 바로 저장돼요.' : '서버 연결을 확인하고 있어요. 잠시 뒤 자동으로 다시 등록돼요.';
+  else if (!MOCK && Notification.permission === 'denied') el.textContent = deniedText();
+  else el.textContent = '';
+}
+// 반포 알림은 그 서버가 반포를 읽고 있을 때만 고를 수 있다.
+const playAlerts = () => (board && board.play && typeof board.play.alerts === 'object' && board.play.alerts) || {};
+const areaList = () => [...AREAS, ...(playAlerts().open ? [PLAY_AREA] : [])];
+const pickedAreas = () => settings.areas.filter((a) => areaList().includes(a));
+let playPrefsOn = null;
+function syncPlayPrefs() {                            // 화면 자료를 받을 때마다: 반포 고르기·스위치를 보이거나 숨긴다
+  const a = playAlerts(), on = Boolean(a.open);
+  if (on !== playPrefsOn) { playPrefsOn = on; renderAreas(); }
+  $('play-hint').hidden = !on;
+  $('free-row').hidden = !a.free;
+  $('free').checked = Boolean(settings.free);
+}
+function renderAreas() {
+  $('areas').innerHTML = areaList().map((a) => `<label class="switch"><span>${esc(NAMES[a] || a)}</span><input type="checkbox" role="switch" value="${esc(a)}"${subscribedTo(a) ? ' checked' : ''}></label>`).join('');
+}
+function renderInstall() {                            // 이 화면에서 알림을 켤 수 없을 때의 안내
+  if (!blocked) return;
+  const copy = '<p><button class="text-btn" data-act="copy">이 주소 복사하기</button></p>';
+  $('install').innerHTML = needInstall && !inApp
+    ? `<strong>아이폰은 홈 화면에 추가한 뒤에 켤 수 있어요</strong>
+       <ol><li>Safari 아래쪽 공유 버튼 누르기</li><li>‘홈 화면에 추가’ 선택</li><li>홈 화면에서 코트 오픈을 열고 알림 켜기</li></ol>`
+    : needInstall
+      ? `<strong>이 화면에서는 알림을 켤 수 없어요</strong><p>Safari에서 이 주소를 연 다음, 공유 버튼에서 ‘홈 화면에 추가’를 선택해 주세요.</p>${copy}`
+      : `<strong>이 브라우저에서는 알림을 켤 수 없어요</strong><p>Chrome이나 Safari에서 이 주소를 열어 주세요.</p>${copy}`;
+}
+const ORDER = [...AREAS, PLAY_AREA];
+// 알림 탭의 테니스장 줄은 카드의 종과 똑같이 움직인다
+$('areas').addEventListener('change', (e) => {
+  const box = e.target;
+  if (!areaList().includes(box.value) || box.checked === subscribedTo(box.value)) { paintPush(); return; }
+  toggleAlarm(box.value).finally(paintPush);
+});
+$('free').addEventListener('change', () => toggleFree($('free').checked));
+['d1', 'h1'].forEach((id) => {
+  $(id).checked = settings[id];
+  $(id).addEventListener('change', () => {
+    if (!$('d1').checked && !$('h1').checked) { $(id).checked = true; toast('알림 시간을 하나 이상 켜 주세요.'); return; }
+    settings[id] = $(id).checked;
+    settingsChanged();
+  });
+});
+$('master').addEventListener('change', () => ($('master').checked ? syncPush('user') : turnOff()));
+$('test').onclick = async () => {
+  if (MOCK) { say('미리보기에서는 알림을 보내지 않아요.'); return; }
+  if (!sub || pushBusy) return;
+  $('test').disabled = true;
+  try {
+    try { await api('/push/test', {endpoint: sub.endpoint}); }
+    catch (e) {
+      if (e.status !== 400 || !/찾지 못했/.test(e.message)) throw e;
+      await syncPush('auto');                         // 서버에 이 기기 등록이 없으면 다시 등록하고 한 번 더 보낸다
+      if (!serverOk || !sub) throw e;
+      await api('/push/test', {endpoint: sub.endpoint});
+    }
+    say('테스트 알림을 보냈어요. 기기 알림을 확인해 주세요.');
+  } catch (e) { say(e instanceof UserError ? e.message : '테스트 알림을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.'); }
+  finally { $('test').disabled = false; }
+};
+
+/* ── 종: 그 테니스장의 예약 오픈 알림 켜고 끄기 ───────────
+   꺼진 기기에서 누르면 알림을 켠다(처음이면 그 곳만, 전에 쓰던 기기면 전에 고른 곳 + 그 곳).
+   켜진 기기에서는 그 곳을 더하거나 뺀다. 받을 것이 하나도 안 남으면 알림 전체를 끈다. */
+function onText(area, wide) {
+  const name = NAMES[area] || area, n = pickedAreas().length;
+  const v = model && model.list.find((x) => x.area === area);
+  const ms = v && v.next.state === 'date' ? kstMs(v.next.at) - nowMs() : NaN;
+  const head = wide && n > 1 ? `${name} 포함 ${n}곳 알림을 켰어요.` : `${name} 알림을 켰어요.`;
+  if (ms < 36e5) return `${head} 이번 오픈은 알림 시간이 지나서 다음 오픈부터 알려 드려요.`;
+  if (v && v.next.state === 'always') return `${head} 늘 예약 받는 곳이라 알림이 드물어요.`;
+  return `${head} ${whenText(area)}에 알려 드려요.`;
+}
+function blockedNote() {
+  go({tab: 'alerts', area: ''});
+  toast(needInstall ? '아이폰은 홈 화면에 추가한 뒤에 알림을 켤 수 있어요.' : '이 브라우저에서는 알림을 켤 수 없어요.');
+}
+async function turnOnLoud() {                         // 사용자가 직접 켬 — 결과를 토스트로도 알려 준다
+  sayLoud = true;
+  serverOk = false;                                   // 서버 등록까지 끝나야 켜진 것으로 본다
+  try { await syncPush('user'); } finally { sayLoud = false; }
+  if (pushOn() && !serverOk) { retryStep = 0; retryLater(); }           // 구독은 있는데 서버 등록에 실패 → 뒤에서 다시 등록
+  return pushOn() && serverOk;
+}
+async function turnOffLoud() {                        // 끄지 못했으면 그 사실도 토스트로 알려 준다. 꺼졌으면 true
+  sayLoud = true;
+  try { await turnOff(); } finally { sayLoud = false; }
+  return !pushOn();
+}
+async function toggleAlarm(area, el) {
+  if (!area || pushBusy || !ORDER.includes(area)) return;
+  if (blocked) { blockedNote(); return; }
+  if (el) el.classList.add('busy');
+  try {
+    if (!pushOn()) {
+      const first = !settings.enabled && !settings.off;                 // 알림을 한 번도 켠 적 없는 기기
+      settings.areas = first ? [area] : ORDER.filter((a) => a === area || settings.areas.includes(a));
+      if (first) settings.free = false;
+      renderAreas();
+      if (await turnOnLoud()) toast(onText(area, true));
+      return;
+    }
+    if (subscribedTo(area)) {
+      const rest = settings.areas.filter((a) => a !== area);
+      if (!rest.length && !settings.free) {                             // 마지막 한 곳 → 받을 알림이 없으니 전체를 끈다
+        if (await turnOffLoud()) toast('받을 곳이 없어 알림을 모두 껐어요. 종을 누르면 다시 켜져요.');
+        return;
+      }
+      settings.areas = rest;
+      settingsChanged();
+      toast(`${NAMES[area] || area} 알림을 껐어요.`);
+    } else {
+      settings.areas = ORDER.filter((a) => a === area || settings.areas.includes(a));
+      settingsChanged();
+      toast(onText(area, false));
+    }
+  } finally {
+    document.querySelectorAll('.busy').forEach((b) => b.classList.remove('busy'));
+    paintPush();
+  }
+}
+/* 반포 빈 시간 알림(누가 취소해서 자리가 나면) — 예약 오픈 알림과 따로 켜고 끈다 */
+async function toggleFree(want) {
+  if (pushBusy) { paintPush(); return; }
+  if (blocked) { paintPush(); blockedNote(); return; }
+  try {
+    if (!pushOn()) {
+      if (!want) return;
+      if (!settings.enabled && !settings.off) settings.areas = [];      // 처음 켜는 기기: 빈 시간 알림만
+      settings.free = true;
+      renderAreas();
+      if (await turnOnLoud()) toast('반포 빈 시간 알림을 켰어요. 자리가 나면 알려 드려요.');
+      else if (!pushOn()) settings.free = false;                        // 켜지 못했으면 고른 것도 되돌린다
+      return;
+    }
+    if (!want && !settings.areas.length) {                              // 받을 알림이 하나도 안 남음 → 알림 전체를 끈다(꺼진 뒤에만 설정을 바꾼다)
+      if (await turnOffLoud()) { settings.free = false; saveSettings(); toast('받을 알림이 없어 알림을 모두 껐어요.'); }
+      return;
+    }
+    settings.free = want;
+    settingsChanged();
+    toast(want ? '반포 빈 시간 알림을 켰어요. 자리가 나면 알려 드려요.' : '반포 빈 시간 알림을 껐어요.');
+  } finally { paintPush(); }
+}
+
+/* ── 화면 이동 ────────────────────────────────────────────
+   주소: #hannam #jangchung #maru #sunwoo #forest #play(반포) #alerts #more. 뒤로 가기는 실제로 지나온 화면을 따른다.
+   한 곳에서 다른 곳으로 바꿀 때는 이력을 쌓지 않아, 뒤로 한 번이면 전체로 돌아온다. */
+const SLUG_AREA = Object.fromEntries(Object.entries(SLUG).map(([a, s]) => [s, a]));
+const sameView = (a, b) => Boolean(a && b && a.tab === b.tab && a.area === b.area);
+const hashOf = (v) => (v.tab !== 'home' ? `#${v.tab}` : v.area ? `#${SLUG[v.area] || ''}` : '');
+const urlOf = (v) => location.pathname + location.search + hashOf(v);
+const viewKey = (v) => `${v.tab}|${v.area}`;
+let trail = [], idx = 0, homeArea = '', backing = 0;
+const scrolls = new Map();
+function parseHash() {
+  let h = '';
+  try { h = decodeURIComponent(String(location.hash || '').replace(/^#/, '')); } catch {}
+  if (h === 'alerts' || h === 'more') return {tab: h, area: ''};
+  return {tab: 'home', area: SLUG_AREA[h] || ''};
+}
+function focusTitle() {
+  const el = view.tab === 'alerts' ? $('alerts-title') : view.tab === 'more' ? $('more-title') : view.area ? $('one-title') : null;
+  if (el) { try { el.focus({preventScroll: true}); } catch {} }
+}
+function show(v, restore) {
+  view = v;
+  if (v.tab === 'home') homeArea = v.area;
+  paintView();
+  window.scrollTo(0, restore ? scrolls.get(viewKey(v)) || 0 : 0);
+  onScroll();
+  if (!restore) focusTitle();
+}
+function go(next) {
+  if (next.tab !== 'home') next = {tab: next.tab, area: ''};
+  else if (next.area && model && !model.list.some((v) => v.area === next.area)) next = {tab: 'home', area: ''};
+  if (sameView(view, next)) {
+    try { window.scrollTo({top: 0, behavior: calm() ? 'auto' : 'smooth'}); } catch { window.scrollTo(0, 0); }
+    return;
+  }
+  scrolls.set(viewKey(view), window.scrollY);
+  if (Date.now() - backing < 700) return;                                             // 뒤로 가는 중 — 두 번 눌려 앱 밖으로 나가지 않게
+  if (idx > 0 && sameView(trail[idx - 1], next)) { backing = Date.now(); history.back(); return; }   // 바로 앞 화면이면 뒤로 가기와 같게
+  const swap = view.tab === 'home' && next.tab === 'home' && view.area && next.area;   // 한 곳 → 다른 곳
+  try {
+    if (swap) { trail[idx] = next; history.replaceState({i: idx, v: next}, '', urlOf(next)); }
+    else { idx += 1; trail.length = idx; trail[idx] = next; history.pushState({i: idx, v: next}, '', urlOf(next)); }
+  } catch {}
+  show(next, false);
+}
+function leaveMissing() {                             // 주소로 들어온 테니스장이 이 서버에 없음 → 전체로
+  view = {tab: 'home', area: ''};
+  homeArea = '';
+  trail[idx] = view;
+  try { history.replaceState({i: idx, v: view}, '', urlOf(view)); } catch {}
+}
+window.addEventListener('popstate', (e) => {
+  const st = e.state;
+  backing = 0;
+  scrolls.set(viewKey(view), window.scrollY);
+  if (st && Number.isInteger(st.i) && st.i >= 0) {
+    idx = st.i;
+    const v = trail[idx] || (st.v && typeof st.v === 'object' ? {tab: String(st.v.tab || 'home'), area: String(st.v.area || '')} : parseHash());
+    trail[idx] = v;
+    show(v, true);
+  } else {
+    const v = parseHash();
+    idx = 0;
+    trail = [v];
+    show(v, true);
+  }
+});
+function initNav() {
+  const v = parseHash(), root = {tab: 'home', area: ''};
+  const st = history.state;
+  try {
+    if (sameView(v, root)) { trail = [root]; idx = 0; history.replaceState({i: 0, v: root}, '', urlOf(root)); }
+    else if (st && Number.isInteger(st.i) && st.i > 0) {   // 한 곳 화면에서 새로 고침 — 이력은 그대로 둔다
+      idx = st.i;
+      trail = [root];
+      trail[idx] = v;
+    } else {                                          // 알림을 눌러 한 곳으로 바로 들어옴 → 뒤로 가면 전체
+      trail = [root, v];
+      idx = 1;
+      history.replaceState({i: 0, v: root}, '', urlOf(root));
+      history.pushState({i: 1, v}, '', urlOf(v));
+    }
+  } catch { trail = [v]; idx = 0; }
+  view = v;
+  if (v.tab === 'home') homeArea = v.area;
+  paintView();
+}
+function goFresh(area) {                              // 새 알림 줄을 누르면 그 테니스장 화면으로
+  go({tab: 'home', area: ORDER.includes(area) ? area : ''});
+}
+
+/* ── 공유 · 공통 동작 ─────────────────────────────────── */
+const appURL = () => { const u = new URL(location.href); u.search = ''; u.hash = ''; return u.href; };
+async function share() {
+  try {
+    if (navigator.share) await navigator.share({title: '코트 오픈', text: '한남·장충·마루공원·선우공원·서울숲·반포 테니스장 예약이 언제 열리는지 알려 주는 앱이에요.', url: appURL()});
+    else { await navigator.clipboard.writeText(appURL()); toast('주소를 복사했어요.'); }
+  } catch (e) { if (e.name !== 'AbortError') toast('공유하지 못했어요. 주소창의 주소를 복사해 주세요.'); }
+}
+document.addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  if (act === 'home') { e.preventDefault(); go({tab: 'home', area: ''}); }
+  else if (act === 'venue') go({tab: 'home', area: el.dataset.area || ''});
+  else if (act === 'tab') go(el.dataset.tab === 'home' ? {tab: 'home', area: view.tab === 'home' ? '' : homeArea} : {tab: el.dataset.tab, area: ''});
+  else if (act === 'alarm') toggleAlarm(el.dataset.alarm, el);
+  else if (act === 'fresh-x') { fresh = []; saveFresh(); paintFresh(); }
+  else if (act === 'fresh-go') goFresh(el.dataset.area);
+  else if (act === 'refresh') refreshData(true);
+  else if (act === 'share') share();
+  else if (act === 'play-part') {
+    playPart = el.dataset.part;
+    try { localStorage.setItem('tn_play_part', playPart); } catch {}
+    paintHome();
+    paintPush();
+    const again = document.querySelector(`#home-one [data-part="${playPart}"]`);
+    if (again) { try { again.focus({preventScroll: true}); } catch {} }
+  } else if (act === 'tip-x') {
+    tipDone = true;
+    if (!MOCK) { try { localStorage.setItem('tn_tip', '1'); } catch {} }
+    $('tip').hidden = true;
+  } else if (act === 'retry') {
+    $('hero').innerHTML = '<div class="sk" style="width:96px;height:16px"></div><div class="sk" style="width:180px;height:48px;margin-top:16px"></div>';
+    loadBoard();
+  } else if (act === 'copy') {
+    try { await navigator.clipboard.writeText(appURL()); toast('주소를 복사했어요.'); }
+    catch { toast('복사하지 못했어요. 주소창의 주소를 길게 눌러 복사해 주세요.'); }
+  }
+});
+$('refresh').onclick = () => refreshData(true);
+$('sort').addEventListener('change', () => {
+  sortKey = ['base', 'now', 'soon'].includes($('sort').value) ? $('sort').value : 'base';
+  if (!MOCK) { try { localStorage.setItem('tn_sort', sortKey); } catch {} }
+  paintHome();
+  paintPush();
+});
+$('home-one').addEventListener('change', (e) => { if (e.target.matches('[data-free]')) toggleFree(e.target.checked); });
+const onScroll = () => $('app').classList.toggle('scrolled', window.scrollY > 4);
+window.addEventListener('scroll', onScroll, {passive: true});
+window.addEventListener('online', reconnectPush);
+window.addEventListener('focus', () => checkInbox(true));
+window.addEventListener('pageshow', (e) => { if (e.persisted) checkInbox(true); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  checkInbox(true);                                  // 새 알림 보여 주기 + 아이콘 숫자 지우기
+  if (board && takeFeed(board.feed)) paintFresh();   // 화면을 안 보는 사이 받아 둔 보낸 알림 기록
+  tick();
+  checkPush();
+  reconnectPush();
+  if (!MOCK && isStale()) refreshData();
+});
+
+/* ── 시작 ─────────────────────────────────────────────── */
 if (!MOCK && 'serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (e) => {
-    if (e.data && typeof e.data.target === 'string' && /#play$/.test(e.data.target)) { refreshData(); goPlay(); }
+    // '반포 빈 시간' 알림을 눌러 들어온 경우 반포 화면으로
+    if (e.data && typeof e.data.target === 'string' && /#play$/.test(e.data.target)) { refreshData(); go({tab: 'home', area: PLAY_AREA}); }
     if (e.data && e.data.type === 'inbox' && document.visibilityState === 'visible') checkInbox(false);
   });
 }
 async function init() {
+  $('sort').value = sortKey;
   renderAreas();
   renderInstall();
+  initNav();
   paintPush();
   paintFresh();
   checkInbox(true);                                  // 받은 알림을 읽어 보여 주고 아이콘 숫자를 지운다
@@ -1630,7 +2214,6 @@ async function init() {
   if (!MOCK) { worker().catch(() => {}); syncPush('auto'); }
   const ok = await loadBoard();
   clearTimeout(slow);
-  if (location.hash === '#play') goPlay();
   if (!MOCK && ok === true && isStale()) refreshData();
 }
 setInterval(() => { if (!MOCK && document.visibilityState === 'visible') refreshData(); }, 180000);

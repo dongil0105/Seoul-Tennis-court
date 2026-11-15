@@ -73,13 +73,13 @@ def manifest() -> JSONResponse:
     return JSONResponse({
         "name": "코트 오픈 — 서울 테니스장 예약 알림",
         "short_name": "코트 오픈",
-        "description": "한남·장충·마루공원·선우공원·서울숲 테니스장 예약 오픈 알림과 지금 예약 가능한 코트",
+        "description": "한남·장충·마루공원·선우공원·서울숲·반포 테니스장 예약이 언제 열리는지, 지금 예약을 받는지 알려 주는 앱",
         "lang": "ko",
         "start_url": "/?source=pwa",
         "scope": "/",
         "display": "standalone",
-        "background_color": "#FFFFFF",
-        "theme_color": "#FFFFFF",
+        "background_color": "#F2F4F6",
+        "theme_color": "#F2F4F6",
         "icons": [
             {"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png"},
             {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png"},
