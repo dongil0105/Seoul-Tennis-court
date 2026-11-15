@@ -192,7 +192,7 @@ def test_page_structure():
 def test_court_surface_of_each_venue(out):
     """코트 그림의 바닥 종류 — 공개된 시설 안내에서 확인한 것만 적는다(모르는 곳은 빈 값 = 회색 그림)."""
     assert out["surface"] == {"한남": "인조잔디", "장충": "하드 코트", "마루공원": "인조잔디", "선우공원": "인조잔디",
-                              "서울숲": "인조잔디", "잠원": "클레이", "대치유수지": "하드 코트", "반포": "인조잔디 · 클레이",
+                              "서울숲": "인조잔디", "잠원": "클레이", "대치유수지": "하드 코트", "반포": "인조잔디",
                               "없는곳": ""}
     page = PAGE.read_text(encoding="utf-8")
     assert "function courtArt(" in page and 'class="court-art"' in page
