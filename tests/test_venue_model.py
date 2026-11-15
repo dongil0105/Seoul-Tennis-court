@@ -169,7 +169,26 @@ def test_page_structure():
     # 예약 링크는 서울시 · 테니스플레이일 때만
     assert "seoul\\.go\\.kr$" in page and "www.thetennisplay.com" in page
     # 서버 글자를 그대로 화면에 넣는 곳이 없다(esc 를 거친다) — 대표적인 자리 확인
-    assert "${esc(v.name)}" in page and "${esc(x.text)}" in page and "${esc(placeOf(" in page
+    assert "${esc(v.name)}" in page and "${esc(x.text)}" in page and "${esc(sub)}" in page
+
+
+def test_court_surface_of_each_venue(out):
+    """코트 그림의 바닥 종류 — 공개된 시설 안내에서 확인한 것만 적는다(모르는 곳은 빈 값 = 회색 그림)."""
+    assert out["surface"] == {"한남": "인조잔디", "장충": "하드 코트", "마루공원": "인조잔디", "선우공원": "인조잔디",
+                              "서울숲": "인조잔디", "반포": "인조잔디 · 클레이", "없는곳": ""}
+    page = PAGE.read_text(encoding="utf-8")
+    assert "function courtArt(" in page and 'class="court-art"' in page
+
+
+def test_guidance_lives_on_the_venue_card_and_same_button_closes():
+    """사용자 의견(2026-11-15): 맨 위 큰 카드 대신 테니스장 카드 안에서 안내, [코트 예약 보기]를 다시 누르면 닫힘, 뒤로 버튼은 그대로."""
+    page = PAGE.read_text(encoding="utf-8")
+    for gone in ("heroHTML", "hero-ball", "hero-bell", "hero-item", "다음 예약 오픈</p>"):
+        assert gone not in page, gone
+    assert "function noteHTML(" in page and "에 예약이 열렸어요. 빈자리는 예약 화면에서 확인해요." in page
+    assert "'코트 예약 닫기' : '코트 예약 보기'" in page and 'aria-expanded="${on}"' in page
+    assert "view.tab === 'home' && view.area === a ? '' : a" in page          # 열려 있는 곳을 다시 누르면 전체로
+    assert '<button class="back" data-act="venue" data-area="">' in page       # 뒤로 버튼
 
 
 def test_page_has_no_leftovers_from_v5():

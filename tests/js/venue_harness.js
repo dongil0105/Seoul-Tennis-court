@@ -44,6 +44,7 @@ out.liveDetail = Object.fromEntries(lm.list.map((v) => [v.area, {
   hot: v.hot.length, cold: v.cold.length, upcoming: v.upcoming.length,
   avail: v.avail.reduce((n, g) => n + g.courts.length, 0), shut: v.shut.reduce((n, g) => n + g.courts.length, 0),
   past: v.past.length, rule: v.rule, region: v.region, kind: v.kind}]));
+out.surface = Object.fromEntries([...lm.list.map((v) => v.area), '없는곳'].map((a) => { p.run(`globalThis.__a = ${JSON.stringify(a)}`); return [a, p.run('surfaceText(__a)')]; }));
 out.liveSort = {base: p.sort(live, 'base'), now: p.sort(live, 'now'), soon: p.sort(live, 'soon')};
 // 같은 응답을 3시간 뒤에 보면: 오늘 열린 예약은 '오늘 열림'이 아니게 되고(2시간 지남) 09:03 예약도 열려 있다
 p = boot(live.now_ms + 3 * 36e5);
