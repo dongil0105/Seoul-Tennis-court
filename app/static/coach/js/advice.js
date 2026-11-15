@@ -204,6 +204,7 @@ export function advise(m, ctxIn = {}) {
   // 잰 것이 거의 없거나 임팩트 자세를 못 읽었으면 점수를 내지 않는다(못 잰 것을 '좋다'고 하지 않는다)
   let unratedWhy = null;
   if (!m.phases || !m.phases.contact) unratedWhy = '임팩트 순간의 자세를 읽지 못했습니다.';
+  else if (m.sub) unratedWhy = `${m.sub === 'smash' ? '스매시' : '발리'}는 아직 기준 자세를 만드는 중이라 점수를 내지 않습니다. 종류가 다르게 잡혔으면 아래 '종류'에서 바로잡아 주세요.`;
   else if (m.suspect) unratedWhy = '공을 치는 스윙이 아니라 준비 동작(테이크백)만 잡힌 것 같습니다. 끝까지 휘두르는 장면이 담긴 영상으로 해 보세요.';
   else if (m.vis < 0.6) unratedWhy = '팔다리가 화면에서 또렷하게 보이지 않았습니다. 몸 전체가 크게, 밝게 나오도록(화질을 높여) 다시 찍어 보세요.';
   else if (evaluated < 4) unratedWhy = '잴 수 있는 항목이 너무 적었습니다. 옆에서, 몸 전체가 나오게 찍으면 좋아요.';
@@ -225,6 +226,7 @@ export function advise(m, ctxIn = {}) {
     if (hit && table[`${ctx.result}Default`]) resultNote += ' ' + table[`${ctx.result}Default`];
   }
   if (items.some((it) => /cm/.test(it.title))) notes.push('cm 값은 손목 기준 예측입니다. 영상 간격에서 오는 오차 말고도 자세 인식 오차가 몇 cm 더 있습니다.');
+  if (m.sub) return { score: null, grade: '평가 불가', unratedWhy, items: [], good: [], resultNote: null, notes: [] };   // 포핸드·백핸드·서브의 조언은 발리·스매시에 맞지 않는다
   return { score, grade, unratedWhy, items, good, resultNote, notes };
 }
 

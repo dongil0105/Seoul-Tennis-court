@@ -8,12 +8,20 @@
     (# 뒤는 서버로 오지 않는다. 잠금 화면의 작은 스크립트가 읽어서 POST 로 보낸다 → 열쇠가 서버 접근 기록에 남지 않는다.)
   · 열쇠가 없는 기기: /coach 는 '준비 중' 화면, /static/coach 의 파일은 404, 코트 오픈 화면의 스윙 코치 탭은 보이지 않는다.
   · 열쇠 자체는 저장소에 없다(SHA-256 만 설정에 있다).
+
+화면 보고 학습(/coach/watch): 컴퓨터 브라우저에서 다른 탭(유튜브 등)을 화면 공유로 보며 관절 좌표만 뽑는다.
+  · 영상은 저장하지도 보내지도 않는다. 관절 좌표 묶음만 /coach/learn 으로 온다(열쇠가 있는 기기만).
+  · 서버는 그 묶음을 잠깐 맡아 두는 중계함일 뿐이다(무료 서버의 디스크는 다시 켜지면 비워진다 — 학습하는 쪽이 곧 가져간다).
 """
 from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import os
+import re
+import secrets
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qs
 
@@ -148,6 +156,136 @@ def coach(request: Request) -> Response:
         res.headers["X-Robots-Tag"] = "noindex, nofollow"
         _remember(res, request, request.cookies.get(COOKIE))   # 열 때마다 기억하는 기간을 다시 늘린다
     return res
+
+
+@router.get("/coach/watch", response_class=HTMLResponse)
+def coach_watch(request: Request) -> Response:
+    """화면 보고 학습 — 컴퓨터 브라우저에서 다른 탭의 영상을 보며 관절 좌표만 뽑는 화면."""
+    if settings.coach_private and not allowed(request):
+        return _lock_page()
+    try:
+        html = (_DIR / "watch.html").read_text(encoding="utf-8")
+    except OSError:
+        return HTMLResponse("<!doctype html><meta charset='utf-8'><p>화면 파일(app/static/coach/watch.html)이 없습니다.</p>", status_code=503)
+    res = HTMLResponse(html, headers={"Cache-Control": "private, no-cache", "Content-Security-Policy": CSP,
+                                      "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff",
+                                      "X-Robots-Tag": "noindex, nofollow"})
+    if settings.coach_private:
+        _remember(res, request, request.cookies.get(COOKIE))
+    return res
+
+
+# ── 화면 보고 학습: 중계함 ──────────────────────────────────────
+# 브라우저가 뽑은 관절 좌표 묶음(gzip 한 JSON)을 잠깐 맡아 둔다. 영상은 오지 않는다. 열쇠가 있는 기기만 넣고 꺼낼 수 있다
+# (스윙 코치를 모두에게 열어 둔 때에도 이 중계함은 열쇠가 있어야 한다 — 아무나 디스크를 채우거나 남의 자료를 읽지 못하게).
+LEARN_DIR = Path(os.environ.get("COACH_LEARN_DIR", "./data/coach_learn"))
+LEARN_MAX_ONE = 6 * 1024 * 1024          # 묶음 하나(약 3분 분량)의 크기 제한
+LEARN_MAX_ALL = 300 * 1024 * 1024        # 모두 합친 크기 — 넘으면 오래된 것부터 지운다
+LEARN_MAX_FILES = 400
+_LEARN_ID = re.compile(r"^[0-9]{20}-[0-9a-f]{8}$")          # 받은 때(마이크로초까지) + 무작위 — 번호 순서가 곧 받은 순서
+_NO_STORE = {"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"}
+
+
+def _has_key(request: Request) -> bool:
+    return key_ok(request.cookies.get(COOKIE))
+
+
+def _learn_items() -> list[dict]:
+    out = []
+    if not LEARN_DIR.is_dir():
+        return out
+    for f in LEARN_DIR.glob("*.meta.json"):
+        try:
+            m = json.loads(f.read_text(encoding="utf-8"))
+            if _LEARN_ID.match(str(m.get("id", ""))) and (LEARN_DIR / f"{m['id']}.bin").is_file():
+                out.append(m)
+        except (OSError, ValueError):
+            continue
+    return sorted(out, key=lambda m: m["id"])
+
+
+def _learn_acks() -> list[str]:
+    """학습하는 쪽이 가져간 묶음의 번호들(보낸 브라우저가 보고 자기 보관분을 비운다)."""
+    try:
+        got = json.loads((LEARN_DIR / "acks.json").read_text(encoding="utf-8"))
+        return [x for x in got if isinstance(x, str) and _LEARN_ID.match(x)][-5000:]
+    except (OSError, ValueError):
+        return []
+
+
+def _learn_drop(item_id: str) -> None:
+    for name in (f"{item_id}.bin", f"{item_id}.meta.json"):
+        try:
+            (LEARN_DIR / name).unlink()
+        except OSError:
+            pass
+
+
+@router.post("/coach/learn", include_in_schema=False)
+async def coach_learn_put(request: Request) -> Response:
+    """관절 좌표 묶음 하나를 맡긴다. 본문 = gzip 한 JSON(또는 JSON), 머리말 X-Coach-Meta = 짧은 설명(JSON, 600자 안쪽)."""
+    if not _has_key(request):
+        return JSONResponse({"error": "locked"}, status_code=403, headers=_NO_STORE)
+    body = b""
+    async for chunk in request.stream():
+        body += chunk
+        if len(body) > LEARN_MAX_ONE:
+            return JSONResponse({"error": "too large"}, status_code=413, headers={**_NO_STORE, "Connection": "close"})
+    gz = body[:2] == b"\x1f\x8b"
+    if len(body) < 20 or not (gz or body[:1] == b"{"):
+        return JSONResponse({"error": "bad body"}, status_code=400, headers=_NO_STORE)
+    meta: dict = {}
+    raw = request.headers.get("x-coach-meta", "")
+    if raw and len(raw) <= 600:
+        try:
+            got = json.loads(raw)
+            if isinstance(got, dict):
+                meta = {str(k)[:24]: (v if isinstance(v, (int, float, bool)) or v is None else str(v)[:160]) for k, v in list(got.items())[:12]}
+        except ValueError:
+            meta = {}
+    item_id = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f") + "-" + secrets.token_hex(4)
+    LEARN_DIR.mkdir(parents=True, exist_ok=True)
+    (LEARN_DIR / f"{item_id}.bin").write_bytes(body)
+    info = {"id": item_id, "at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "bytes": len(body), "gzip": gz, "meta": meta}
+    (LEARN_DIR / f"{item_id}.meta.json").write_text(json.dumps(info, ensure_ascii=False), encoding="utf-8")
+    items = _learn_items()                                   # 넘치면 오래된 것부터 지운다
+    while items and (len(items) > LEARN_MAX_FILES or sum(m["bytes"] for m in items) > LEARN_MAX_ALL):
+        _learn_drop(items.pop(0)["id"])
+    return JSONResponse({"id": item_id, "kept": len(items)}, headers=_NO_STORE)
+
+
+@router.get("/coach/learn", include_in_schema=False)
+def coach_learn_list(request: Request) -> Response:
+    if not _has_key(request):
+        return JSONResponse({"error": "locked"}, status_code=403, headers=_NO_STORE)
+    return JSONResponse({"items": _learn_items(), "acked": _learn_acks()}, headers=_NO_STORE)
+
+
+@router.get("/coach/learn/{item_id}", include_in_schema=False)
+def coach_learn_get(item_id: str, request: Request) -> Response:
+    if not _has_key(request):
+        return JSONResponse({"error": "locked"}, status_code=403, headers=_NO_STORE)
+    if not _LEARN_ID.match(item_id) or not (LEARN_DIR / f"{item_id}.bin").is_file():
+        return JSONResponse({"error": "not found"}, status_code=404, headers=_NO_STORE)
+    return Response((LEARN_DIR / f"{item_id}.bin").read_bytes(), media_type="application/octet-stream", headers=_NO_STORE)
+
+
+@router.delete("/coach/learn/{item_id}", include_in_schema=False)
+def coach_learn_delete(item_id: str, request: Request) -> Response:
+    if not _has_key(request):
+        return JSONResponse({"error": "locked"}, status_code=403, headers=_NO_STORE)
+    if not _LEARN_ID.match(item_id):
+        return JSONResponse({"error": "not found"}, status_code=404, headers=_NO_STORE)
+    had = (LEARN_DIR / f"{item_id}.bin").is_file()
+    _learn_drop(item_id)
+    if had:                                                  # 가져갔다는 표시를 남긴다
+        acks = _learn_acks() + [item_id]
+        try:
+            LEARN_DIR.mkdir(parents=True, exist_ok=True)
+            (LEARN_DIR / "acks.json").write_text(json.dumps(acks[-5000:]), encoding="utf-8")
+        except OSError:
+            pass
+    return JSONResponse({"ok": True}, headers=_NO_STORE)
 
 
 _MAX_FORM = 2048

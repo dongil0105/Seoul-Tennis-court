@@ -1,0 +1,202 @@
+{
+ "note": "위키미디어 공용의 실제 공 시범 영상(Dardo, 'con pelota'). seq = commons_videos.py 가 받은 파일 이름. hits = [친 순간(초), 종류, 세부] — 프레임을 0.2초 간격으로 보고 표시(±0.2초).",
+ "clips": [
+  {
+   "seq": "aadbc1063dd4ca06",
+   "title": "Drive con pelota (포핸드, 정면)",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "정면",
+   "hits": [
+    [
+     1.1,
+     "forehand"
+    ],
+    [
+     5.0,
+     "forehand"
+    ],
+    [
+     8.8,
+     "forehand"
+    ],
+    [
+     12.6,
+     "forehand"
+    ],
+    [
+     16.6,
+     "forehand"
+    ]
+   ],
+   "file": "File:Drive con pelota.ogv"
+  },
+  {
+   "seq": "0b5b196f5475587a",
+   "title": "Reves dos manos con pelota (양손 백핸드, 멀리·비스듬한 정면)",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "정면(멀리)",
+   "hits": [
+    [
+     2.1,
+     "backhand"
+    ],
+    [
+     5.1,
+     "backhand"
+    ],
+    [
+     8.4,
+     "backhand"
+    ],
+    [
+     11.8,
+     "backhand"
+    ],
+    [
+     15.4,
+     "backhand"
+    ]
+   ],
+   "file": "File:Reves dos manos con pelota.ogv"
+  },
+  {
+   "seq": "4b9cacff4032f57d",
+   "title": "Reves una mano con pelota (한손 백핸드, 멀리·비스듬한 정면)",
+   "hand": "R",
+   "backhand": "1h",
+   "view": "정면(멀리)",
+   "hits": [
+    [
+     2.0,
+     "backhand"
+    ],
+    [
+     4.9,
+     "backhand"
+    ],
+    [
+     8.1,
+     "backhand"
+    ],
+    [
+     11.3,
+     "backhand"
+    ],
+    [
+     14.4,
+     "backhand"
+    ]
+   ],
+   "file": "File:Reves una mano con pelota.ogv"
+  },
+  {
+   "seq": "613c83eda86fa936",
+   "title": "Volea con pelota (발리, 정면·네트에 다리 가림)",
+   "hand": "R",
+   "backhand": "1h",
+   "view": "정면",
+   "hits": [
+    [
+     1.2,
+     "forehand",
+     "volley"
+    ],
+    [
+     2.7,
+     "backhand",
+     "volley"
+    ],
+    [
+     4.4,
+     "forehand",
+     "volley"
+    ],
+    [
+     6.3,
+     "backhand",
+     "volley"
+    ]
+   ],
+   "file": "File:Volea con pelota.ogv"
+  },
+  {
+   "seq": "feb8d279dfd3118c",
+   "title": "Saque con pelota (서브, 뒤·옆)",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "뒤",
+   "hits": [
+    [
+     2.0,
+     "serve"
+    ],
+    [
+     6.0,
+     "serve"
+    ],
+    [
+     10.7,
+     "serve"
+    ],
+    [
+     16.0,
+     "serve"
+    ]
+   ],
+   "file": "File:Saque con pelota.ogv"
+  },
+  {
+   "seq": "09f33a383c46a4c6",
+   "title": "Slice con pelota (백핸드 슬라이스, 멀리·그림자)",
+   "hand": "R",
+   "backhand": "1h",
+   "view": "정면(멀리)",
+   "hits": [
+    [
+     1.9,
+     "backhand"
+    ],
+    [
+     5.1,
+     "backhand"
+    ],
+    [
+     7.9,
+     "backhand"
+    ],
+    [
+     11.9,
+     "backhand"
+    ]
+   ],
+   "file": "File:Slice con pelota.ogv"
+  },
+  {
+   "seq": "2a0adc184605f486",
+   "title": "Smash con pelota (스매시, 정면·어두움)",
+   "hand": "R",
+   "backhand": "2h",
+   "view": "정면",
+   "hits": [
+    [
+     2.5,
+     "serve",
+     "smash"
+    ],
+    [
+     6.8,
+     "serve",
+     "smash"
+    ],
+    [
+     12.0,
+     "serve",
+     "smash"
+    ]
+   ],
+   "file": "File:Smash con pelota.ogv"
+  }
+ ]
+}

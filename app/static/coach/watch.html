@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0B1210">
+<title>스윙 코치 — 화면 보고 학습</title>
+<link rel="icon" href="/static/coach/icon-192.png">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0B1210;color:#F3F6F4;font:15px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 48px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:20px}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+h1{font-size:22px;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:15px;margin:18px 0 8px;color:#D7F24B}
+p{margin:0 0 8px;color:#B6C2BC}
+a{color:#D7F24B}
+.stage{position:relative;background:#000;border-radius:14px;overflow:hidden;aspect-ratio:16/9}
+.stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.stage canvas{cursor:crosshair}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 16px;cursor:pointer;background:#D7F24B;color:#0B1210}
+button.ghost{background:#1A2622;color:#F3F6F4;border:1px solid #2C3B35}
+button:disabled{opacity:.4;cursor:default}
+label{display:block;margin:10px 0 4px;color:#B6C2BC;font-size:13px}
+select,input[type=text]{width:100%;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid #2C3B35;background:#121C19;color:#F3F6F4}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.card{background:#121C19;border:1px solid #23302B;border-radius:14px;padding:14px 16px;margin-bottom:14px}
+#msg{color:#F3F6F4;min-height:1.6em}
+#err{color:#FF8A65;min-height:1.2em;font-size:13px}
+#stat,#box,#tally{color:#B6C2BC;font-size:13px}
+#tap{color:#D7F24B;font-weight:700;min-height:1.4em}
+ul{list-style:none;margin:6px 0 0;padding:0;font-size:13px}
+li{padding:3px 0;border-bottom:1px solid #1D2925}
+li span{color:#8FA39A}
+small{color:#8FA39A}
+.chk{display:flex;gap:8px;align-items:center;margin-top:10px;color:#B6C2BC;font-size:13px}
+ol{margin:0;padding-left:20px;color:#B6C2BC}
+</style>
+</head>
+<body>
+<main>
+  <section>
+    <h1>화면 보고 학습</h1>
+    <p>다른 탭에서 재생되는 테니스 영상을 보면서 <b>관절 움직임만</b> 뽑아 학습에 보냅니다. 영상·소리는 저장하지도 보내지도 않습니다.</p>
+    <div class="stage"><video id="view" muted playsinline></video><canvas id="overlay"></canvas></div>
+    <div class="row">
+      <button id="pick">① 볼 탭 고르기 (유튜브가 열린 탭)</button>
+      <button id="start" disabled>② 학습 시작</button>
+      <button id="stop" class="ghost" hidden>끝내고 보내기</button>
+    </div>
+    <div id="msg" role="status"></div>
+    <div id="err" role="alert"></div>
+    <div id="stat"></div>
+    <div id="tap"></div>
+    <div class="card">
+      <h2 style="margin-top:0">쓰는 법</h2>
+      <ol>
+        <li>다른 탭에서 유튜브 영상(재생목록·채널의 '모두 재생'도 됩니다)을 엽니다.</li>
+        <li>여기서 ①을 눌러 그 탭을 고르고, ②를 누릅니다.</li>
+        <li>유튜브 탭에서 <b>1배속</b>으로 재생합니다. 이 화면은 <b>보이는 채로</b> 둡니다(창을 따로 띄워 두면 편합니다).</li>
+        <li>몇 시간이고 틀어 두면 됩니다. 2분마다 알아서 묶어 보내고, 이 브라우저 안에도 보관합니다.</li>
+      </ol>
+      <small>여러 사람이 나오면 볼 선수를 화면에서 한 번 눌러 주세요. 하고 싶을 때만: 칠 때마다 F(포핸드)·B(백핸드)·S(서브)·V(발리)·M(스매시)를 누르면 정답으로 씁니다.</small>
+    </div>
+  </section>
+  <aside>
+    <div class="card">
+      <h2 style="margin-top:0">영상 속 선수</h2>
+      <div class="grid">
+        <div><label for="hand">치는 손</label><select id="hand"><option value="R">오른손</option><option value="L">왼손</option></select></div>
+        <div><label for="backhand">백핸드</label><select id="backhand"><option value="2h">양손</option><option value="1h">한손</option></select></div>
+        <div><label for="dir">찍은 방향</label><select id="dir"><option value="">모름·섞여 있음</option><option value="뒤">뒤</option><option value="옆">옆</option><option value="정면">정면</option></select></div>
+        <div><label for="level">수준</label><select id="level"><option value="">모름</option><option value="동호인">동호인</option><option value="선수">선수</option></select></div>
+      </div>
+      <label for="only">한 가지 스트로크만 나오는 영상인가요?</label>
+      <select id="only"><option value="">여러 가지가 섞여 있음</option><option value="forehand">포핸드만</option><option value="backhand">백핸드만</option><option value="serve">서브만</option><option value="volley">발리만</option><option value="smash">스매시만</option></select>
+      <label for="note">메모(영상 제목·채널 — 적고 싶을 때만)</label>
+      <input type="text" id="note" maxlength="300" autocomplete="off">
+      <label class="chk"><input type="checkbox" id="detail"> 관절 좌표 전체도 계속 보내기(용량이 큽니다 — 처음 10분은 늘 보냅니다)</label>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">지금까지</h2>
+      <div id="tally"></div>
+      <ul id="shots"></ul>
+      <div id="box" style="margin-top:10px"></div>
+      <div class="row">
+        <button id="resend" class="ghost">다시 맞춰 보내기</button>
+        <button id="save" class="ghost">파일로도 저장</button>
+      </div>
+      <small>'학습 쪽이 가져간 것'이 늘어나면 학습에 들어간 것입니다. 서버는 잠깐 맡아 두기만 합니다.</small>
+    </div>
+    <p><a href="/coach">← 스윙 코치로</a></p>
+  </aside>
+</main>
+<script type="module" src="/static/coach/js/watch.js?v=1"></script>
+</body>
+</html>

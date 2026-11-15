@@ -78,7 +78,7 @@ export function guessPhase(stroke, m) {
 export function swingMetrics(frames, swing, W, H) {
   const S = G.sides(swing.hand), h = swing.h, sf = swing.sf;
   const at = (t) => (t == null ? null : G.poseAt(frames, t));
-  const out = { stroke: swing.stroke, view: swing.view, twoHanded: swing.twoHanded, uncertain: swing.uncertain, suspect: !!swing.suspect, sf, sfAuto: swing.sfAuto,
+  const out = { stroke: swing.stroke, sub: swing.sub || null, view: swing.view, twoHanded: swing.twoHanded, uncertain: swing.uncertain, suspect: !!swing.suspect, sf, sfAuto: swing.sfAuto,
     conf: swing.vis, vis: swing.vis, tcErr: swing.tcErr, posErr: swing.posErr / h, phases: {} };
   for (const [name, t] of Object.entries(swing.keys)) {
     const p = at(t);
