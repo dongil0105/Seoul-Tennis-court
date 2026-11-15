@@ -109,7 +109,7 @@ async function pick() {
 
 async function loadEngine() {
   try {
-    const m = await (await fetch('/static/coach/data/moment_model.json?v=1', { cache: 'force-cache' })).json();
+    const m = await (await fetch('/static/coach/data/moment_model.json?v=2', { cache: 'force-cache' })).json();
     if (validMomentModel(m)) S.model = m; else say('학습 모델 파일이 맞지 않아요.');
   } catch (_) { say('학습 모델을 받지 못했어요. 새로 고침해 주세요.'); }
   try {
