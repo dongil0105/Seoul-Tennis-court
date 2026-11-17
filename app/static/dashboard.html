@@ -180,6 +180,27 @@ svg{display:block;flex:none}
 .back{display:inline-flex;align-items:center;gap:2px;height:44px;margin:0 8px;padding:0 12px 0 6px;border-radius:12px;font-size:14px;font-weight:600;color:var(--ink-2)}
 .back svg{width:20px;height:20px}
 .back:active{background:var(--press)}
+/* 한 곳 화면의 끝: 다음 테니스장 — 계속 내리면 그곳이 열리고 보던 곳은 닫힌다 */
+#home-one.has-next{min-height:calc(100vh + 120px);min-height:calc(100dvh + 120px)}
+.nextup{margin-top:28px;padding-bottom:56px}
+.nextup-k{margin:0 20px 8px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.nextup .vcard{margin:0 16px}
+.nextup-hint{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:14px;font-size:13px;color:var(--ink-3)}
+.nextup-hint svg{flex:none;width:18px;height:18px}
+.nextup-end{display:block;height:1px}
+/* 서울시 예약 화면에서 빈자리 찾는 법 */
+.howto{margin:4px 0 0;padding-left:20px;list-style:decimal;font-size:14px;line-height:1.6;color:var(--ink-2)}
+.howto>li+li{margin-top:10px}
+.howto>li::marker{font-weight:700;color:var(--ink)}
+.howto b{color:var(--ink)}
+.howto-cal{display:flex;gap:8px;margin:8px 0}
+.hc{display:grid;justify-items:center;flex:1;max-width:96px;padding:8px 4px 7px;border:1px solid var(--line-2);border-radius:12px;background:var(--card);line-height:1.3}
+.hc i{font-style:normal;font-size:14px;color:var(--ink)}
+.hc b{font-size:13px;font-weight:500;color:var(--ink-3)}
+.hc em{margin-top:5px;font-style:normal;font-size:12px;font-weight:700;color:var(--ink-3)}
+.hc.ok em{color:var(--go)}
+.howto-foot{margin-top:10px;font-size:12px;line-height:1.5;color:var(--ink-3)}
+.more>.howto{margin-bottom:4px}
 .one{margin:0 16px}
 .one .vtitle{font-size:20px}
 .mine{display:grid;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
@@ -457,7 +478,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
           <div class="vcard"><div class="sk" style="width:130px;height:24px;margin:10px 0 18px"></div><div class="sk" style="height:84px;border-radius:14px"></div></div>
           <div class="vcard"><div class="sk" style="width:130px;height:24px;margin:10px 0 18px"></div><div class="sk" style="height:84px;border-radius:14px"></div></div>
         </div>
-        <p class="cards-note" id="cards-note" hidden>‘예약 받는 중’은 예약 신청을 받는다는 뜻이에요. 날짜별 빈자리는 코트를 눌러 서울시 예약 화면에서 확인해요.</p>
+        <p class="cards-note" id="cards-note" hidden>‘예약 받는 중’은 예약 신청을 받는다는 뜻이에요. 날짜별 빈자리는 코트를 눌러 서울시 예약 화면의 달력 숫자로 확인해요(4/6처럼 앞이 작으면 빈자리).</p>
         <section class="tip" id="tip" aria-label="처음 쓰는 분께" hidden>
           <h2>이렇게 보세요</h2>
           <ul class="legend">
@@ -533,6 +554,10 @@ details[open]>summary .chev{transform:rotate(180deg)}
           <span class="t">친구에게 공유</span>
           <svg class="chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
+        <details class="lrow-d">
+          <summary><svg class="lead" style="width:22px;height:22px;color:var(--ink-2)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span style="flex:1">서울시 예약 화면에서 빈자리 찾는 법</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <div class="body" id="howto-more"></div>
+        </details>
         <details class="lrow-d">
           <summary><svg class="lead" style="width:22px;height:22px;color:var(--ink-2)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg><span style="flex:1">홈 화면에 앱으로 추가하는 방법</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
           <div class="body">
@@ -1013,6 +1038,11 @@ function sortVenues(list, key) {
   return [...list].sort((a, b) => (key === 'now' ? rank(a) - rank(b) : key === 'soon' ? (at(a) === at(b) ? 0 : at(a) - at(b)) : 0)
     || idx.get(a.area) - idx.get(b.area));
 }
+/* 지금 보는 곳 다음에 올 테니스장 — 목록에 보이는 순서(정렬 메뉴) 그대로. 마지막 곳이거나 없는 곳이면 null */
+function nextVenue(list, key, area) {
+  const order = sortVenues(Array.isArray(list) ? list : [], key), i = order.findIndex((v) => v.area === area);
+  return i >= 0 && i + 1 < order.length ? order[i + 1] : null;
+}
 /* 코트 바닥 종류 — 공개된 시설 안내에서 확인한 것(2026-11-15). 공사로 바뀌면 여기만 고친다. 모르는 곳은 적지 않는다(회색 그림).
    서울숲: 서울시 안내문 '시설현황 - 인조잔디' · 반포: 인조잔디만(사용자가 알려 줌 2026-11-15 — 서초구 이용안내의 '인조잔디 8면 · 클레이 4면'은 예전 내용) · 마루공원: 서울물재생시설공단 '인조잔디(실외)'
    한남(인조잔디 12면) · 장충(하드 — 우레탄 9면) · 선우공원(인조잔디 3면) · 잠원(클레이) · 대치유수지(하드 3면): 예약 정보 사이트(seoul-tennis.com)의 바닥재 표기
@@ -1277,9 +1307,21 @@ function hotSecHTML(x) {
     <p class="sec-lead num">오늘 ${esc(hm(x.open_at))}에 예약이 열렸어요</p>
     ${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}
     ${pickerHTML(x.courts)}
-    <p class="note">${allOk ? '코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈자리는 그 화면에서 확인해요.'
+    <p class="note">${allOk ? '코트를 누르면 서울시 예약 화면이 열려요. 달력에서 4/6처럼 앞 숫자가 작은 날에 빈자리가 있어요.'
       : '서울시 화면에 마감 여부가 아직 안 올라왔어요. 이미 찬 코트도 있을 수 있어요.'}</p></section>`;
 }
+/* 서울시 예약 화면에서 빈자리 찾는 법 — 2026-11-17 그 화면을 사람이 로그인해 열어 확인한 내용(자동으로 읽지 않는다).
+   상세 화면의 달력은 마감된 날도 빈 날과 같은 색이라 숫자로 봐야 한다. 숫자 = 예약된 수/전체 수. */
+const HOWTO_BODY = `<ol class="howto">
+  <li><b>코트를 눌러요.</b> 서울시 예약 화면이 열려요.</li>
+  <li><b>달력의 숫자를 봐요.</b> 숫자는 ‘예약된 수/전체 수’예요.
+    <span class="howto-cal" aria-hidden="true"><span class="hc ok"><i>19</i><b>4/6</b><em>빈자리 2</em></span><span class="hc ok"><i>25</i><b>0/2</b><em>빈자리 2</em></span><span class="hc no"><i>20</i><b>2/2</b><em>마감</em></span></span>
+    앞 숫자가 뒤 숫자보다 작으면 빈자리가 있어요. 두 숫자가 같으면 마감이에요.</li>
+  <li><b>색으로는 찾을 수 없어요.</b> 요즘 서울시 화면은 마감된 날도 빈 날과 같은 흰색이에요. 로그인하고 날짜를 고른 뒤 [예약하기]를 누르면, 다음 화면의 달력에서는 마감된 날이 회색으로 보여요.</li>
+  <li><b>시간을 골라요.</b> 시간 옆 숫자도 같아요. (0/1)은 빈 시간, (1/1)은 찬 시간이에요.</li>
+</ol>
+<p class="howto-foot">2026년 11월 17일 서울시 예약 화면에서 확인한 내용이에요. 화면에는 ‘모집정원/잔여정원’이라고 적혀 있지만 앞 숫자가 이미 예약된 수예요.</p>`;
+const howtoHTML = () => `<details class="more" data-key="howto"><summary><span>서울시 예약 화면에서 빈자리 찾는 법</span>${ICON.chev}</summary>${HOWTO_BODY}</details>`;
 /* 예약 받지 않는 코트(마감 · 접수 끝남 · 일시중지 · 열렸지만 상태 미확인) — 눌러서 예약 화면은 볼 수 있다 */
 function shutChip(groups) {                      // 한 곳의 상태를 한마디로
   const st = new Set(groups.flatMap((g) => g.courts.map((c) => c.state || g.state)));
@@ -1326,7 +1368,7 @@ function nowSecHTML(v) {
       const meta = [g.until_kind === 'use' && g.period ? periodText(g.period) : untilText(g.until_label),
         full ? `다른 코트·시간대 ${full}건 마감` : '', commonHours(g.courts)].filter(Boolean).join(' · ');
       return `<div class="batch">${meta ? `<p class="venue-meta num">${esc(meta)}</p>` : ''}${pickerHTML(g.courts)}</div>`;
-    }).join('') + '<p class="note">코트를 누르면 서울시 예약 화면이 열려요. 날짜별 빈자리는 그 화면에서 확인해요.</p>';
+    }).join('') + '<p class="note">코트를 누르면 서울시 예약 화면이 열려요. 달력에서 4/6처럼 앞 숫자가 작은 날에 빈자리가 있어요.</p>';
   } else {
     body += `<div class="empty"><strong>${v.hot.length ? '위에서 안내한 예약 말고는 예약 받는 코트가 없어요' : '지금은 예약 받는 코트가 없어요'}</strong><p>${
       v.hot.length ? '위쪽 코트를 눌러 예약 화면에서 확인해 주세요.'
@@ -1339,7 +1381,9 @@ function nowSecHTML(v) {
     body += `<details class="more" data-key="more|${esc(v.area)}"${!courts.length && s === 'check' ? ' open' : ''}><summary><span>${allFull ? '마감된' : allUnknown ? '접수 상태를 확인할' : '예약 받지 않는'} 코트·시간대 ${nShut}건 보기</span>${ICON.chev}</summary>${shutBody(v.shut)}</details>`;
   }
   const cnt = courtsLabel(courts);
-  return `<section class="sec" id="sec-now"><h2 class="sec-h"><span>지금 예약 받는 코트</span>${cnt ? `<span class="cnt num">${esc(cnt)}</span>` : ''}</h2>${body}</section>`;
+  // 서울시 예약 화면으로 가는 코트가 하나라도 있으면 그 화면 보는 법을 붙인다
+  const guide = courts.length || left.length || nShut || v.hot.some((x) => x.courts.length) ? howtoHTML() : '';
+  return `<section class="sec" id="sec-now"><h2 class="sec-h"><span>지금 예약 받는 코트</span>${cnt ? `<span class="cnt num">${esc(cnt)}</span>` : ''}</h2>${body}${guide}</section>`;
 }
 /* 서울시 자료에 없는 곳(자체 예약 사이트) — 예약 상태는 모른다. 그 사이트로 가는 버튼과, 그 사이트에 적힌 예약 방법만 보여 준다 */
 function extNowSecHTML(v) {
@@ -1451,6 +1495,7 @@ function playNextSecHTML(v) {
 }
 function oneHTML(v) {
   const mine = fresh.filter((x) => x.area === v.area).sort((a, b) => b.at - a.at);
+  const nx = nextVenue(model.list, sortKey, v.area);      // 끝까지 내리면 열릴 다음 테니스장
   return `<button class="back" data-act="venue" data-area="">${ICON.chevL}<span>전체 테니스장</span></button>
     <article class="vcard one">
       ${headHTML(v, true)}
@@ -1459,7 +1504,13 @@ function oneHTML(v) {
       ${openBtnHTML(v, true, `${v.name} 코트 예약 닫기`)}
     </article>
     ${v.kind === 'play' ? playNowSecHTML(v) + playNextSecHTML(v)
-      : v.hot.map(hotSecHTML).join('') + (v.kind === 'ext' ? extNowSecHTML(v) : nowSecHTML(v)) + nextSecHTML(v)}`;
+      : v.hot.map(hotSecHTML).join('') + (v.kind === 'ext' ? extNowSecHTML(v) : nowSecHTML(v)) + nextSecHTML(v)}
+    ${nx ? `<section class="nextup" id="nextup" data-next="${esc(nx.area)}" aria-label="다음 테니스장">
+      <p class="nextup-k">다음 테니스장</p>
+      ${cardHTML(nx)}
+      <p class="nextup-hint">${ICON.chev}<span>계속 내리면 ${esc(nx.name)} 예약이 열려요</span></p>
+      <i class="nextup-end" id="nextup-end" aria-hidden="true"></i>
+    </section>` : ''}`;
 }
 
 /* ── 칠하기 ───────────────────────────────────────────── */
@@ -1492,7 +1543,7 @@ function paintHome() {
   const mark = focusMark();
   const openKeys = new Set([...document.querySelectorAll('#page-home details[data-key][open]')].map((el) => el.dataset.key));
   const shutKeys = new Set([...document.querySelectorAll('#page-home details[data-key]:not([open])')].map((el) => el.dataset.key));
-  if (v) one.innerHTML = oneHTML(v);
+  if (v) { one.innerHTML = oneHTML(v); one.classList.toggle('has-next', Boolean(one.querySelector('#nextup'))); }
   else {
     // 맨 위 카드는 서울시 자료를 아직 못 받았을 때만 쓴다(평소의 안내는 테니스장 카드 안에 있다)
     const hero = $('hero');
@@ -2054,7 +2105,7 @@ const sameView = (a, b) => Boolean(a && b && a.tab === b.tab && a.area === b.are
 const hashOf = (v) => (v.tab !== 'home' ? `#${v.tab}` : v.area ? `#${SLUG[v.area] || ''}` : '');
 const urlOf = (v) => location.pathname + location.search + hashOf(v);
 const viewKey = (v) => `${v.tab}|${v.area}`;
-let trail = [], idx = 0, homeArea = '', backing = 0;
+let trail = [], idx = 0, homeArea = '', backing = 0, stepHold = 0;   // stepHold: 이 시각 전에는 스크롤로 다음 곳으로 넘기지 않는다
 const scrolls = new Map();
 function parseHash() {
   let h = '';
@@ -2068,6 +2119,7 @@ function focusTitle() {
 }
 function show(v, restore) {
   view = v;
+  stepHold = Date.now() + 700;                        // 화면이 막 바뀐 직후(자리 되돌리기 포함)에는 넘기지 않는다
   if (v.tab === 'home') homeArea = v.area;
   paintView();
   window.scrollTo(0, restore ? scrolls.get(viewKey(v)) || 0 : 0);
@@ -2090,6 +2142,36 @@ function go(next) {
     else { idx += 1; trail.length = idx; trail[idx] = next; history.pushState({i: idx, v: next}, '', urlOf(next)); }
   } catch {}
   show(next, false);
+}
+/* 한 곳 화면을 끝까지 내리면 다음 테니스장이 열리고 보던 곳은 닫힌다(목록에 보이는 순서대로).
+   - 화면을 실제로 움직였을 때만(스크롤 이벤트) 본다. 다음 카드가 다 보이고 그 아래 끝 표시가 아래 탭 위로 올라오면 넘긴다.
+   - 이력은 바꿔 끼운다: 뒤로 가기는 늘 전체 목록으로 간다.
+   - 다음 카드가 있던 자리에서 맨 위 자리로 미끄러져 올라가 이어지는 느낌을 준다(움직임 줄이기 설정이면 바로 바뀐다). */
+function stepNext() {
+  const box = $('nextup'), area = box ? box.dataset.next : '';
+  if (!area || !model || !model.list.some((v) => v.area === area)) return;
+  const card = box.querySelector('.vcard'), y0 = card ? card.getBoundingClientRect().top : 0;
+  const next = {tab: 'home', area};
+  stepHold = Date.now() + 900;
+  trail[idx] = next;
+  try { history.replaceState({i: idx, v: next}, '', urlOf(next)); } catch {}
+  view = next;
+  homeArea = area;
+  paintView();
+  window.scrollTo(0, 0);
+  onScroll();
+  const one = $('home-one'), head = one.querySelector('.vcard.one');
+  const dy = head ? Math.round(y0 - head.getBoundingClientRect().top) : 0;
+  if (dy > 4 && !calm() && one.animate) {               // 끝나면 아무 상태도 남지 않는다(스타일 · 클래스를 건드리지 않음)
+    one.animate([{transform: `translateY(${dy}px)`}, {transform: 'translateY(0)'}], {duration: 340, easing: 'cubic-bezier(.2,.8,.2,1)'});
+  }
+  focusTitle();
+}
+function checkStep() {
+  if (view.tab !== 'home' || !view.area || Date.now() < stepHold || window.scrollY < 120) return;
+  const end = $('nextup-end'), nav = $('nav');
+  if (!end || !nav) return;
+  if (end.getBoundingClientRect().top <= nav.getBoundingClientRect().top - 4) stepNext();
 }
 function leaveMissing() {                             // 주소로 들어온 테니스장이 이 서버에 없음 → 전체로
   view = {tab: 'home', area: ''};
@@ -2152,6 +2234,7 @@ document.addEventListener('click', async (e) => {
   if (act === 'home') { e.preventDefault(); go({tab: 'home', area: ''}); }
   else if (act === 'venue') {                       // 열려 있는 테니스장을 한 번 더 누르면 닫힌다(전체로)
     const a = el.dataset.area || '';
+    if (el.closest('#nextup')) { stepNext(); return; }      // 한 곳 화면 아래의 '다음 테니스장' 카드 — 내려서 넘어갈 때와 똑같이
     go({tab: 'home', area: view.tab === 'home' && view.area === a ? '' : a});
   }
   else if (act === 'tab') go(el.dataset.tab === 'home' ? {tab: 'home', area: view.tab === 'home' ? '' : homeArea} : {tab: el.dataset.tab, area: ''});
@@ -2186,8 +2269,9 @@ $('sort').addEventListener('change', () => {
   paintHome();
   paintPush();
 });
+$('howto-more').innerHTML = HOWTO_BODY;                // 더보기의 '빈자리 찾는 법' — 한 곳 화면과 같은 글
 $('home-one').addEventListener('change', (e) => { if (e.target.matches('[data-free]')) toggleFree(e.target.checked); });
-const onScroll = () => $('app').classList.toggle('scrolled', window.scrollY > 4);
+const onScroll = () => { $('app').classList.toggle('scrolled', window.scrollY > 4); checkStep(); };
 window.addEventListener('scroll', onScroll, {passive: true});
 window.addEventListener('online', reconnectPush);
 window.addEventListener('focus', () => checkInbox(true));

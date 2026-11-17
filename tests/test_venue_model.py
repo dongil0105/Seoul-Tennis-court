@@ -244,3 +244,27 @@ def test_places_are_listed_in_korean_alphabetical_order(out):
     assert "list.sort((a, b) => byArea(a.area, b.area));" in html      # 모델
     assert "[...AREAS].sort(byArea).map" in html                       # 자료가 오기 전의 고르기 줄
     assert "[PLAY_AREA] : [])].sort(byArea);" in html                  # 알림 탭의 테니스장 목록
+
+
+def test_scrolling_to_the_end_opens_the_next_place(out):
+    """한 곳 화면을 끝까지 내리면 다음 테니스장이 열리고 보던 곳은 닫힌다(2026-11-17 사용자 의견)."""
+    nx = out["liveNext"]
+    assert nx["base"] == ABC[1:] + [None, None]                        # 가나다순으로 다음 곳, 마지막(한남)과 없는 곳은 없음
+    for key in ("now", "soon"):                                        # 정렬을 바꾸면 그 순서를 따른다
+        assert nx[key] == out["liveSort"][key][1:] + [None, None], key
+    html = PAGE.read_text(encoding="utf-8")
+    for s in ('id="nextup"', 'id="nextup-end"', "function stepNext()", "function checkStep()", "다음 테니스장", "계속 내리면",
+              "history.replaceState({i: idx, v: next}",              # 이력은 바꿔 끼운다 — 뒤로 가기는 전체 목록
+              "if (el.closest('#nextup')) { stepNext(); return; }",   # 다음 카드를 눌러도 같은 길
+              "window.scrollY < 120"):                                 # 조금 움직인 것으로는 넘기지 않는다
+        assert s in html, s
+    assert "checkStep(); };" in html                                   # 스크롤할 때만 본다
+
+
+def test_guide_for_reading_the_seoul_reservation_screen():
+    """서울시 예약 화면(2026-11 새 디자인)은 마감된 날도 색이 같다 — 숫자로 빈자리를 찾는 법을 알려 준다."""
+    html = PAGE.read_text(encoding="utf-8")
+    for s in ("서울시 예약 화면에서 빈자리 찾는 법", "예약된 수/전체 수", "색으로는 찾을 수 없어요", 'id="howto-more"',
+              "$('howto-more').innerHTML = HOWTO_BODY;", "달력에서 4/6처럼 앞 숫자가 작은 날에 빈자리가 있어요."):
+        assert s in html, s
+    assert "날짜별 빈자리는 그 화면에서 확인해요" not in html
