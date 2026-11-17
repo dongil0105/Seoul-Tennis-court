@@ -221,7 +221,7 @@ def test_guidance_lives_on_the_venue_card_and_same_button_closes():
     assert "'코트 예약 닫기' : '코트 예약 보기'" in page and 'aria-expanded="${on}"' in page
     # 같은 버튼으로 그 자리에서 펼치고 닫는다(11/17: 한 곳만 보여 주던 화면과 뒤로 버튼은 없앴다 — 목록이 늘 그대로 있다)
     assert "else if (openAreas.includes(a)) closeVenue(a, el.classList.contains('vclose') ? 'end' : 'head');" in page
-    assert "else openVenue(a, 'tap');" in page
+    assert "else openVenue(a);" in page
 
 
 def test_page_has_no_leftovers_from_v5():
@@ -251,14 +251,19 @@ def test_places_open_inside_the_list_and_stay_open():
     """(2026-11-17 사용자 의견) 테니스장은 목록 안에서 그 자리에 펼쳐지고, [닫기]를 누를 때까지 열려 있다.
 
     위아래로 그냥 스크롤하면 이어진다 — 화면을 통째로 바꾸거나 맨 위로 되돌리지 않는다.
-    펼쳐진 곳 바로 아래의 카드는 내리다가 화면 가운데쯤 오면 이어서 펼쳐진다(직접 닫은 곳은 다시 열지 않는다).
+    사람이 누를 때만 열린다 — 내리다가 저절로 펼쳐지지 않는다(같은 날 세 번째 의견).
     """
     html = PAGE.read_text(encoding="utf-8")
-    for s in ("let openAreas = [];", "function groupHTML(v, nx)", 'class="vgroup open"', 'class="vbody"', 'class="vclose" data-act="venue"',
-              "function openVenue(area, how)", "function closeVenue(area, from)", "function jumpTo(area)", "function checkFlow()",
-              "noAuto.add(area);", "noAuto.has(g.dataset.area)", "계속 내리면", "모두 닫기",
-              "checkFlow(); spySoon(); };"):                             # 스크롤할 때만 본다
+    for s in ("let openAreas = [];", "function groupHTML(v)", 'class="vgroup open"', 'class="vbody"', 'class="vclose" data-act="venue"',
+              "function openVenue(area)", "function closeVenue(area, from)", "function jumpTo(area)", "모두 닫기"):
         assert s in html, s
+    # 스크롤로는 아무것도 열지 않는다: 스크롤할 때 하는 일은 머리 줄 그림자와 고르기 줄 표시뿐
+    assert "const onScroll = () => { $('app').classList.toggle('scrolled', window.scrollY > 4); spySoon(); };" in html
+    for gone in ("checkFlow", "noAuto", "stepHold", "계속 내리면", "flow-hint"):
+        assert gone not in html, gone
+    # 펼치는 길은 사람이 고르는 두 곳뿐: 카드의 [코트 예약 보기] · 고르기 줄(알림에서 오는 길도 여기로)
+    assert html.count("openVenue(") == 3 and "else openVenue(a);" in html
+    assert "if (!openAreas.includes(area)) openVenue(area); else setRoute(area);" in html
     for gone in ("home-one", "one-title", "nextup", "stepNext", "checkStep", "nextVenue", 'class="back"', 'id="sec-now"', 'id="sec-next"'):
         assert gone not in html, gone
     # 펼치고 닫을 때는 '보던 것'의 자리만 맞춘다 — 맨 위로 되돌리지 않는다
