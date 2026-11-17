@@ -167,9 +167,9 @@ def test_page_structure():
     # 계산 부분과 화면 부분의 경계 — 시험이 이 표시로 계산 부분만 떼어 낸다
     assert page.count("/* MODEL-END */") == 1
     assert page.index("function buildVenues(") < page.index("/* MODEL-END */") < page.index("function renderBoard(")
-    # 아래 탭 3개 · 테니스장 고르기 줄 · 한 곳 화면 · 정렬
+    # 아래 탭 3개 · 테니스장 고르기 줄 · 목록(그 안에서 펼친다) · 모두 닫기 · 정렬
     for part in ('id="nav"', 'data-tab="home"', 'data-tab="alerts"', 'data-tab="more"', 'id="chips"',
-                 'id="home-all"', 'id="home-one"', 'id="sort"', 'id="page-alerts"', 'id="page-more"'):
+                 'id="home-all"', 'id="close-all"', 'id="sort"', 'id="page-alerts"', 'id="page-more"'):
         assert part in page, part
     # 스윙 코치로 가는 탭은 따로 둔 <nav class="tabs"> 하나뿐 — 열쇠가 없는 기기에는 서버가 이 줄만 통째로 뺀다
     assert page.count('<nav class="tabs"') == 1 and page.count('href="/coach"') == 1
@@ -219,8 +219,9 @@ def test_guidance_lives_on_the_venue_card_and_same_button_closes():
         assert gone not in page, gone
     assert "function noteHTML(" in page and "에 예약이 열렸어요. 빈자리는 예약 화면에서 확인해요." in page
     assert "'코트 예약 닫기' : '코트 예약 보기'" in page and 'aria-expanded="${on}"' in page
-    assert "view.tab === 'home' && view.area === a ? '' : a" in page          # 열려 있는 곳을 다시 누르면 전체로
-    assert '<button class="back" data-act="venue" data-area="">' in page       # 뒤로 버튼
+    # 같은 버튼으로 그 자리에서 펼치고 닫는다(11/17: 한 곳만 보여 주던 화면과 뒤로 버튼은 없앴다 — 목록이 늘 그대로 있다)
+    assert "else if (openAreas.includes(a)) closeVenue(a, el.classList.contains('vclose') ? 'end' : 'head');" in page
+    assert "else openVenue(a, 'tap');" in page
 
 
 def test_page_has_no_leftovers_from_v5():
@@ -246,19 +247,26 @@ def test_places_are_listed_in_korean_alphabetical_order(out):
     assert "[PLAY_AREA] : [])].sort(byArea);" in html                  # 알림 탭의 테니스장 목록
 
 
-def test_scrolling_to_the_end_opens_the_next_place(out):
-    """한 곳 화면을 끝까지 내리면 다음 테니스장이 열리고 보던 곳은 닫힌다(2026-11-17 사용자 의견)."""
-    nx = out["liveNext"]
-    assert nx["base"] == ABC[1:] + [None, None]                        # 가나다순으로 다음 곳, 마지막(한남)과 없는 곳은 없음
-    for key in ("now", "soon"):                                        # 정렬을 바꾸면 그 순서를 따른다
-        assert nx[key] == out["liveSort"][key][1:] + [None, None], key
+def test_places_open_inside_the_list_and_stay_open():
+    """(2026-11-17 사용자 의견) 테니스장은 목록 안에서 그 자리에 펼쳐지고, [닫기]를 누를 때까지 열려 있다.
+
+    위아래로 그냥 스크롤하면 이어진다 — 화면을 통째로 바꾸거나 맨 위로 되돌리지 않는다.
+    펼쳐진 곳 바로 아래의 카드는 내리다가 화면 가운데쯤 오면 이어서 펼쳐진다(직접 닫은 곳은 다시 열지 않는다).
+    """
     html = PAGE.read_text(encoding="utf-8")
-    for s in ('id="nextup"', 'id="nextup-end"', "function stepNext()", "function checkStep()", "다음 테니스장", "계속 내리면",
-              "history.replaceState({i: idx, v: next}",              # 이력은 바꿔 끼운다 — 뒤로 가기는 전체 목록
-              "if (el.closest('#nextup')) { stepNext(); return; }",   # 다음 카드를 눌러도 같은 길
-              "window.scrollY < 120"):                                 # 조금 움직인 것으로는 넘기지 않는다
+    for s in ("let openAreas = [];", "function groupHTML(v, nx)", 'class="vgroup open"', 'class="vbody"', 'class="vclose" data-act="venue"',
+              "function openVenue(area, how)", "function closeVenue(area, from)", "function jumpTo(area)", "function checkFlow()",
+              "noAuto.add(area);", "noAuto.has(g.dataset.area)", "계속 내리면", "모두 닫기",
+              "checkFlow(); spySoon(); };"):                             # 스크롤할 때만 본다
         assert s in html, s
-    assert "checkStep(); };" in html                                   # 스크롤할 때만 본다
+    for gone in ("home-one", "one-title", "nextup", "stepNext", "checkStep", "nextVenue", 'class="back"', 'id="sec-now"', 'id="sec-next"'):
+        assert gone not in html, gone
+    # 펼치고 닫을 때는 '보던 것'의 자리만 맞춘다 — 맨 위로 되돌리지 않는다
+    body = html[html.index("function openVenue("):html.index("function jumpTo(")]
+    assert "scrollTo(0, 0)" not in body and "window.scrollBy(0, dy)" in body
+    # 구역 제목은 테니스장 이름(h2) 아래의 h3 — 여러 곳이 같이 열려도 제목 차례가 맞다
+    view = html[html.index("function hotSecHTML("):html.index("function groupHTML(")]
+    assert '<h2 class="sec-h">' not in view and view.count('<h3 class="sec-h">') >= 8
 
 
 def test_guide_for_reading_the_seoul_reservation_screen():

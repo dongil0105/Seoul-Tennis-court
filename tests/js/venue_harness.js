@@ -26,8 +26,7 @@ function boot(t, search = '') {
   const build = (d) => { sandbox.__d = d; return JSON.parse(run('JSON.stringify(buildVenues(__d, nowMs()))')); };
   const sort = (d, key) => { sandbox.__d = d; sandbox.__k = key; return JSON.parse(run('JSON.stringify(sortVenues(buildVenues(__d, nowMs()).list, __k).map((v) => v.area))')); };
   const mock = (kind) => { sandbox.__m = kind; return JSON.parse(run('JSON.stringify(mockBoard(__m))')); };
-  const next = (d, key, area) => { sandbox.__d = d; sandbox.__k = key; sandbox.__a = area; return JSON.parse(run('JSON.stringify((nextVenue(buildVenues(__d, nowMs()).list, __k, __a) || {}).area || null)')); };
-  return {run, build, sort, next, mock, clock};
+  return {run, build, sort, mock, clock};
 }
 const brief = (m) => ({
   list: m.list.map((v) => [v.area, v.now.state, v.now.tone, v.now.title, v.now.sub, v.next.state, v.next.title, v.next.sub, v.next.soon]),
@@ -47,8 +46,6 @@ out.liveDetail = Object.fromEntries(lm.list.map((v) => [v.area, {
   past: v.past.length, rule: v.rule, region: v.region, kind: v.kind}]));
 out.surface = Object.fromEntries([...lm.list.map((v) => v.area), '없는곳'].map((a) => { p.run(`globalThis.__a = ${JSON.stringify(a)}`); return [a, p.run('surfaceText(__a)')]; }));
 out.liveSort = {base: p.sort(live, 'base'), now: p.sort(live, 'now'), soon: p.sort(live, 'soon')};
-// 한 곳 화면을 끝까지 내리면 열릴 '다음 테니스장' — 목록에 보이는 순서 그대로, 마지막 곳 · 없는 곳은 null
-out.liveNext = Object.fromEntries(['base', 'now', 'soon'].map((k) => [k, [...out.liveSort[k], '없는곳'].map((a) => p.next(live, k, a))]));
 // 같은 응답을 3시간 뒤에 보면: 오늘 열린 예약은 '오늘 열림'이 아니게 되고(2시간 지남) 09:03 예약도 열려 있다
 p = boot(live.now_ms + 3 * 36e5);
 const later = p.build(live);
